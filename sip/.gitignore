@@ -1,0 +1,6 @@
+Makefile
+processlib.exp
+processlib.sbf
+processlib_tmp.sip
+processlibconfig.py
+sipAPIprocesslib.h

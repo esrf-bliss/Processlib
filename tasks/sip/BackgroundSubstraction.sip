@@ -1,0 +1,12 @@
+namespace Tasks
+{
+  class BackgroundSubstraction : Task
+  {
+%TypeHeaderCode
+#include <BackgroundSubstraction.h>
+%End
+  public:
+    void setBackgroundImageData(Data &aData);
+    virtual Data process(Data&);
+  };
+};

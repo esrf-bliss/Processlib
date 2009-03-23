@@ -1,0 +1,6 @@
+INSTALATION:
+
+- go to sip directory
+- type "python configuration.py"
+- then "make"
+after all you will have the processlib.so python module ;)
