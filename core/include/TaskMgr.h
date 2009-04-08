@@ -2,27 +2,27 @@
 #include "Data.h"
 class Task;
 
-class BackgroundProcessMgr
+class TaskMgr
 {
   typedef std::deque<std::deque<Task*> > StageTask;
   typedef std::deque<std::pair<Task*,bool> > PendingTask;
 public:
   class TaskWrap
   {
-    friend class BackgroundProcessMgr;
+    friend class TaskMgr;
   public:
     ~TaskWrap();
     void operator()();
   private:
-    TaskWrap(BackgroundProcessMgr&,Task*);
+    TaskWrap(TaskMgr&,Task*);
     Task *_Task;
-    BackgroundProcessMgr &_Mgr;
+    TaskMgr &_Mgr;
   };
   friend class TaskWrap;
   
-  BackgroundProcessMgr();
-  BackgroundProcessMgr(const BackgroundProcessMgr&);
-  ~BackgroundProcessMgr();
+  TaskMgr();
+  TaskMgr(const TaskMgr&);
+  ~TaskMgr();
 
   void setInputData(Data &aData) {_currentData = aData;}
   void addTask(int aStage,Task *);

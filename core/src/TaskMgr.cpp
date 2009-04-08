@@ -1,10 +1,10 @@
-#include "BackgroundProcessMgr.h"
+#include "TaskMgr.h"
 #include "Task.h"
 #include "PoolThreadMgr.h"
 
-BackgroundProcessMgr::BackgroundProcessMgr() {}
+TaskMgr::TaskMgr() {}
 
-BackgroundProcessMgr::BackgroundProcessMgr(const BackgroundProcessMgr &aMgr)
+TaskMgr::TaskMgr(const TaskMgr &aMgr)
 {
   _Tasks.resize(aMgr._Tasks.size());
   StageTask::iterator i = _Tasks.begin();
@@ -15,11 +15,11 @@ BackgroundProcessMgr::BackgroundProcessMgr(const BackgroundProcessMgr &aMgr)
       i->push_back((*k)->copy());
 }
 
-BackgroundProcessMgr::~BackgroundProcessMgr()
+TaskMgr::~TaskMgr()
 {
 }
 
-void BackgroundProcessMgr::addTask(int aStage,Task *aNewTask)
+void TaskMgr::addTask(int aStage,Task *aNewTask)
 {
   if(int(_Tasks.size()) <= aStage)
     _Tasks.resize(aStage + 1);
@@ -27,7 +27,7 @@ void BackgroundProcessMgr::addTask(int aStage,Task *aNewTask)
   aStageTask.push_back(aNewTask);
 }
 
-BackgroundProcessMgr::TaskWrap BackgroundProcessMgr::next()
+TaskMgr::TaskWrap TaskMgr::next()
 {
   std::deque<Task*> &aStageTaskList = _Tasks.front();
   Task *aNextTask = aStageTaskList.front();
@@ -42,7 +42,7 @@ BackgroundProcessMgr::TaskWrap BackgroundProcessMgr::next()
   return TaskWrap(*this,aNextTask);
 }
 
-void BackgroundProcessMgr::_endTask(Task *aFinnishedTask)
+void TaskMgr::_endTask(Task *aFinnishedTask)
 {
   int aNbPendingTask = _PendingTask.size();
   int aNbFinnishedTask = 0;
@@ -66,7 +66,7 @@ void BackgroundProcessMgr::_endTask(Task *aFinnishedTask)
     }
 }
 
-void BackgroundProcessMgr::syncProcess()
+void TaskMgr::syncProcess()
 {
   for(StageTask::iterator aStageTaskList = _Tasks.begin();
       aStageTaskList != _Tasks.end();++aStageTaskList)
@@ -84,16 +84,16 @@ void BackgroundProcessMgr::syncProcess()
     }
   _Tasks.clear();
 }
-//Class BackgroundProcessMgr::TaskWrap
+//Class TaskMgr::TaskWrap
 
-BackgroundProcessMgr::TaskWrap::TaskWrap(BackgroundProcessMgr &aMgr,Task *aTask) :
+TaskMgr::TaskWrap::TaskWrap(TaskMgr &aMgr,Task *aTask) :
   _Task(aTask),_Mgr(aMgr) {}
 
-BackgroundProcessMgr::TaskWrap::~TaskWrap()
+TaskMgr::TaskWrap::~TaskWrap()
 {
   _Mgr._endTask(_Task);
 }
-void BackgroundProcessMgr::TaskWrap::operator() ()
+void TaskMgr::TaskWrap::operator() ()
 {
   Data aResult = _Task->process(_Mgr._currentData);
   if(!aResult.empty())

@@ -103,7 +103,7 @@ Data Binning::process(Data &aData)
 	     mXFactor == 16 && mYFactor == 16 ||
 	     mXFactor == 32 && mYFactor == 32) // Factor 2 (Most used)
 	    {
-	      if(_processingOnDataSourceFlag)
+	      if(_processingInPlaceFlag)
 		{
 		  aNewData.buffer = aData.buffer;
 		  if(aNewData.buffer) aNewData.buffer->ref();
@@ -126,7 +126,7 @@ Data Binning::process(Data &aData)
 	    }
 	  else			// DEFAULT case is not optimized
 	    {
-	      if(_processingOnDataSourceFlag)
+	      if(_processingInPlaceFlag)
 		{
 		  aNewData.buffer = aData.buffer;
 		  if(aNewData.buffer) aNewData.buffer->ref();

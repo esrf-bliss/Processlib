@@ -1,6 +1,6 @@
 #include <iostream>
 #include "PoolThreadMgr.h"
-#include "BackgroundProcessMgr.h"
+#include "TaskMgr.h"
 
 //Static variable
 static const int NB_DEFAULT_THREADS = 2;
@@ -30,17 +30,17 @@ PoolThreadMgr::~PoolThreadMgr()
  *  @param aProcess a background process
  *  @param aFlag if true lock the queue which is the default
 */
-void PoolThreadMgr::addProcess(BackgroundProcessMgr *aProcess,bool aFlag) 
+void PoolThreadMgr::addProcess(TaskMgr *aProcess,bool aFlag) 
 {
   Lock aLock(&_lock,aFlag);
   _processQueue.push_back(aProcess);
   pthread_cond_broadcast(&_cond);
 }
 
-void PoolThreadMgr::removeProcess(BackgroundProcessMgr *aProcess,bool aFlag)
+void PoolThreadMgr::removeProcess(TaskMgr *aProcess,bool aFlag)
 {
   Lock aLock(&_lock,aFlag);
-  for(std::list<BackgroundProcessMgr*>::iterator i = _processQueue.begin();
+  for(std::list<TaskMgr*>::iterator i = _processQueue.begin();
       i != _processQueue.end();++i)
     {
       if(*i == aProcess)
@@ -87,14 +87,14 @@ int PoolThreadMgr::queueLimit()
  *  this is the way to defined the chained process of all images.
  *  each time an image is received, this BackgroundProcess is clone
  */
-void PoolThreadMgr::setBackgroundProcessMgr(const BackgroundProcessMgr *aMgr,
+void PoolThreadMgr::setTaskMgr(const TaskMgr *aMgr,
 					    PoolThreadMgr::SyncMode aSyncMode)
 {
-  BackgroundProcessMgr *refBackgrounMgr = NULL;
+  TaskMgr *refBackgrounMgr = NULL;
   if(aMgr)
-    refBackgrounMgr = new BackgroundProcessMgr(*aMgr);
+    refBackgrounMgr = new TaskMgr(*aMgr);
   Lock aLock(&_lock);
-  BackgroundProcessMgr *&backGroundProcess = 
+  TaskMgr *&backGroundProcess = 
     (aSyncMode == PoolThreadMgr::Sequential) ? _backgroundProcessMgrSequential : _backgroundProcessMgrParallel;
   delete backGroundProcess;
   backGroundProcess = refBackgrounMgr;
@@ -136,8 +136,8 @@ void* PoolThreadMgr::_run(void *arg)
 	pthread_cond_wait(&processMgrPt->_cond,&processMgrPt->_lock);
       if(!processMgrPt->_processQueue.empty())
 	{
-	  BackgroundProcessMgr *processPt = processMgrPt->_processQueue.front();
-	  BackgroundProcessMgr::TaskWrap aNextTask = processPt->next();
+	  TaskMgr *processPt = processMgrPt->_processQueue.front();
+	  TaskMgr::TaskWrap aNextTask = processPt->next();
 	  aLock.unLock();
 	  try
 	    {
@@ -171,24 +171,23 @@ void PoolThreadMgr::_createProcessThread(int aNumber)
  * @param width the image width
  * @param height the image height
  * @param data the array data pointer
- * @param voidBackgroundProcessMgr an address of a backgroundProcessMgr @see backgroundProcessMgrAddress
+ * @param voidTaskMgr an address of a backgroundProcessMgr @see backgroundProcessMgrAddress
  * @return true if all ok
  */
 bool startNewProcess(long frameNumber,
 		     int depth,int width,int height,const char *data,
-		     void *voidBackgroundProcessMgr)
+		     void *voidTaskMgr)
 {
   const char *errorMessagePt = NULL;
   PoolThreadMgr &pollThreadMgr = PoolThreadMgr::get();
   PoolThreadMgr::Lock aLock(&pollThreadMgr._lock);
-  BackgroundProcessMgr *backgroundProcessMgr = (BackgroundProcessMgr*)voidBackgroundProcessMgr;
-  PoolThreadMgr::SyncMode syncMode = (backgroundProcessMgr == pollThreadMgr._backgroundProcessMgrSequential) ? 
+  TaskMgr *aTaskMgr = (TaskMgr*)voidTaskMgr;
+  PoolThreadMgr::SyncMode syncMode = (aTaskMgr == pollThreadMgr._backgroundProcessMgrSequential) ? 
     PoolThreadMgr::Sequential : PoolThreadMgr::Parallel;
 
-  if(backgroundProcessMgr)
+  if(aTaskMgr)
     {
-      BackgroundProcessMgr *aNewBackgroundProcess = 
-	new BackgroundProcessMgr(*backgroundProcessMgr);
+      TaskMgr *aNewTaskPt = new TaskMgr(*aTaskMgr);
       //Init new Data
       Data aNewData = Data();
       aNewData.frameNumber = frameNumber;
@@ -217,19 +216,19 @@ bool startNewProcess(long frameNumber,
 	  errorMessagePt = "Data array is empty";
 	  goto error;
 	}
-      aNewBackgroundProcess->setInputData(aNewData);
+      aNewTaskPt->setInputData(aNewData);
       if(syncMode == PoolThreadMgr::Sequential)
 	{
 	  aLock.unLock();
-	  aNewBackgroundProcess->syncProcess();
-	  delete aNewBackgroundProcess;
+	  aNewTaskPt->syncProcess();
+	  delete aNewTaskPt;
 	}
       else
 	{
 	  while(pollThreadMgr._queueLimit > 0 && 
 		int(pollThreadMgr._processQueue.size()) > pollThreadMgr._queueLimit)
 	    pthread_cond_wait(&pollThreadMgr._cond,&pollThreadMgr._lock);
-	  pollThreadMgr.addProcess(aNewBackgroundProcess,false);
+	  pollThreadMgr.addProcess(aNewTaskPt,false);
 	}
       return true;
     }

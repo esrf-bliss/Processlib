@@ -3,7 +3,7 @@
 #include <list>
 #include <vector>
 #include <pthread.h>
-class BackgroundProcessMgr;
+class TaskMgr;
 struct Data;
 
 extern "C"
@@ -26,12 +26,12 @@ public:
   static inline PoolThreadMgr& get() throw() 
   {return PoolThreadMgr::_processMgr;}
   
-  void addProcess(BackgroundProcessMgr *aProcess,bool lock = true);
-  void removeProcess(BackgroundProcessMgr *aProcess,bool lock = true);
+  void addProcess(TaskMgr *aProcess,bool lock = true);
+  void removeProcess(TaskMgr *aProcess,bool lock = true);
   void setNumberOfThread(int);
   void setQueueLimit(int);
   int queueLimit();
-  void setBackgroundProcessMgr(const BackgroundProcessMgr *,SyncMode);
+  void setTaskMgr(const TaskMgr *,SyncMode);
   long backgroundProcessMgrAddress(SyncMode);
   void quit();
 
@@ -67,11 +67,11 @@ private:
   pthread_cond_t                     _cond;
   volatile bool                      _stopFlag;
   volatile int			     _queueLimit;
-  std::list<BackgroundProcessMgr*>   _processQueue;
+  std::list<TaskMgr*>   _processQueue;
   std::vector<pthread_t>             _threadID;
   static PoolThreadMgr               _processMgr;
-  BackgroundProcessMgr              *_backgroundProcessMgrParallel;
-  BackgroundProcessMgr		    *_backgroundProcessMgrSequential;
+  TaskMgr		             *_backgroundProcessMgrParallel;
+  TaskMgr			     *_backgroundProcessMgrSequential;
   static void* _run(void*);
   void _createProcessThread(int aNumber);
 };

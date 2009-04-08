@@ -50,7 +50,7 @@ Data SoftRoi::process(Data &aData)
       int lineSize = aData.width * depth;
       char *aSrcPt = (char*)aData.data();
       aSrcPt += (startLineId * aData.width + startColumnId) * depth;
-      if(_processingOnDataSourceFlag)
+      if(_processingInPlaceFlag)
 	{
 	  char *aDst = (char*)aData.data();
 	  for(int lineId = startLineId;lineId < endLineId;

@@ -105,19 +105,19 @@ class Task
  public:
   Task(bool = true);
   virtual Data process(Data&);
-  void setProcessingOnDataSource(bool);
+  void setProcessingInPlace(bool);
   virtual Task* copy();
 };
 
-class BackgroundProcessMgr
+class TaskMgr
 {
 %TypeHeaderCode
-#include <BackgroundProcessMgr.h>
+#include <TaskMgr.h>
 %End
 public:
-  BackgroundProcessMgr();
-  BackgroundProcessMgr(const BackgroundProcessMgr&);
-  ~BackgroundProcessMgr();
+  TaskMgr();
+  TaskMgr(const TaskMgr&);
+  ~TaskMgr();
 
   void addTask(int aStage,Task *);
   void setInputData(Data &);
@@ -134,12 +134,12 @@ class PoolThreadMgr
   enum SyncMode {Sequential,Parallel};
   static PoolThreadMgr& get() throw();
   
-  void addProcess(BackgroundProcessMgr *,bool = true);
-  void removeProcess(BackgroundProcessMgr *,bool = true);
+  void addProcess(TaskMgr *,bool = true);
+  void removeProcess(TaskMgr *,bool = true);
   void setNumberOfThread(int);
   void setQueueLimit(int);
   int  queueLimit();
-  void setBackgroundProcessMgr(const BackgroundProcessMgr *,SyncMode);
+  void setTaskMgr(const TaskMgr *,SyncMode);
   long backgroundProcessMgrAddress(SyncMode);
   void quit();
 };

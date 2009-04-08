@@ -116,7 +116,7 @@ Data BackgroundSubstraction::process(Data &aData)
      aData.height == _backgroundImageData.height &&
      aData.width == _backgroundImageData.width)
     {
-      if(_processingOnDataSourceFlag)
+      if(_processingInPlaceFlag) // @todo processing in place
 	{
 	  switch(aData.type)
 	    {

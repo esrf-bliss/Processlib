@@ -5,8 +5,8 @@
 class Task
 {
 public:
-  Task(bool aProcessingOnDataSourceFlag = true) : 
-    _processingOnDataSourceFlag(aProcessingOnDataSourceFlag) {}
+  Task(bool aProcessingInPlaceFlag = true) : 
+    _processingInPlaceFlag(aProcessingInPlaceFlag) {}
   virtual ~Task() {}
   //@brief ask if this task need a internal tmp buffer
   //
@@ -27,10 +27,10 @@ public:
    * the task can't be process in paralelle with other
    * because it will smashed the data source
    */
-  void setProcessingOnDataSource(bool aFlag) 
-  {_processingOnDataSourceFlag = aFlag;}
+  void setProcessingInPlace(bool aFlag) 
+  {_processingInPlaceFlag = aFlag;}
 protected:
   Data _tmpBuffer;
-  bool _processingOnDataSourceFlag;
+  bool _processingInPlaceFlag;
 };
 #endif
