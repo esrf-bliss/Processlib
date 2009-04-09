@@ -113,7 +113,7 @@ namespace Tasks
 				 int min_index,int max_index);
     };
     friend class BpmTask;
-    enum RUN_MODE {Parallel,Sequential};
+    enum RUN_MODE {Counter,Monitor};
     explicit BpmManager(int historySize = 4);
     ~BpmManager();
     
