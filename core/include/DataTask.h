@@ -2,21 +2,18 @@
 #ifndef __TASK_H
 #define __TASK_H
 
-class Task
+class DataTask
 {
 public:
-  Task(bool aProcessingInPlaceFlag = true) : 
+  DataTask(bool aProcessingInPlaceFlag = true) : 
     _processingInPlaceFlag(aProcessingInPlaceFlag) {}
-  virtual ~Task() {}
+  virtual ~DataTask() {}
   //@brief ask if this task need a internal tmp buffer
   //
-  //@return the size needed or 0
-  virtual int needTmpBuffer(const Data *) const {return 0;}
-  void setTmpBuffer(Data &aData) {_tmpBuffer.setData(aData);}
-  //@brief start the processing of this Task
+  //@brief start the processing of this DataTask
   virtual Data process(Data &aData) {return aData;}
   //@brief like a copy constructor
-  virtual Task* copy() const {return NULL;}
+  virtual DataTask* copy() const {return NULL;}
   /* @brief tell the task that the destination buffer of
    * process is the same as the source.
    * @param aFlag
@@ -30,7 +27,6 @@ public:
   void setProcessingInPlace(bool aFlag) 
   {_processingInPlaceFlag = aFlag;}
 protected:
-  Data _tmpBuffer;
   bool _processingInPlaceFlag;
 };
 #endif
