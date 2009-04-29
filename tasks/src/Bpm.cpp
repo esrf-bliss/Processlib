@@ -24,9 +24,9 @@ template<class IN> static inline IN min(IN a,IN b)
  *  the integrated pixel intensity on the image.
  */
 template<class IN> 
-void BpmManager::BpmTask::_treat_image(const Data &aSrc,
-				       Buffer &projection_x,Buffer &projection_y,
-				       BpmManager::Result &aResult)
+void BpmTask::_treat_image(const Data &aSrc,
+			   Buffer &projection_x,Buffer &projection_y,
+			   BpmResult &aResult)
 {
   unsigned long long *aProjectionX = (unsigned long long*)projection_x.data;
   unsigned long long *aProjectionY = (unsigned long long*)projection_y.data;
@@ -48,9 +48,9 @@ void BpmManager::BpmTask::_treat_image(const Data &aSrc,
  *  the image around the maximum.
  */
 template<class IN>
-void BpmManager::BpmTask::_tune_projection(const Data &aSrc,
-					   Buffer &projection_x,Buffer &projection_y,
-					   const BpmManager::Result &aResult)
+void BpmTask::_tune_projection(const Data &aSrc,
+			       Buffer &projection_x,Buffer &projection_y,
+			       const BpmResult &aResult)
 {
   unsigned long long *aProjectionX = (unsigned long long*)projection_x.data;
   memset(aProjectionX,0,aSrc.width * sizeof(unsigned long long));
@@ -111,7 +111,7 @@ inline int _max_intensity_position(const Buffer &projection,int aSize)
 template<class IN> 
 static void _max_intensity(const Data &aSrc,
 			   const Buffer &projection_x,const Buffer & projection_y,
-			   BpmManager::Result &aResult)
+			   BpmResult &aResult)
 {
   Buffer *aBufferPt = aSrc.buffer;
   IN *aSrcPt = (IN*)aBufferPt->data;
@@ -143,9 +143,9 @@ static void _max_intensity(const Data &aSrc,
     }
 }
 
-double BpmManager::BpmTask::_calculate_fwhm(const Buffer &projectionBuffer,int size,
-					    int peak_index,double background_level,
-					    int &min_index,int &max_index)
+double BpmTask::_calculate_fwhm(const Buffer &projectionBuffer,int size,
+				int peak_index,double background_level,
+				int &min_index,int &max_index)
 {
   const unsigned long long *aProjectionPt = (const unsigned long long*)projectionBuffer.data;
   unsigned long long max_value = aProjectionPt[peak_index];
@@ -204,8 +204,8 @@ double BpmManager::BpmTask::_calculate_fwhm(const Buffer &projectionBuffer,int s
 }
 /** @brief Caluclate the background level around the peak
  */
-void BpmManager::BpmTask::_calculate_background(const Buffer &projection,double &background_level,
-						int min_index,int max_index)
+void BpmTask::_calculate_background(const Buffer &projection,double &background_level,
+				    int min_index,int max_index)
 {
   unsigned long long *aProjectionPt = (unsigned long long*)projection.data;
   if(mEnableBackgroundSubstration)
@@ -406,7 +406,8 @@ static inline double _compute_center(double y[],int ly)
   return result;
 }
 //@brief constructor
-BpmManager::BpmTask::BpmTask(BpmManager &aMgr) :
+BpmTask::BpmTask(BpmManager &aMgr) :
+  SinkTask<BpmResult>(aMgr),
   mFwhmTunning(false),
   mFwhmTunningExtension(1.5),
   mAoiExtension(4.),
@@ -417,14 +418,13 @@ BpmManager::BpmTask::BpmTask(BpmManager &aMgr) :
   mEnableX(true),
   mEnableY(true),
   mEnableBackgroundSubstration(false),
-  mRoiAutomatic(true),
-  _mgr(aMgr)
+  mRoiAutomatic(true)
 {
   //Init Roi
   //  mRoi = {-1,-1,-1,-1};
 }
-BpmManager::BpmTask::BpmTask(const BpmManager::BpmTask::BpmTask &aTask) :
-  Task(aTask),
+BpmTask::BpmTask(const BpmTask &aTask) :
+  SinkTask<BpmResult>(aTask),
   mFwhmTunning(aTask.mFwhmTunning),
   mFwhmTunningExtension(aTask.mFwhmTunningExtension),
   mAoiExtension(aTask.mAoiExtension),
@@ -435,13 +435,12 @@ BpmManager::BpmTask::BpmTask(const BpmManager::BpmTask::BpmTask &aTask) :
   mEnableX(aTask.mEnableX),
   mEnableY(aTask.mEnableY),
   mEnableBackgroundSubstration(aTask.mEnableBackgroundSubstration),
-  mRoiAutomatic(aTask.mRoiAutomatic),
-  _mgr(aTask._mgr)
+  mRoiAutomatic(aTask.mRoiAutomatic)
 {
   
 }
 
-Task* BpmManager::BpmTask::copy() const
+SinkTaskBase* BpmTask::copy() const
 {
   return new BpmTask(*this);
 }
@@ -451,14 +450,14 @@ Task* BpmManager::BpmTask::copy() const
   int min_index,max_index; \
   aResult.beam_fwhm_##XorY = _calculate_fwhm(*projection_##XorY,WidthorHeight , \
 					     int(aResult.beam_center_##XorY), \
-					     mBackgroundLevel##XorY,	\
+					     aResult.mBackgroundLevel##XorY,	\
 					     min_index,max_index); \
   /* check for strange results */ \
   if(max_index <= min_index || max_index <= 0 || aResult.beam_fwhm_##XorY <= 0.) \
     { \
       aResult.beam_fwhm_##XorY = -1.; \
       aResult.beam_center_##XorY = -1.; \
-      mBackgroundLevel##XorY = 0; \
+      aResult.mBackgroundLevel##XorY = 0; \
       /*@todo maybe register in BpmManager::Result with enum that call failed */ \
     } \
   else \
@@ -480,7 +479,7 @@ Task* BpmManager::BpmTask::copy() const
 	  min_index = 0; \
 	  max_index = WidthorHeight; \
 	} \
-      _calculate_background(*projection_##XorY,mBackgroundLevel##XorY, \
+      _calculate_background(*projection_##XorY,aResult.mBackgroundLevel##XorY, \
 			    min_index,max_index);		      \
       /* calculate the beam center */				      \
       int size = max_index - min_index + 1; \
@@ -504,14 +503,14 @@ Task* BpmManager::BpmTask::copy() const
   int min_index,max_index; \
   aResult.beam_fwhm_##XorY = _calculate_fwhm(*projection_##XorY,WidthorHeight, \
 					_max_intensity_position(*projection_##XorY,WidthorHeight), \
-					mBackgroundLevelTune##XorY, \
+					aResult.mBackgroundLevelTune##XorY, \
 					min_index,max_index); \
  \
   int AOI_margin = (int)round((aResult.beam_fwhm_##XorY * (mAoiExtension - 1)) / 2.); \
   min_index = max(mBorderExclusion,min_index - AOI_margin); \
   max_index = min(max_index + AOI_margin,WidthorHeight - 1 - mBorderExclusion); \
 	       \
-  _calculate_background(*projection_##XorY,mBackgroundLevelTune##XorY, \
+  _calculate_background(*projection_##XorY,aResult.mBackgroundLevelTune##XorY, \
 			min_index,max_index); \
 }
 
@@ -533,11 +532,18 @@ if(mFwhmTunning) \
       } \
   } \
 }
-Data BpmManager::BpmTask::process(Data &aSrc)
+void BpmTask::process(Data &aSrc)
 {
 
-  BpmManager::Result aResult;
-  _mgr._getLastBackgroundLevel(*this);
+  BpmResult aResult;
+  BpmResult aLastResult = _mgr.getResult();
+  if(aLastResult.errorCode == BpmManager::OK) // copy the previous background level
+    {
+      aResult.mBackgroundLevelx = aLastResult.mBackgroundLevelx;
+      aResult.mBackgroundLevely = aLastResult.mBackgroundLevely;
+      aResult.mBackgroundLevelTunex = aLastResult.mBackgroundLevelTunex;
+      aResult.mBackgroundLevelTuney = aLastResult.mBackgroundLevelTuney;
+    }
   aResult.frameNumber = aSrc.frameNumber;
   int aSize = sizeof(unsigned long long) * aSrc.width;
   Buffer *projection_x = new Buffer(aSize);
@@ -560,151 +566,7 @@ Data BpmManager::BpmTask::process(Data &aSrc)
  clean:
   projection_x->unref();
   projection_y->unref();
-  _mgr._setResult(aResult,*this);
-  return Data();
+  _mgr.setResult(aResult);
 }
 
 
-/** @brief BpmManager class container of the result of the Bpm calculation
- */
-BpmManager::BpmManager(int historySize) :
-  _lastBackgroundLevelx(0.),
-  _lastBackgroundLevely(0.),
-  _lastBackgroundLevelTunex(0.),
-  _lastBackgroundLevelTuney(0.),
-  _currentFrameNumber(0)
-{
-  pthread_mutex_init(&_lock,NULL);
-  pthread_cond_init(&_cond,NULL);
-  _historyResult.resize(historySize);
-}
-
-BpmManager::~BpmManager()
-{
-  pthread_mutex_destroy(&_lock);
-  pthread_cond_destroy(&_cond);
-}
-/** @brief get a BpmTask.
- *  This methode create a BpmTask linked to this BpmManger
- */
-BpmManager::BpmTask* BpmManager::getBpmTask()
-{
-  return new BpmManager::BpmTask(*this);
-}
-/** @brief get the Result class of the Bpm calculation.
-    @param timeout the maximum wait to get the result, timeout is in second
-    @param frameNumber the frame id you want or last frame if < 0
-*/
-BpmManager::Result BpmManager::getResult(double askedTimeout,
-					 int frameNumber) const
-{
-  if(askedTimeout >= 0.)
-    {
-      struct timeval now;
-      struct timespec timeout;
-      int retcode = 0;
-      gettimeofday(&now,NULL);
-      timeout.tv_sec = now.tv_sec + long(askedTimeout);
-      timeout.tv_nsec = (now.tv_usec * 1000) + 
-	long((askedTimeout - long(askedTimeout)) * 1e9);
-      PoolThreadMgr::Lock aLock(&_lock);
-      while(!_isFrameAvailable(frameNumber) && retcode != ETIMEDOUT)
-	retcode = pthread_cond_timedwait(&_cond,&_lock,&timeout);
-      if(retcode == ETIMEDOUT)
-	return BpmManager::Result(BpmManager::Result::TIMEDOUT);
-    }
-  else
-    {
-      PoolThreadMgr::Lock aLock(&_lock);
-      while(!_isFrameAvailable(frameNumber))
-	pthread_cond_wait(&_cond,&_lock);
-    }
-
-  if(frameNumber < 0)
-    frameNumber = _currentFrameNumber;
-  else if(frameNumber < (_currentFrameNumber - int(_historyResult.size())))
-    return BpmManager::Result(BpmManager::Result::NO_MORE_AVAILABLE);
-
-  // still in history
-  int aResultPos = frameNumber % _historyResult.size();
-  return _historyResult[aResultPos];
-}
-
-
-/** @brief return the Result history
- */
-void BpmManager::getHistory(std::list<BpmManager::Result> & anHistory) const
-{
-  anHistory.clear();
-  PoolThreadMgr::Lock aLock(&_lock);
-  for(std::vector<Result>::const_iterator i = _historyResult.begin();
-      i != _historyResult.end();++i)
-    {
-      if(i->frameNumber >= 0)
-	anHistory.push_back(*i);
-    }
-  anHistory.sort();
-}
-/** @brief set the number of result keeped in history.
- *  It resize the result history and clear it
- */
-void BpmManager::resizeHistory(int aSize)
-{
-  if(aSize < 1) aSize = 1;
-  PoolThreadMgr::Lock aLock(&_lock);
-  _historyResult.resize(aSize);
-  // set all result to invalide state
-  for(std::vector<Result>::iterator i = _historyResult.begin();
-      i != _historyResult.end();++i)
-    i->frameNumber = -1;	
-  _currentFrameNumber = 0;
-}
-/** @brief check if the frame asked is available.
- *  check if at the position in the history the result 
- *  have a frame number >= 0 and if so return true
- *  @warning All this call must be under mutex lock
- *  @param frameNumber the frameNumber or < 0 if last
- */
-bool BpmManager::_isFrameAvailable(int aFrameNumber) const
-{
-  if(aFrameNumber < 0) aFrameNumber = _currentFrameNumber;
-
-  if(aFrameNumber < (_currentFrameNumber - int(_historyResult.size()))) 
-    return true;		// the frame asked is no more available
-  else
-    {
-      int aResultPos = aFrameNumber % _historyResult.size();
-      return _historyResult[aResultPos].frameNumber >= 0;
-    }
-}
-
-/** @brief copy all background level from last calculate
- */
-void BpmManager::_getLastBackgroundLevel(BpmManager::BpmTask &aTask) const
-{
-  PoolThreadMgr::Lock aLock(&_lock);
-  aTask.mBackgroundLevelx = _lastBackgroundLevelx;
-  aTask.mBackgroundLevely = _lastBackgroundLevely;
-  aTask.mBackgroundLevelTunex = _lastBackgroundLevelTunex;
-  aTask.mBackgroundLevelTuney = _lastBackgroundLevelTuney;
-}
-/** @brief set a new result and synchronise other thread waiting for it.
- */
-void BpmManager::_setResult(const BpmManager::Result &aResult,
-			    const BpmManager::BpmTask &aTask)
-{
-  PoolThreadMgr::Lock aLock(&_lock);
-  if(aResult.frameNumber > _currentFrameNumber)
-    {
-      _currentFrameNumber = aResult.frameNumber;
-      //copy Background Level
-      _lastBackgroundLevelx = aTask.mBackgroundLevelx;
-      _lastBackgroundLevely = aTask.mBackgroundLevely;
-      _lastBackgroundLevelTunex = aTask.mBackgroundLevelTunex;
-      _lastBackgroundLevelTuney = aTask.mBackgroundLevelTuney;
-    }
-  int aResultPos = aResult.frameNumber % _historyResult.size();
-  if(aResultPos < 0) aResultPos = 0;
-  _historyResult[aResultPos] = aResult;
-  pthread_cond_broadcast(&_cond);
-}

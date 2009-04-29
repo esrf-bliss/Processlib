@@ -4,19 +4,19 @@
 using namespace Tasks;
 
 SoftRoi::SoftRoi() : 
-  Task(),
+  LinkTask(),
   _x1(-1),_x2(-1),
   _y1(-1),_y2(-1)
 {}
 
 SoftRoi::SoftRoi(const SoftRoi &anOther) :
-  Task(),
+  LinkTask(),
   _x1(anOther._x1),_x2(anOther._x2),
   _y1(anOther._y1),_y2(anOther._y2)
 {
 }
 
-Task* SoftRoi::copy() const
+LinkTask* SoftRoi::copy() const
 {
   return new SoftRoi(*this);
 }

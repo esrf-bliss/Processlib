@@ -1,19 +1,19 @@
 #include "Data.h"
-#ifndef __TASK_H
-#define __TASK_H
+#ifndef __LINKTASK_H
+#define __LINKTASK_H
 
-class DataTask
+class LinkTask
 {
 public:
-  DataTask(bool aProcessingInPlaceFlag = true) : 
+  LinkTask(bool aProcessingInPlaceFlag = true) : 
     _processingInPlaceFlag(aProcessingInPlaceFlag) {}
-  virtual ~DataTask() {}
+  virtual ~LinkTask() {}
   //@brief ask if this task need a internal tmp buffer
   //
-  //@brief start the processing of this DataTask
+  //@brief start the processing of this LinkTask
   virtual Data process(Data &aData) {return aData;}
   //@brief like a copy constructor
-  virtual DataTask* copy() const {return NULL;}
+  virtual LinkTask* copy() const {return NULL;}
   /* @brief tell the task that the destination buffer of
    * process is the same as the source.
    * @param aFlag

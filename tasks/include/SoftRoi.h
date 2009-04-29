@@ -1,13 +1,13 @@
-#include "Task.h"
+#include "LinkTask.h"
 namespace Tasks
 {
-  class SoftRoi : public Task
+  class SoftRoi : public LinkTask
   {
   public:
     SoftRoi();
     SoftRoi(const SoftRoi&);
     virtual Data process(Data&);
-    virtual Task* copy() const;
+    virtual LinkTask* copy() const;
     void setRoi(int x1,int x2,
 		int y1,int y2);
   private:

@@ -1,6 +1,6 @@
 namespace Tasks
 {
-  class BackgroundSubstraction : Task
+  class BackgroundSubstraction : LinkTask
   {
 %TypeHeaderCode
 #include <BackgroundSubstraction.h>

@@ -1,14 +1,14 @@
-#include "Task.h"
+#include "LinkTask.h"
 namespace Tasks
 {
-  class Binning : public Task
+  class Binning : public LinkTask
   {
   public:
     Binning();
     Binning(const Binning&);
 
     virtual Data process(Data&);
-    virtual Task* copy() const;
+    virtual LinkTask* copy() const;
 
     int mXFactor;
     int mYFactor;

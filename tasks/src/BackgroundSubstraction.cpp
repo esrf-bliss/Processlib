@@ -96,12 +96,12 @@ static void _substract<unsigned short>(void *source,void *dst,int aSize,void *ba
 }
 #endif
 
-BackgroundSubstraction::BackgroundSubstraction() : Task()
+BackgroundSubstraction::BackgroundSubstraction() : LinkTask()
 {
 }
 
 BackgroundSubstraction::BackgroundSubstraction(const BackgroundSubstraction &aBackgroundSubstraction) :
-  Task(),_backgroundImageData(aBackgroundSubstraction._backgroundImageData)
+  LinkTask(),_backgroundImageData(aBackgroundSubstraction._backgroundImageData)
 {
 }
 
@@ -157,7 +157,7 @@ Data BackgroundSubstraction::process(Data &aData)
   return Data();		// empty result
 }
 
-Task* BackgroundSubstraction::copy() const
+LinkTask* BackgroundSubstraction::copy() const
 {
   return new BackgroundSubstraction(*this);
 }

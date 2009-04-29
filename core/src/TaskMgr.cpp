@@ -1,101 +1,194 @@
 #include "TaskMgr.h"
-#include "Task.h"
+#include "LinkTask.h"
+#include "SinkTask.h"
 #include "PoolThreadMgr.h"
+
+//Class TaskMgr::TaskLinkWrap
+class TaskLinkWrap : public TaskMgr::TaskWrap
+{
+public:
+  TaskLinkWrap(TaskMgr &aMgr,LinkTask *aTask) : TaskWrap(aMgr),_LinkTask(aTask) {}
+  virtual ~TaskLinkWrap()
+  {
+    _endLinkTask(_LinkTask);
+  }
+  virtual void process()
+  {
+    Data aResult = _LinkTask->process(_currentData());
+    _setNextData(aResult);
+  }
+private:
+  LinkTask	*_LinkTask;
+};
+
+//Class TaskSinkWrap
+class TaskSinkWrap : public TaskMgr::TaskWrap
+{
+public:
+  TaskSinkWrap(TaskMgr &aMgr,SinkTaskBase *aTask) : TaskWrap(aMgr),_SinkTask(aTask) {}
+  virtual ~TaskSinkWrap()
+  {
+    _endSinkTask(_SinkTask);
+  }
+  virtual void process()
+  {
+    _SinkTask->process(_currentData());
+  }
+private:
+  SinkTaskBase	*_SinkTask;
+};
+
+//struct Task
+
+TaskMgr::Task* TaskMgr::Task::copy() const
+{
+  TaskMgr::Task *aReturnTask = new TaskMgr::Task();
+  aReturnTask->_linkTask = _linkTask ? _linkTask->copy() : NULL;
+  for(std::deque<SinkTaskBase*>::const_iterator i = _sinkTaskQueue.begin();
+      i != _sinkTaskQueue.end();++i)
+    aReturnTask->_sinkTaskQueue.push_back((*i)->copy());
+  return aReturnTask;
+}
+
+TaskMgr::Task::~Task()
+{
+  delete _linkTask;
+  for(std::deque<SinkTaskBase*>::iterator i = _sinkTaskQueue.begin();
+      i != _sinkTaskQueue.end();++i)
+    delete *i;
+}
 
 TaskMgr::TaskMgr() {}
 
 TaskMgr::TaskMgr(const TaskMgr &aMgr)
 {
-  _Tasks.resize(aMgr._Tasks.size());
-  StageTask::iterator i = _Tasks.begin();
-  StageTask::const_iterator j = aMgr._Tasks.begin();
-  for(;i != _Tasks.end();++i,++j)
-    for(std::deque<Task*>::const_iterator k = j->begin();
-	k != j->end();++k)
-      i->push_back((*k)->copy());
+  for(StageTask::const_iterator i = aMgr._Tasks.begin();
+      i != aMgr._Tasks.end();++i)
+    _Tasks.push_back((*i)->copy());
 }
 
 TaskMgr::~TaskMgr()
 {
+  for(StageTask::iterator i = _Tasks.begin();
+      i != _Tasks.end();++i)
+    delete *i;
+}
+/** @brief add a linked task
+ *  @return true if task set for stage
+ */
+bool TaskMgr::setLinkTask(int aStage,LinkTask *aNewTask)
+{
+  bool aReturnFlag = false;
+  if(int(_Tasks.size()) <= aStage)
+    _Tasks.resize(aStage + 1);
+  if(!_Tasks[aStage]->_linkTask)
+    _Tasks[aStage]->_linkTask = aNewTask,aReturnFlag =  true;
+
+  return aReturnFlag;
 }
 
-void TaskMgr::addTask(int aStage,Task *aNewTask)
+void TaskMgr::addSinkTask(int aStage,SinkTaskBase *aNewTask)
 {
   if(int(_Tasks.size()) <= aStage)
     _Tasks.resize(aStage + 1);
-  std::deque<Task*> &aStageTask = _Tasks[aStage];
-  aStageTask.push_back(aNewTask);
+  _Tasks[aStage]->_sinkTaskQueue.push_back(aNewTask);
 }
-
-TaskMgr::TaskWrap TaskMgr::next()
+TaskMgr::TaskWrap* TaskMgr::next()
 {
-  std::deque<Task*> &aStageTaskList = _Tasks.front();
-  Task *aNextTask = aStageTaskList.front();
-  aStageTaskList.pop_front();
-  _PendingTask.push_back(std::pair<Task*,bool>(aNextTask,false));
-  if(aStageTaskList.empty())		// Nothing else for this stage
+#define CHECK_END_STAGE()					\
+  if(aTaskPt->_sinkTaskQueue.empty())				\
+    {								\
+      PoolThreadMgr::get().removeProcess(this,false);		\
+      delete aTaskPt;						\
+      _Tasks.pop_front();					\
+    }								
+
+  Task *aTaskPt = _Tasks.front();
+  if(aTaskPt->_linkTask)		// first linked task
     {
-       // Remove processmrg from the queue
-      PoolThreadMgr::get().removeProcess(this,false);
-      _Tasks.pop_front();
+      _PendingLinkTask = aTaskPt->_linkTask;
+      aTaskPt->_linkTask = NULL;
+      CHECK_END_STAGE();
+      return new TaskLinkWrap(*this,_PendingLinkTask);
     }
-  return TaskWrap(*this,aNextTask);
+  else
+    {
+      SinkTaskBase *aNewSinkTaskPt = aTaskPt->_sinkTaskQueue.front();
+      aTaskPt->_sinkTaskQueue.pop_front();
+      _PendingSinkTask.push_back(std::pair<SinkTaskBase*,bool>(aNewSinkTaskPt,false));
+      CHECK_END_STAGE();
+      return new TaskSinkWrap(*this,aNewSinkTaskPt);
+    }
 }
 
-void TaskMgr::_endTask(Task *aFinnishedTask)
+void TaskMgr::_endLinkTask(LinkTask*)
 {
-  int aNbPendingTask = _PendingTask.size();
+  delete _PendingLinkTask;
+  _PendingLinkTask = NULL;
+  int aNbPendingSinkTask = _PendingSinkTask.size();
+  int aNbFinnishedSinkTask = 0;
+  for(PendingSinkTask::iterator i = _PendingSinkTask.begin();
+      i != _PendingSinkTask.end();++i)
+    if(i->second) ++aNbFinnishedSinkTask;
+  
+  if(aNbFinnishedSinkTask == aNbPendingSinkTask) 
+    _goToNextStage();
+}
+
+void TaskMgr::_endSinkTask(SinkTaskBase *aFinnishedTask)
+{
+  int aNbPendingTask = _PendingSinkTask.size();
   int aNbFinnishedTask = 0;
-  for(PendingTask::iterator i = _PendingTask.begin();
-      i != _PendingTask.end();++i)
+  for(PendingSinkTask::iterator i = _PendingSinkTask.begin();
+      i != _PendingSinkTask.end();++i)
     {
       if(i->first == aFinnishedTask)
 	delete i->first,i->second = true;
       if(i->second) ++aNbFinnishedTask;
     }
- // Processing Stage finnished, going to next stage
-  if(aNbFinnishedTask == aNbPendingTask)
+  if(!_PendingLinkTask && aNbFinnishedTask == aNbPendingTask)
     {
-      _currentData = _nextData;	// swap
-      _nextData.releaseBuffer();
-      _PendingTask.clear();	// Reset Pending task for this stage
-      if(_Tasks.empty())	// Process is finnished
-	delete this;		// suicide
-      else
-	PoolThreadMgr::get().addProcess(this,false); // Re insert in the Poll
+      _PendingSinkTask.clear();	// Reset Pending task for this stage
+      _goToNextStage();
     }
+}
+
+//@brief Processing Stage finnished, going to next stage
+void TaskMgr::_goToNextStage()
+{
+  _currentData = _nextData;	// swap
+  _nextData.releaseBuffer();
+  if(_Tasks.empty())	// Process is finnished
+    delete this;		// suicide
+  else
+    PoolThreadMgr::get().addProcess(this,false); // Re insert in the Poll
 }
 
 void TaskMgr::syncProcess()
 {
-  for(StageTask::iterator aStageTaskList = _Tasks.begin();
-      aStageTaskList != _Tasks.end();++aStageTaskList)
+  for(StageTask::iterator aStageTask = _Tasks.begin();
+      aStageTask != _Tasks.end();++aStageTask)
     {
-      for(std::deque<Task*>::iterator aTaskIter = aStageTaskList->begin();
-	  aTaskIter != aStageTaskList->end();++aTaskIter)
+      Task *aStageTaskPt = *aStageTask;
+      if(aStageTaskPt->_linkTask)
 	{
-	  Data aResult = (*aTaskIter)->process(_currentData);
-	  if(!aResult.empty())
-	    _nextData = aResult;
-	  delete *aTaskIter;	// delete the task
+	  _nextData = aStageTaskPt->_linkTask->process(_currentData);
+	  delete aStageTaskPt->_linkTask;
+	  aStageTaskPt->_linkTask = NULL;
 	}
-      _currentData = _nextData; // swap
-      _nextData.releaseBuffer();
+      for(std::deque<SinkTaskBase*>::iterator aSinkTask = aStageTaskPt->_sinkTaskQueue.begin();
+	  aSinkTask != aStageTaskPt->_sinkTaskQueue.end();++aSinkTask)
+	{
+	  (*aSinkTask)->process(_currentData);
+	  delete *aSinkTask;
+	}
+      aStageTaskPt->_sinkTaskQueue.clear();
+      if(!_nextData.empty())
+	{
+	  _currentData = _nextData; // swap
+	  _nextData.releaseBuffer();
+	}
+      delete aStageTaskPt;
     }
   _Tasks.clear();
-}
-//Class TaskMgr::TaskWrap
-
-TaskMgr::TaskWrap::TaskWrap(TaskMgr &aMgr,Task *aTask) :
-  _Task(aTask),_Mgr(aMgr) {}
-
-TaskMgr::TaskWrap::~TaskWrap()
-{
-  _Mgr._endTask(_Task);
-}
-void TaskMgr::TaskWrap::operator() ()
-{
-  Data aResult = _Task->process(_Mgr._currentData);
-  if(!aResult.empty())
-    _Mgr._nextData = aResult;
 }

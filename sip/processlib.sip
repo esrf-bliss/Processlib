@@ -7,7 +7,6 @@ extern "C" { void processlib_import_array();}
 %PostInitialisationCode
 processlib_import_array();
 %End
-
 struct Data
 {
 %TypeHeaderCode
@@ -97,16 +96,27 @@ extern "C"
 
 
 
-class Task
+class LinkTask
 {
 %TypeHeaderCode
-#include <Task.h>
+#include <LinkTask.h>
 %End
  public:
-  Task(bool = true);
+  LinkTask(bool = true);
   virtual Data process(Data&);
   void setProcessingInPlace(bool);
-  virtual Task* copy();
+  virtual LinkTask* copy();
+};
+
+class SinkTaskBase
+{
+%TypeHeaderCode
+#include <SinkTask.h>
+%End
+public:
+  virtual ~SinkTaskBase();
+  virtual void process(Data&);
+  virtual SinkTaskBase* copy() const;
 };
 
 class TaskMgr
@@ -119,7 +129,8 @@ public:
   TaskMgr(const TaskMgr&);
   ~TaskMgr();
 
-  void addTask(int aStage,Task *);
+  void setLinkTask(int aStage,LinkTask *);
+  void addSinkTask(int aStage,SinkTaskBase*);
   void setInputData(Data &);
   void syncProcess();
 };
@@ -131,7 +142,6 @@ class PoolThreadMgr
 %End
 
  public:
-  enum SyncMode {Sequential,Parallel};
   static PoolThreadMgr& get() throw();
   
   void addProcess(TaskMgr *,bool = true);
@@ -139,7 +149,6 @@ class PoolThreadMgr
   void setNumberOfThread(int);
   void setQueueLimit(int);
   int  queueLimit();
-  void setTaskMgr(const TaskMgr *,SyncMode);
-  long backgroundProcessMgrAddress(SyncMode);
+  void setTaskMgr(const TaskMgr *);
   void quit();
 };

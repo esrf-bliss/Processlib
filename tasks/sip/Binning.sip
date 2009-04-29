@@ -1,6 +1,6 @@
 namespace Tasks
 {
-  class Binning :  Task
+  class Binning :  LinkTask
   {
 %TypeHeaderCode
 #include <Binning.h>

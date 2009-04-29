@@ -1,21 +1,40 @@
 #include <deque>
 #include "Data.h"
-class Task;
+
+class LinkTask;
+class SinkTaskBase;
 
 class TaskMgr
 {
-  typedef std::deque<std::deque<Task*> > StageTask;
-  typedef std::deque<std::pair<Task*,bool> > PendingTask;
+  struct Task
+  {
+    Task() : _linkTask(NULL) {}
+    ~Task();
+    Task* copy() const;
+    LinkTask		       *_linkTask;
+    std::deque<SinkTaskBase*>	_sinkTaskQueue;
+  };
+  typedef std::deque<Task*> StageTask;
+  typedef std::deque<std::pair<SinkTaskBase*,bool> > PendingSinkTask;
+  
 public:
   class TaskWrap
   {
     friend class TaskMgr;
   public:
-    ~TaskWrap();
-    void operator()();
-  private:
-    TaskWrap(TaskMgr&,Task*);
-    Task *_Task;
+    virtual ~TaskWrap(){};
+    virtual void process() = 0;
+  protected:
+    TaskWrap(TaskMgr &aMgr) : _Mgr(aMgr) {};
+
+    inline void _endLinkTask(LinkTask *aFinnishedTask) 
+      {_Mgr._endLinkTask(aFinnishedTask);}
+    inline void _endSinkTask(SinkTaskBase *aFinnishedTask)
+      {_Mgr._endSinkTask(aFinnishedTask);}
+    inline void _setNextData(Data &aNextData)
+      {_Mgr._nextData = aNextData;}
+    inline Data& _currentData() 
+      {return _Mgr._currentData;}
     TaskMgr &_Mgr;
   };
   friend class TaskWrap;
@@ -25,15 +44,19 @@ public:
   ~TaskMgr();
 
   void setInputData(Data &aData) {_currentData = aData;}
-  void addTask(int aStage,Task *);
-  TaskWrap next();
+  bool setLinkTask(int aStage,LinkTask *);
+  void addSinkTask(int aStage,SinkTaskBase *);
+  TaskWrap* next();
   //@brief do all the task in synchronously
   void syncProcess();
 private:
-  StageTask   _Tasks;
-  PendingTask _PendingTask;
+  StageTask		_Tasks;
+  LinkTask		*_PendingLinkTask;
+  PendingSinkTask	_PendingSinkTask;
   Data       _currentData;
   Data       _nextData;
 
-  void _endTask(Task *aFinnishedTask);
+  void _endLinkTask(LinkTask *aFinnishedTask);
+  void _endSinkTask(SinkTaskBase *aFinnishedTask);
+  void _goToNextStage();
 };

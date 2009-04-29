@@ -1,20 +1,27 @@
 namespace Tasks
 {
-  class BpmManager
-  {
+ class BpmManager
+  {	
 %TypeHeaderCode
 #include <Bpm.h>
 %End
+    public:
+    enum ErrorCode {OK,NO_MORE_AVAILABLE,TIMEDOUT};
+    enum RUN_MODE {Counter,Monitor};
+    BpmManager(int = 4);
+    ~BpmManager();
 
-  public:
-    class Result
+    Tasks::BpmResult	getResult(double = 0.,int = -1) const;
+    void	resizeHistory(int aSize);
+  };
+
+  class BpmResult
     {
 %TypeHeaderCode
 #include <Bpm.h>
 %End
     public:
-      enum ErrorCode {OK,NO_MORE_AVAILABLE,TIMEDOUT};
-      Result();
+      BpmResult();
 
       double		beam_intensity;
       double		beam_center_x;
@@ -38,38 +45,32 @@ namespace Tasks
       int		AOI_min_y;
       int		AOI_max_y;
       unsigned int	border_exclusion;
-      ErrorCode		errorCode;
+      Tasks::BpmManager::ErrorCode errorCode;
     };
-    
-    class BpmTask : Task
-    {
+
+ 
+
+ class BpmTask
+  {
 %TypeHeaderCode
 #include <Bpm.h>
 %End
-    public:
-      BpmTask(Tasks::BpmManager &);
-      virtual Data process(Data&); 
-
-      bool		mFwhmTunning;
-      double		mFwhmTunningExtension;
-      double		mAoiExtension;
-      int		mBorderExclusion;
-      unsigned int	mThreshold;
-      bool		mEnableX;
-      bool		mEnableY;
-      bool		mEnableBackgroundSubstration;
-      bool		mRoiAutomatic;
+  public:
+    BpmTask(Tasks::BpmManager &);
+    BpmTask(const Tasks::BpmTask&);
+    virtual void process(Data&); 
+    virtual SinkTaskBase* copy() const;
       
-      double		mBackgroundLevelx;
-      double		mBackgroundLevely;
-      double		mBackgroundLevelTunex;
-      double		mBackgroundLevelTuney;
-    };
-    BpmManager(int = 4);
-    ~BpmManager();
-
-    BpmTask*	getBpmTask();
-    Result	getResult(double = -1.,int = -1) const;
-    void	resizeHistory(int aSize);
+    bool		mFwhmTunning;
+    double		mFwhmTunningExtension;
+    double		mAoiExtension;
+    int			mBorderExclusion;
+    unsigned int	mThreshold;
+    bool		mEnableX;
+    bool		mEnableY;
+    bool		mEnableBackgroundSubstration;
+    bool		mRoiAutomatic;
   };
+
+
 };

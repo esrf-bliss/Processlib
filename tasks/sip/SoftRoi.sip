@@ -1,6 +1,6 @@
 namespace Tasks
 {
-  class SoftRoi : Task
+  class SoftRoi : LinkTask
   {
 %TypeHeaderCode
 #include <SoftRoi.h>

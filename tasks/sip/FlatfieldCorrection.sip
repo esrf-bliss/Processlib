@@ -1,7 +1,7 @@
 
 namespace Tasks
 {
-  class FlatfieldCorrection :  Task
+  class FlatfieldCorrection : LinkTask
   {
 %TypeHeaderCode
 #include <FlatfieldCorrection.h>

@@ -13,8 +13,10 @@ PoolThreadMgr::PoolThreadMgr()
   pthread_cond_init(&_cond,NULL);
 
   _stopFlag = false;
+  _suspendFlag = false;
+  _runningThread = 0;
   _queueLimit = QUEUE_DEFAULT_LIMIT;
-  _backgroundProcessMgrSequential = _backgroundProcessMgrParallel = NULL;
+  _taskMgr = NULL;
   _createProcessThread(NB_DEFAULT_THREADS);
 }
 
@@ -44,15 +46,19 @@ void PoolThreadMgr::removeProcess(TaskMgr *aProcess,bool aFlag)
       i != _processQueue.end();++i)
     {
       if(*i == aProcess)
-	{
-	  _processQueue.erase(i);
-	  if(_queueLimit == int(_processQueue.size()))
-	    pthread_cond_broadcast(&_cond);
-	  break;
-	}
+       {
+         _processQueue.erase(i);
+         if(_queueLimit == int(_processQueue.size()))
+           pthread_cond_broadcast(&_cond);
+         break;
+       }
     }
 }
-//@warning this methode is not MT-Safe
+
+/** @brief change the number of thread in the pool
+ * @warning this methode is not MT-Safe
+ * @see quit
+ */
 void PoolThreadMgr::setNumberOfThread(int nbThread) 
 {
   if(int(_threadID.size()) <= nbThread)
@@ -62,7 +68,6 @@ void PoolThreadMgr::setNumberOfThread(int nbThread)
       quit();
       _createProcessThread(nbThread);
     }
-      
 }
 /** @brief set the process queue limit.
     This methode limit the number of process queued by startNewProcess
@@ -73,7 +78,6 @@ void PoolThreadMgr::setQueueLimit(int size)
 {
   Lock aLock(&_lock);
   _queueLimit = size;
-  pthread_cond_broadcast(&_cond);
 }
 /** @brief get the max lenght queue process
  */
@@ -85,31 +89,24 @@ int PoolThreadMgr::queueLimit()
 /** @brief set the image processing mgr 
  *
  *  this is the way to defined the chained process of all images.
- *  each time an image is received, this BackgroundProcess is clone
+ *  each time an image is received, this TaskMgr is clone
+ * @param aMgr set a TaskMgr or NULL to remove the previous one
  */
-void PoolThreadMgr::setTaskMgr(const TaskMgr *aMgr,
-					    PoolThreadMgr::SyncMode aSyncMode)
+void PoolThreadMgr::setTaskMgr(const TaskMgr *aMgr)
 {
   TaskMgr *refBackgrounMgr = NULL;
   if(aMgr)
     refBackgrounMgr = new TaskMgr(*aMgr);
   Lock aLock(&_lock);
-  TaskMgr *&backGroundProcess = 
-    (aSyncMode == PoolThreadMgr::Sequential) ? _backgroundProcessMgrSequential : _backgroundProcessMgrParallel;
-  delete backGroundProcess;
-  backGroundProcess = refBackgrounMgr;
+  delete _taskMgr;
+  _taskMgr = refBackgrounMgr;
 }
 
-/** @brief get background process manager address
- *  @return the address of the choosen manager
+/** @brief clean quit
+ * @warning this methode is not MT-Safe
+ * @see setNumberOfThread
  */
-long PoolThreadMgr::backgroundProcessMgrAddress(SyncMode aSyncMode)
-{
-  Lock aLock(&_lock);
-  return (aSyncMode == PoolThreadMgr::Sequential) ? 
-    (long)_backgroundProcessMgrSequential : (long)_backgroundProcessMgrParallel;
-}
-//@warning this methode is not MT-Safe
+
 void PoolThreadMgr::quit()
 {
   Lock aLock(&_lock);
@@ -125,31 +122,53 @@ void PoolThreadMgr::quit()
     }
   _threadID.clear();
 }
+/** @brief abort all process
+ */
+void PoolThreadMgr::abort()
+{
+  Lock aLock(&_lock);
+  _suspendFlag = true;
+  while(_runningThread) pthread_cond_wait(&_cond,&_lock);
+  for(std::list<TaskMgr*>::iterator i = _processQueue.begin();
+      i != _processQueue.end();++i)
+    delete *i;
+  _processQueue.clear();
+  _suspendFlag = false;
+}
 
 void* PoolThreadMgr::_run(void *arg) 
 {
   PoolThreadMgr* processMgrPt = (PoolThreadMgr*)arg;
   Lock aLock(&processMgrPt->_lock);
+  processMgrPt->_runningThread++;
   while(1)
     {
-      while(!processMgrPt->_stopFlag && processMgrPt->_processQueue.empty())
-	pthread_cond_wait(&processMgrPt->_cond,&processMgrPt->_lock);
+      processMgrPt->_runningThread--;
+      while(processMgrPt->_suspendFlag ||
+	    (!processMgrPt->_stopFlag && processMgrPt->_processQueue.empty()))
+	{
+	  pthread_cond_broadcast(&processMgrPt->_cond);	// synchro if abort
+	  pthread_cond_wait(&processMgrPt->_cond,&processMgrPt->_lock);
+	}
+      processMgrPt->_runningThread++;
       if(!processMgrPt->_processQueue.empty())
 	{
 	  TaskMgr *processPt = processMgrPt->_processQueue.front();
-	  TaskMgr::TaskWrap aNextTask = processPt->next();
+	  TaskMgr::TaskWrap *aNextTask = processPt->next();
 	  aLock.unLock();
 	  try
 	    {
-	      aNextTask();
+	      aNextTask->process();
 	    }
 	  catch(...)
 	    {
 	    }
 	  aLock.lock();
+	  delete aNextTask;
 	}
-      else break;
+      else break;		// stop
     }
+  processMgrPt->_runningThread--;
   return NULL;
 }
 
@@ -171,23 +190,31 @@ void PoolThreadMgr::_createProcessThread(int aNumber)
  * @param width the image width
  * @param height the image height
  * @param data the array data pointer
- * @param voidTaskMgr an address of a backgroundProcessMgr @see backgroundProcessMgrAddress
- * @return true if all ok
+ * @return 
+ * - STARTED every thing is OK
+ * - NO_TASK no task manager defined
+ * - BAD_DATA input data not valid
+ * - OVERRUN queue limit exceeded 
  */
-bool startNewProcess(long frameNumber,
-		     int depth,int width,int height,const char *data,
-		     void *voidTaskMgr)
+START_PROCESS_ERROR startNewProcess(long frameNumber,
+				    int depth,int width,int height,const char *data)
 {
   const char *errorMessagePt = NULL;
+  START_PROCESS_ERROR errorEnum = NO_TASK;
   PoolThreadMgr &pollThreadMgr = PoolThreadMgr::get();
   PoolThreadMgr::Lock aLock(&pollThreadMgr._lock);
-  TaskMgr *aTaskMgr = (TaskMgr*)voidTaskMgr;
-  PoolThreadMgr::SyncMode syncMode = (aTaskMgr == pollThreadMgr._backgroundProcessMgrSequential) ? 
-    PoolThreadMgr::Sequential : PoolThreadMgr::Parallel;
+  TaskMgr *aTaskMgr = pollThreadMgr._taskMgr;
 
   if(aTaskMgr)
     {
-      TaskMgr *aNewTaskPt = new TaskMgr(*aTaskMgr);
+      if(pollThreadMgr._queueLimit > 0 && 
+	 int(pollThreadMgr._processQueue.size()) > pollThreadMgr._queueLimit)
+	{
+	  errorEnum = OVERRUN;
+	  errorMessagePt = "ProcessLib overrun";
+	  goto error;
+	}
+
       //Init new Data
       Data aNewData = Data();
       aNewData.frameNumber = frameNumber;
@@ -201,6 +228,7 @@ bool startNewProcess(long frameNumber,
 	case 8: aNewData.type = Data::UINT64;break;
 	default:
 	  errorMessagePt = "Depth not managed";
+	  errorEnum = BAD_DATA;
 	  goto error;
 	}
       if(data)
@@ -214,29 +242,20 @@ bool startNewProcess(long frameNumber,
       else
 	{
 	  errorMessagePt = "Data array is empty";
+	  errorEnum = BAD_DATA;
 	  goto error;
 	}
+
+      TaskMgr *aNewTaskPt = new TaskMgr(*aTaskMgr);
       aNewTaskPt->setInputData(aNewData);
-      if(syncMode == PoolThreadMgr::Sequential)
-	{
-	  aLock.unLock();
-	  aNewTaskPt->syncProcess();
-	  delete aNewTaskPt;
-	}
-      else
-	{
-	  while(pollThreadMgr._queueLimit > 0 && 
-		int(pollThreadMgr._processQueue.size()) > pollThreadMgr._queueLimit)
-	    pthread_cond_wait(&pollThreadMgr._cond,&pollThreadMgr._lock);
-	  pollThreadMgr.addProcess(aNewTaskPt,false);
-	}
-      return true;
+      pollThreadMgr.addProcess(aNewTaskPt,false);
+      errorEnum = STARTED;	// OK
     }
   else
     errorMessagePt = "There is no image chain process set";
-      
+  
  error:
   if(errorMessagePt)
     std::cerr << "Processlib core : " << errorMessagePt << std::endl;
-  return false;
+  return errorEnum;
 }

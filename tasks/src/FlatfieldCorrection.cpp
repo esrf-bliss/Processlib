@@ -14,13 +14,13 @@ void _div(void *src,int aSize,void *flatfield)
 }
 
 FlatfieldCorrection::FlatfieldCorrection() : 
-Task(),
+LinkTask(),
 _xcenter(NAN),_ycenter(NAN),
 _lambda(NAN),_distance(NAN),
 _flatFieldCorrectionDirty(false) {}
 
 FlatfieldCorrection::FlatfieldCorrection(const FlatfieldCorrection &aFlatField) :
-  Task(),
+  LinkTask(),
   _flatFieldImage(aFlatField._flatFieldImage),
   _xcenter(aFlatField._xcenter),_ycenter(aFlatField._ycenter),
   _lambda(aFlatField._lambda),_distance(aFlatField._distance),
@@ -109,7 +109,7 @@ Data FlatfieldCorrection::process(Data &aData)
   return aData;
 }
 
-Task* FlatfieldCorrection::copy() const
+LinkTask* FlatfieldCorrection::copy() const
 {
   return new FlatfieldCorrection(*this);
 }

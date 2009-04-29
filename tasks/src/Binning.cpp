@@ -77,11 +77,11 @@ static void _binning2x2(Data &aSrcData,Data &aDstData,int Factor)
 
 Binning::Binning() : mXFactor(-1),mYFactor(-1) {};
 Binning::Binning(const Binning &anOther) :
-  Task(),
+  LinkTask(),
   mXFactor(anOther.mXFactor),
   mYFactor(anOther.mYFactor) {}
 
-Task* Binning::copy() const
+LinkTask* Binning::copy() const
 {
   return new Binning(*this);
 }

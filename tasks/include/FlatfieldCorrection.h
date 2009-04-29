@@ -1,7 +1,7 @@
-#include "Task.h"
+#include "LinkTask.h"
 namespace Tasks
 {
-  class FlatfieldCorrection : public Task
+  class FlatfieldCorrection : public LinkTask
   {
   public:
     FlatfieldCorrection();
@@ -12,7 +12,7 @@ namespace Tasks
     void setLambda(double);
     void setDetectorDistance(double);
     virtual Data process(Data&);
-    virtual Task* copy() const;
+    virtual LinkTask* copy() const;
   private:
     mutable Data _flatFieldImage;
     double	_xcenter;
