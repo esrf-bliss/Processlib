@@ -1,32 +1,49 @@
 #include <stdlib.h>
 #include <iostream>
+#include <pthread.h>
+
 #ifndef __DATA_H
 #define __DATA_H
 struct Buffer
 {
   enum Ownership {MAPPED,SHARED};
-  Buffer() : owner(SHARED),refcount(1),data(NULL) {}
+  ~Buffer()
+  {
+    pthread_mutex_destroy(&_lock);
+  }
+  Buffer() : owner(SHARED),refcount(1),data(NULL) 
+  {
+    pthread_mutex_init(&_lock,NULL);
+  }
   explicit Buffer(int aSize) :owner(SHARED),refcount(1)
   {
     if(posix_memalign(&data,16,aSize))
       std::cerr << "Can't allocate memory" << std::endl;
+    pthread_mutex_init(&_lock,NULL);
   }
   void unref()
   {
+    while(pthread_mutex_lock(&_lock));
     if(!(--refcount))
       {
 	if(owner == SHARED && data)
 	  free(data);
+	pthread_mutex_unlock(&_lock);
 	delete this;
       }
+    else
+      pthread_mutex_unlock(&_lock);
   }
   void ref()
   {
+    while(pthread_mutex_lock(&_lock));
     ++refcount;
+    pthread_mutex_unlock(&_lock);
   }
-  Ownership owner;
-  int	    refcount;
-  void      *data;
+  Ownership		owner;
+  int			refcount;
+  void			*data;
+  pthread_mutex_t	_lock;
 };
 struct Data
 {

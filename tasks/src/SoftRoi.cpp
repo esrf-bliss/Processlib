@@ -10,7 +10,7 @@ SoftRoi::SoftRoi() :
 {}
 
 SoftRoi::SoftRoi(const SoftRoi &anOther) :
-  LinkTask(),
+  LinkTask(anOther),
   _x1(anOther._x1),_x2(anOther._x2),
   _y1(anOther._y1),_y2(anOther._y2)
 {

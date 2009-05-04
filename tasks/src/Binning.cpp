@@ -77,7 +77,7 @@ static void _binning2x2(Data &aSrcData,Data &aDstData,int Factor)
 
 Binning::Binning() : mXFactor(-1),mYFactor(-1) {};
 Binning::Binning(const Binning &anOther) :
-  LinkTask(),
+  LinkTask(anOther),
   mXFactor(anOther.mXFactor),
   mYFactor(anOther.mYFactor) {}
 

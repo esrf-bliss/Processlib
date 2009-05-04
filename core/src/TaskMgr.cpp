@@ -14,7 +14,12 @@ public:
   }
   virtual void process()
   {
+    TaskEventCallback* eventCbkPt = _LinkTask->getEventCallback();
+    if(eventCbkPt)
+      eventCbkPt->started(_currentData());
     Data aResult = _LinkTask->process(_currentData());
+    if(eventCbkPt)
+      eventCbkPt->finnished(aResult);
     _setNextData(aResult);
   }
 private:
@@ -32,7 +37,12 @@ public:
   }
   virtual void process()
   {
+    TaskEventCallback* eventCbkPt = _SinkTask->getEventCallback();
+    if(eventCbkPt)
+      eventCbkPt->started(_currentData());
     _SinkTask->process(_currentData());
+    if(eventCbkPt)
+      eventCbkPt->finnished(_currentData());
   }
 private:
   SinkTaskBase	*_SinkTask;

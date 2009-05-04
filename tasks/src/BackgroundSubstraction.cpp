@@ -101,7 +101,7 @@ BackgroundSubstraction::BackgroundSubstraction() : LinkTask()
 }
 
 BackgroundSubstraction::BackgroundSubstraction(const BackgroundSubstraction &aBackgroundSubstraction) :
-  LinkTask(),_backgroundImageData(aBackgroundSubstraction._backgroundImageData)
+  LinkTask(aBackgroundSubstraction),_backgroundImageData(aBackgroundSubstraction._backgroundImageData)
 {
 }
 

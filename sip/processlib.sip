@@ -95,6 +95,21 @@ extern "C"
 };
 
 
+class TaskEventCallback
+{
+%TypeHeaderCode
+#include <TaskEventCallback.h>
+%End
+ public:
+  TaskEventCallback();
+  virtual ~TaskEventCallback();
+%MethodCode
+  sipCpp->unref();
+%End
+  virtual void started(Data &);
+  virtual void finnished(Data &);
+  virtual void error(Data &,const char*);
+};
 
 class LinkTask
 {
@@ -105,7 +120,9 @@ class LinkTask
   LinkTask(bool = true);
   virtual Data process(Data&);
   void setProcessingInPlace(bool);
-  virtual LinkTask* copy();
+  virtual LinkTask* copy() const;
+  void setEventCallback(TaskEventCallback *);
+  TaskEventCallback* getEventCallback();
 };
 
 class SinkTaskBase
@@ -117,6 +134,8 @@ public:
   virtual ~SinkTaskBase();
   virtual void process(Data&);
   virtual SinkTaskBase* copy() const;
+  void setEventCallback(TaskEventCallback *);
+  TaskEventCallback* getEventCallback();
 };
 
 class TaskMgr

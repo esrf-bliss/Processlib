@@ -20,7 +20,7 @@ _lambda(NAN),_distance(NAN),
 _flatFieldCorrectionDirty(false) {}
 
 FlatfieldCorrection::FlatfieldCorrection(const FlatfieldCorrection &aFlatField) :
-  LinkTask(),
+  LinkTask(aFlatField),
   _flatFieldImage(aFlatField._flatFieldImage),
   _xcenter(aFlatField._xcenter),_ycenter(aFlatField._ycenter),
   _lambda(aFlatField._lambda),_distance(aFlatField._distance),
