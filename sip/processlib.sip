@@ -186,5 +186,6 @@ class PoolThreadMgr
   int  queueLimit();
   void setTaskMgr(const TaskMgr *);
   void abort();
+  void suspend(bool);
   void quit();
 };

@@ -136,6 +136,15 @@ void PoolThreadMgr::abort()
   _suspendFlag = false;
 }
 
+/** @brief suspend all process
+ */
+void PoolThreadMgr::suspend(bool aFlag)
+{
+  Lock aLock(&_lock);
+  _suspendFlag = aFlag;
+  if(aFlag)
+    pthread_cond_broadcast(&_cond);
+}
 void* PoolThreadMgr::_run(void *arg) 
 {
   PoolThreadMgr* processMgrPt = (PoolThreadMgr*)arg;

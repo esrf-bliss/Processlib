@@ -37,6 +37,7 @@ public:
   int queueLimit();
   void setTaskMgr(const TaskMgr *);
   void abort();
+  void suspend(bool);
   void quit();
 
   class Lock
