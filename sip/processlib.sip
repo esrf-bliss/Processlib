@@ -151,7 +151,17 @@ public:
   ~TaskMgr();
 
   void setLinkTask(int aStage,LinkTask *);
+%MethodCode
+Py_BEGIN_ALLOW_THREADS
+sipCpp->setLinkTask(a0,a1->copy());
+Py_END_ALLOW_THREADS
+%End
   void addSinkTask(int aStage,SinkTaskBase*);
+%MethodCode
+Py_BEGIN_ALLOW_THREADS
+sipCpp->addSinkTask(a0,a1->copy());
+Py_END_ALLOW_THREADS
+%End
   void setInputData(Data &);
   void syncProcess();
 };
