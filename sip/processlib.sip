@@ -90,7 +90,9 @@ extern "C"
 %End
   SIP_PYOBJECT refcount();
 %MethodCode
+  Py_BEGIN_ALLOW_THREADS
   sipRes = PyLong_FromLong(sipCpp->buffer ? sipCpp->buffer->refcount : 0);
+  Py_END_ALLOW_THREADS
 %End
 };
 
@@ -104,7 +106,9 @@ class TaskEventCallback
   TaskEventCallback();
   virtual ~TaskEventCallback();
 %MethodCode
+  Py_BEGIN_ALLOW_THREADS
   sipCpp->unref();
+  Py_END_ALLOW_THREADS
 %End
   virtual void started(Data &);
   virtual void finnished(Data &);
@@ -120,7 +124,6 @@ class LinkTask
   LinkTask(bool = true);
   virtual Data process(Data&);
   void setProcessingInPlace(bool);
-  virtual LinkTask* copy() const;
   void setEventCallback(TaskEventCallback *);
   TaskEventCallback* getEventCallback();
 };
@@ -133,7 +136,6 @@ class SinkTaskBase
 public:
   virtual ~SinkTaskBase();
   virtual void process(Data&);
-  virtual SinkTaskBase* copy() const;
   void setEventCallback(TaskEventCallback *);
   TaskEventCallback* getEventCallback();
 };
@@ -164,10 +166,15 @@ class PoolThreadMgr
   static PoolThreadMgr& get() throw();
   
   void addProcess(TaskMgr *,bool = true);
-  void removeProcess(TaskMgr *,bool = true);
+%MethodCode
+ Py_BEGIN_ALLOW_THREADS
+ sipCpp->addProcess(new TaskMgr(*a0));
+ Py_END_ALLOW_THREADS
+%End
   void setNumberOfThread(int);
   void setQueueLimit(int);
   int  queueLimit();
   void setTaskMgr(const TaskMgr *);
+  void abort();
   void quit();
 };

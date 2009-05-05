@@ -75,6 +75,7 @@ TaskMgr::TaskMgr(const TaskMgr &aMgr)
   for(StageTask::const_iterator i = aMgr._Tasks.begin();
       i != aMgr._Tasks.end();++i)
     _Tasks.push_back((*i)->copy());
+  _currentData = aMgr._currentData;
 }
 
 TaskMgr::~TaskMgr()
@@ -89,8 +90,8 @@ TaskMgr::~TaskMgr()
 bool TaskMgr::setLinkTask(int aStage,LinkTask *aNewTask)
 {
   bool aReturnFlag = false;
-  if(int(_Tasks.size()) <= aStage)
-    _Tasks.resize(aStage + 1);
+  while(int(_Tasks.size()) <= aStage)
+    _Tasks.push_back(new Task());
   if(!_Tasks[aStage]->_linkTask)
     _Tasks[aStage]->_linkTask = aNewTask,aReturnFlag =  true;
 
@@ -99,8 +100,8 @@ bool TaskMgr::setLinkTask(int aStage,LinkTask *aNewTask)
 
 void TaskMgr::addSinkTask(int aStage,SinkTaskBase *aNewTask)
 {
-  if(int(_Tasks.size()) <= aStage)
-    _Tasks.resize(aStage + 1);
+  while(int(_Tasks.size()) <= aStage)
+    _Tasks.push_back(new Task());
   _Tasks[aStage]->_sinkTaskQueue.push_back(aNewTask);
 }
 TaskMgr::TaskWrap* TaskMgr::next()
