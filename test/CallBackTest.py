@@ -12,14 +12,9 @@ class Ev(processlib.TaskEventCallback) :
         processlib.TaskEventCallback.__init__(self)
         self.__name = name
 
-    def started(self,data) :
-        self.__startedTime = time.time()
-
     def finnished(self,data) :
         end = time.time()
-        print '%s : Frame %d finnished take %f' % (self.__name,data.frameNumber,(end - self.__startedTime)),
-        global lastData
-        print 'data shape',data.buffer.shape
+        print '%s : Frame %d finnished' % (self.__name,data.frameNumber)
 
 TaskMgr = processlib.TaskMgr();
 
@@ -49,6 +44,17 @@ binning.mYFactor = 2
 binningEvent = Ev('Binning')
 binning.setEventCallback(binningEvent)
 TaskMgr.setLinkTask(2,binning)
+
+#Python Task
+class PyLinkTask(processlib.LinkTask) :
+    def __init__(self) :
+        processlib.LinkTask.__init__(self)
+    def process(self,data) :
+        print data.buffer
+        return data
+
+pyTask = PyLinkTask()
+TaskMgr.setLinkTask(3,pyTask)
 
 SrcData = processlib.Data()
 poolThreadMgr = processlib.PoolThreadMgr.get()

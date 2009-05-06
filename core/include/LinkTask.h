@@ -1,3 +1,4 @@
+#include <pthread.h>
 #include "Data.h"
 #include "TaskEventCallback.h"
 
@@ -7,22 +8,10 @@
 class LinkTask
 {
 public:
-  LinkTask(bool aProcessingInPlaceFlag = true) : 
-    _processingInPlaceFlag(aProcessingInPlaceFlag),_eventCbkPt(NULL) {}
-  LinkTask(const LinkTask &aLinkTask) :
-    _processingInPlaceFlag(aLinkTask._processingInPlaceFlag)
-  {
-    if(aLinkTask._eventCbkPt)
-      aLinkTask._eventCbkPt->ref();
-    _eventCbkPt = aLinkTask._eventCbkPt;
+  LinkTask();
+  LinkTask(bool aProcessingInPlaceFlag);
+  LinkTask(const LinkTask &aLinkTask);
       
-  }
-      
-  virtual ~LinkTask()
-  {
-    if(_eventCbkPt)
-      _eventCbkPt->unref();
-  }
   //@brief ask if this task need a internal tmp buffer
   //
   //@brief start the processing of this LinkTask
@@ -30,19 +19,7 @@ public:
   //@brief like a copy constructor
   virtual LinkTask* copy() const {return NULL;}
 
-  void setEventCallback(TaskEventCallback *aEventCbk)
-  {
-    if(_eventCbkPt)
-      {
-	_eventCbkPt->unref();
-	_eventCbkPt = NULL;
-      }
-    if(aEventCbk)
-      {
-	aEventCbk->ref();
-	_eventCbkPt = aEventCbk;
-      }
-  }
+  void setEventCallback(TaskEventCallback *aEventCbk);
 
   /* @brief tell the task that the destination buffer of
    * process is the same as the source.
@@ -59,8 +36,18 @@ public:
 
   TaskEventCallback* getEventCallback() {return _eventCbkPt;}
 
+  void ref();
+  void unref();
+
 protected:
+
+  virtual ~LinkTask();
+
   bool _processingInPlaceFlag;
   TaskEventCallback *_eventCbkPt;
+
+  pthread_mutex_t _lock;
+private:
+  int		  _refCounter;
 };
 #endif

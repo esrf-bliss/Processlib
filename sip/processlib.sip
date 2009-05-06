@@ -122,6 +122,12 @@ class LinkTask
 %End
  public:
   LinkTask(bool = true);
+  ~LinkTask();
+%MethodCode
+ Py_BEGIN_ALLOW_THREADS;
+ sipCpp->unref();
+ Py_END_ALLOW_THREADS;
+%End
   virtual Data process(Data&);
   void setProcessingInPlace(bool);
   void setEventCallback(TaskEventCallback *);
@@ -135,6 +141,11 @@ class SinkTaskBase
 %End
 public:
   virtual ~SinkTaskBase();
+%MethodCode
+ Py_BEGIN_ALLOW_THREADS;
+ sipCpp->unref();
+ Py_END_ALLOW_THREADS;
+%End
   virtual void process(Data&);
   void setEventCallback(TaskEventCallback *);
   TaskEventCallback* getEventCallback();
@@ -151,17 +162,7 @@ public:
   ~TaskMgr();
 
   void setLinkTask(int aStage,LinkTask *);
-%MethodCode
-Py_BEGIN_ALLOW_THREADS
-sipCpp->setLinkTask(a0,a1->copy());
-Py_END_ALLOW_THREADS
-%End
   void addSinkTask(int aStage,SinkTaskBase*);
-%MethodCode
-Py_BEGIN_ALLOW_THREADS
-sipCpp->addSinkTask(a0,a1->copy());
-Py_END_ALLOW_THREADS
-%End
   void setInputData(Data &);
   void syncProcess();
 };

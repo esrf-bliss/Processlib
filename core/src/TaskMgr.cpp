@@ -53,19 +53,27 @@ private:
 TaskMgr::Task* TaskMgr::Task::copy() const
 {
   TaskMgr::Task *aReturnTask = new TaskMgr::Task();
-  aReturnTask->_linkTask = _linkTask ? _linkTask->copy() : NULL;
+  if(_linkTask)
+    {
+      aReturnTask->_linkTask = _linkTask;
+      _linkTask->ref();
+    }
   for(std::deque<SinkTaskBase*>::const_iterator i = _sinkTaskQueue.begin();
       i != _sinkTaskQueue.end();++i)
-    aReturnTask->_sinkTaskQueue.push_back((*i)->copy());
+    {
+      (*i)->ref();
+      aReturnTask->_sinkTaskQueue.push_back(*i);
+    }
   return aReturnTask;
 }
 
 TaskMgr::Task::~Task()
 {
-  delete _linkTask;
+  if(_linkTask)
+    _linkTask->unref();
   for(std::deque<SinkTaskBase*>::iterator i = _sinkTaskQueue.begin();
       i != _sinkTaskQueue.end();++i)
-    delete *i;
+    (*i)->unref();
 }
 
 TaskMgr::TaskMgr() {}
@@ -93,8 +101,12 @@ bool TaskMgr::setLinkTask(int aStage,LinkTask *aNewTask)
   while(int(_Tasks.size()) <= aStage)
     _Tasks.push_back(new Task());
   if(!_Tasks[aStage]->_linkTask)
-    _Tasks[aStage]->_linkTask = aNewTask,aReturnFlag =  true;
-
+    {
+      aNewTask->ref();
+      _Tasks[aStage]->_linkTask = aNewTask;
+      aReturnFlag =  true;
+    }
+  
   return aReturnFlag;
 }
 
@@ -102,6 +114,7 @@ void TaskMgr::addSinkTask(int aStage,SinkTaskBase *aNewTask)
 {
   while(int(_Tasks.size()) <= aStage)
     _Tasks.push_back(new Task());
+  aNewTask->ref();
   _Tasks[aStage]->_sinkTaskQueue.push_back(aNewTask);
 }
 TaskMgr::TaskWrap* TaskMgr::next()
@@ -134,8 +147,11 @@ TaskMgr::TaskWrap* TaskMgr::next()
 
 void TaskMgr::_endLinkTask(LinkTask*)
 {
-  delete _PendingLinkTask;
-  _PendingLinkTask = NULL;
+  if(_PendingLinkTask)
+    {
+      _PendingLinkTask->unref();
+      _PendingLinkTask = NULL;
+    }
   int aNbPendingSinkTask = _PendingSinkTask.size();
   int aNbFinnishedSinkTask = 0;
   for(PendingSinkTask::iterator i = _PendingSinkTask.begin();
@@ -154,7 +170,7 @@ void TaskMgr::_endSinkTask(SinkTaskBase *aFinnishedTask)
       i != _PendingSinkTask.end();++i)
     {
       if(i->first == aFinnishedTask)
-	delete i->first,i->second = true;
+	i->first->unref(),i->second = true;
       if(i->second) ++aNbFinnishedTask;
     }
   if(!_PendingLinkTask && aNbFinnishedTask == aNbPendingTask)
@@ -184,14 +200,14 @@ void TaskMgr::syncProcess()
       if(aStageTaskPt->_linkTask)
 	{
 	  _nextData = aStageTaskPt->_linkTask->process(_currentData);
-	  delete aStageTaskPt->_linkTask;
+	  aStageTaskPt->_linkTask->unref();
 	  aStageTaskPt->_linkTask = NULL;
 	}
       for(std::deque<SinkTaskBase*>::iterator aSinkTask = aStageTaskPt->_sinkTaskQueue.begin();
 	  aSinkTask != aStageTaskPt->_sinkTaskQueue.end();++aSinkTask)
 	{
 	  (*aSinkTask)->process(_currentData);
-	  delete *aSinkTask;
+	  (*aSinkTask)->unref();
 	}
       aStageTaskPt->_sinkTaskQueue.clear();
       if(!_nextData.empty())

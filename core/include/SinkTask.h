@@ -8,39 +8,29 @@
 class SinkTaskBase
 {
 public:
-  SinkTaskBase() : _eventCbkPt(NULL) {}
-  SinkTaskBase(const SinkTaskBase &aTask)
-    {
-      if(aTask._eventCbkPt)
-	aTask._eventCbkPt->ref();
-      _eventCbkPt = aTask._eventCbkPt;
-    }
-  virtual ~SinkTaskBase()
-    {
-      if(_eventCbkPt)
-	_eventCbkPt->unref();
-    }
+  SinkTaskBase();
+  SinkTaskBase(const SinkTaskBase &aTask);
+  
+
   //@brief start the processing of this SinkTask
   virtual void process(Data&) {};
   //@brief like a copy constructor
   virtual SinkTaskBase* copy() const {return NULL;}
 
-  void setEventCallback(TaskEventCallback *aEventCbk)
-  {
-    if(_eventCbkPt)
-      {
-	_eventCbkPt->unref();
-	_eventCbkPt = NULL;
-      }
-    if(aEventCbk)
-      {
-	aEventCbk->ref();
-	_eventCbkPt = aEventCbk;
-      }
-  }
+  void setEventCallback(TaskEventCallback *aEventCbk);
   TaskEventCallback* getEventCallback() {return _eventCbkPt;}
- private:
-  TaskEventCallback *_eventCbkPt;
+
+  void ref();
+  void unref();
+
+protected:
+  virtual ~SinkTaskBase();
+
+  pthread_mutex_t _lock;
+
+private:
+  TaskEventCallback	*_eventCbkPt;
+  int			_refCounter;
 };
 
 template<class T>
