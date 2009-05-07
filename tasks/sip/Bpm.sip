@@ -59,7 +59,6 @@ namespace Tasks
     BpmTask(Tasks::BpmManager &);
     BpmTask(const Tasks::BpmTask&);
     virtual void process(Data&); 
-    virtual SinkTaskBase* copy() const;
       
     bool		mFwhmTunning;
     double		mFwhmTunningExtension;

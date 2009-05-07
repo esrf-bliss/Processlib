@@ -12,7 +12,6 @@ namespace Tasks
     void setLambda(double);
     void setDetectorDistance(double);
     virtual Data process(Data&);
-    virtual LinkTask* copy() const;
   private:
     mutable Data _flatFieldImage;
     double	_xcenter;

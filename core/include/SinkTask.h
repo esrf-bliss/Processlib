@@ -14,8 +14,6 @@ public:
 
   //@brief start the processing of this SinkTask
   virtual void process(Data&) {};
-  //@brief like a copy constructor
-  virtual SinkTaskBase* copy() const {return NULL;}
 
   void setEventCallback(TaskEventCallback *aEventCbk);
   TaskEventCallback* getEventCallback() {return _eventCbkPt;}

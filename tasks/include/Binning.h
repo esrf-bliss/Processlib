@@ -8,7 +8,6 @@ namespace Tasks
     Binning(const Binning&);
 
     virtual Data process(Data&);
-    virtual LinkTask* copy() const;
 
     int mXFactor;
     int mYFactor;

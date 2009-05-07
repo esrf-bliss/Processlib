@@ -108,8 +108,3 @@ Data FlatfieldCorrection::process(Data &aData)
     }
   return aData;
 }
-
-LinkTask* FlatfieldCorrection::copy() const
-{
-  return new FlatfieldCorrection(*this);
-}

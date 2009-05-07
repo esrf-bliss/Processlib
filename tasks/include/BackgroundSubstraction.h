@@ -8,7 +8,6 @@ namespace Tasks
     BackgroundSubstraction(const BackgroundSubstraction&);
     void setBackgroundImageData(Data &aData);
     virtual Data process(Data&);
-    virtual LinkTask* copy() const;
   private:
     mutable Data _backgroundImageData;
   };

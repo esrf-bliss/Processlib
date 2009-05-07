@@ -81,11 +81,6 @@ Binning::Binning(const Binning &anOther) :
   mXFactor(anOther.mXFactor),
   mYFactor(anOther.mYFactor) {}
 
-LinkTask* Binning::copy() const
-{
-  return new Binning(*this);
-}
-
 Data Binning::process(Data &aData)
 {
   Data aNewData;

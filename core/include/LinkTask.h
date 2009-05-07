@@ -16,8 +16,6 @@ public:
   //
   //@brief start the processing of this LinkTask
   virtual Data process(Data &aData) {return aData;}
-  //@brief like a copy constructor
-  virtual LinkTask* copy() const {return NULL;}
 
   void setEventCallback(TaskEventCallback *aEventCbk);
 

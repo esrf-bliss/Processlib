@@ -15,12 +15,6 @@ SoftRoi::SoftRoi(const SoftRoi &anOther) :
   _y1(anOther._y1),_y2(anOther._y2)
 {
 }
-
-LinkTask* SoftRoi::copy() const
-{
-  return new SoftRoi(*this);
-}
-
 /** @brief set the roi 
     @param x1 the first column
     @param x2 the last column

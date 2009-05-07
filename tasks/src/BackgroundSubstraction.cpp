@@ -156,8 +156,3 @@ Data BackgroundSubstraction::process(Data &aData)
     std::cerr << "BackgroundSubstraction : Source image differ from background image" << std::endl;
   return Data();		// empty result
 }
-
-LinkTask* BackgroundSubstraction::copy() const
-{
-  return new BackgroundSubstraction(*this);
-}

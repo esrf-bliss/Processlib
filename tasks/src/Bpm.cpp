@@ -440,11 +440,6 @@ BpmTask::BpmTask(const BpmTask &aTask) :
   
 }
 
-SinkTaskBase* BpmTask::copy() const
-{
-  return new BpmTask(*this);
-}
-
 #define COMPUTE_BEAM_POSITION(XorY,WidthorHeight) \
 { \
   int min_index,max_index; \

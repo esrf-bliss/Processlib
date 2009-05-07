@@ -7,7 +7,6 @@ namespace Tasks
     SoftRoi();
     SoftRoi(const SoftRoi&);
     virtual Data process(Data&);
-    virtual LinkTask* copy() const;
     void setRoi(int x1,int x2,
 		int y1,int y2);
   private:
