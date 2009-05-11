@@ -128,7 +128,9 @@ void SinkTaskMgr<Result>::setResult(const Result &aResult)
       _historyResult.front().frameNumber = 0;
     }
   else
-    _historyResult[aResultPos] = aResult;
+    {
+      _historyResult[aResultPos] = aResult;
+    }
   pthread_cond_broadcast(&_cond);
 }
 
@@ -169,6 +171,36 @@ void SinkTaskMgr<Result>::resizeHistory(int aSize)
   _historyResult.resize(aSize);
   reset();
 }
+
+template<class Result>
+int SinkTaskMgr<Result>::historySize() const
+{
+  PoolThreadMgr::Lock aLock(&_lock);
+  return _historyResult.size();
+}
+
+template<class Result>
+int SinkTaskMgr<Result>::lastFrameNumber() const
+{
+  int aLastFrameNumber = -1;
+  std::list<Result> anHistory;
+  this->getHistory(anHistory);
+  if(!anHistory.empty())
+    {
+      aLastFrameNumber = anHistory.front().frameNumber;
+      anHistory.pop_front();
+      typename std::list<Result>::iterator i;
+      for(i = anHistory.begin();i != anHistory.end();++i)
+	{
+	  if(i->frameNumber > aLastFrameNumber + 1)
+	    aLastFrameNumber = i->frameNumber;
+	  else
+	    break;
+	}
+    }
+  return aLastFrameNumber;
+}
+
 /** @brief check if the frame asked is available.
  *  check if at the position in the history the result 
  *  have a frame number >= 0 and if so return true

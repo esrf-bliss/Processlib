@@ -6,13 +6,16 @@ namespace Tasks
 #include <Bpm.h>
 %End
     public:
-    enum ErrorCode {OK,NO_MORE_AVAILABLE,TIMEDOUT};
+    enum ErrorCode {UNDEF,OK,NO_MORE_AVAILABLE,TIMEDOUT};
     enum RUN_MODE {Counter,Monitor};
     BpmManager(int = 4);
     ~BpmManager();
 
     Tasks::BpmResult	getResult(double = 0.,int = -1) const;
     void	resizeHistory(int aSize);
+    void  reset();
+    int	  historySize() const;
+    int lastFrameNumber() const;
   };
 
   class BpmResult
@@ -50,7 +53,7 @@ namespace Tasks
 
  
 
- class BpmTask
+ class BpmTask : SinkTaskBase
   {
 %TypeHeaderCode
 #include <Bpm.h>
