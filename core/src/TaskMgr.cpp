@@ -100,10 +100,13 @@ bool TaskMgr::setLinkTask(int aStage,LinkTask *aNewTask)
   bool aReturnFlag = false;
   while(int(_Tasks.size()) <= aStage)
     _Tasks.push_back(new Task());
-  if(!_Tasks[aStage]->_linkTask)
+  Task *aTaskPt = _Tasks[aStage];
+  if(!aTaskPt->_linkTask)
     {
       aNewTask->ref();
-      _Tasks[aStage]->_linkTask = aNewTask;
+      aTaskPt->_linkTask = aNewTask;
+      if(!aTaskPt->_sinkTaskQueue.empty())
+	aNewTask->setProcessingInPlace(false);
       aReturnFlag =  true;
     }
   
@@ -115,7 +118,11 @@ void TaskMgr::addSinkTask(int aStage,SinkTaskBase *aNewTask)
   while(int(_Tasks.size()) <= aStage)
     _Tasks.push_back(new Task());
   aNewTask->ref();
-  _Tasks[aStage]->_sinkTaskQueue.push_back(aNewTask);
+  Task *aTaskPt = _Tasks[aStage];
+  aTaskPt->_sinkTaskQueue.push_back(aNewTask);
+  if(aTaskPt->_linkTask)
+    aTaskPt->_linkTask->setProcessingInPlace(false);
+
 }
 TaskMgr::TaskWrap* TaskMgr::next()
 {

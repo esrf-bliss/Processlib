@@ -6,7 +6,7 @@ namespace Tasks
 #include <RoiCounter.h>
 %End
     public:
-    enum ErrorCode {UNDEF,OK,NO_MORE_AVAILABLE,TIMEDOUT};
+    enum ErrorCode {OK,NO_MORE_AVAILABLE,TIMEDOUT};
     enum RUN_MODE {Counter,Monitor};
     RoiCounterManager(int = 4);
     ~RoiCounterManager();
