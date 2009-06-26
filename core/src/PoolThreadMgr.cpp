@@ -1,4 +1,6 @@
 #include <iostream>
+#include <sys/time.h>
+#include <errno.h>
 #include "PoolThreadMgr.h"
 #include "TaskMgr.h"
 
@@ -144,6 +146,32 @@ void PoolThreadMgr::suspend(bool aFlag)
   _suspendFlag = aFlag;
   if(aFlag)
     pthread_cond_broadcast(&_cond);
+}
+/** @brief wait until queue is empty
+ */
+bool PoolThreadMgr::wait(double askedTimeout)
+{
+  if(askedTimeout >= 0.)
+    {
+      struct timeval now;
+      struct timespec timeout;
+      int retcode = 0;
+      gettimeofday(&now,NULL);
+      timeout.tv_sec = now.tv_sec + long(askedTimeout);
+      timeout.tv_nsec = (now.tv_usec * 1000) + 
+	long((askedTimeout - long(askedTimeout)) * 1e9);
+      Lock aLock(&_lock);
+      while(_runningThread)
+	retcode = pthread_cond_timedwait(&_cond,&_lock,&timeout);
+      return retcode != ETIMEDOUT;
+    }
+  else
+    {
+      Lock aLock(&_lock);
+      while(_runningThread)
+	pthread_cond_wait(&_cond,&_lock);
+      return true;
+    }
 }
 void* PoolThreadMgr::_run(void *arg) 
 {
