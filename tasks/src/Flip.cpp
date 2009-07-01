@@ -1,3 +1,4 @@
+#include <stdint.h>
 #include "Flip.h"
 using namespace Tasks;
 
