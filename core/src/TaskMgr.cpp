@@ -19,7 +19,7 @@ public:
       eventCbkPt->started(_currentData());
     Data aResult = _LinkTask->process(_currentData());
     if(eventCbkPt)
-      eventCbkPt->finnished(aResult);
+      eventCbkPt->finished(aResult);
     _setNextData(aResult);
   }
 private:
@@ -42,7 +42,7 @@ public:
       eventCbkPt->started(_currentData());
     _SinkTask->process(_currentData());
     if(eventCbkPt)
-      eventCbkPt->finnished(_currentData());
+      eventCbkPt->finished(_currentData());
   }
 private:
   SinkTaskBase	*_SinkTask;
@@ -187,12 +187,12 @@ void TaskMgr::_endSinkTask(SinkTaskBase *aFinnishedTask)
     }
 }
 
-//@brief Processing Stage finnished, going to next stage
+//@brief Processing Stage finished, going to next stage
 void TaskMgr::_goToNextStage()
 {
   _currentData = _nextData;	// swap
   _nextData.releaseBuffer();
-  if(_Tasks.empty())	// Process is finnished
+  if(_Tasks.empty())	// Process is finished
     delete this;		// suicide
   else
     PoolThreadMgr::get().addProcess(this,false); // Re insert in the Poll

@@ -10,7 +10,7 @@ class TaskEventCallback
   TaskEventCallback();
   virtual ~TaskEventCallback();
   virtual void started(Data &) {}
-  virtual void finnished(Data &) {}
+  virtual void finished(Data &) {}
   virtual void error(Data &,const char*) {}
   
   void ref();

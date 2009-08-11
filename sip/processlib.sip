@@ -111,7 +111,7 @@ class TaskEventCallback
   Py_END_ALLOW_THREADS
 %End
   virtual void started(Data &);
-  virtual void finnished(Data &);
+  virtual void finished(Data &);
   virtual void error(Data &,const char*);
 };
 

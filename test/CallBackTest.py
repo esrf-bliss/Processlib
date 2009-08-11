@@ -12,9 +12,9 @@ class Ev(processlib.TaskEventCallback) :
         processlib.TaskEventCallback.__init__(self)
         self.__name = name
 
-    def finnished(self,data) :
+    def finished(self,data) :
         end = time.time()
-        print '%s : Frame %d finnished' % (self.__name,data.frameNumber)
+        print '%s : Frame %d finished' % (self.__name,data.frameNumber)
 
 TaskMgr = processlib.TaskMgr();
 
