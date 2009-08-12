@@ -1,3 +1,5 @@
+#ifndef __BACKGROUNDSUBSTRACTION__H_
+#define __BACKGROUNDSUBSTRACTION__H_
 #include "LinkTask.h"
 namespace Tasks
 {
@@ -12,3 +14,4 @@ namespace Tasks
     mutable Data _backgroundImageData;
   };
 }
+#endif
