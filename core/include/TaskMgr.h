@@ -1,3 +1,6 @@
+#ifndef __TASKMGR_H
+#define __TASKMGR_H
+
 #include <deque>
 #include "Data.h"
 
@@ -60,3 +63,5 @@ private:
   void _endSinkTask(SinkTaskBase *aFinnishedTask);
   void _goToNextStage();
 };
+
+#endif // __TASKMGR_H
