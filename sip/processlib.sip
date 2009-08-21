@@ -7,12 +7,213 @@ extern "C" { void processlib_import_array();}
 %PostInitialisationCode
 processlib_import_array();
 %End
+
+%Exception Data_Header_Iter_Stop_iteration /PyName=StopIteration/
+{
+%TypeHeaderCode
+#include "data_header_iterator.h"
+#include <iostream>
+%End
+%RaiseCode
+std::cout << "raise stop " << std::endl;
+        SIP_BLOCK_THREADS
+        PyErr_SetString(PyExc_Exception,"");
+        SIP_UNBLOCK_THREADS
+%End
+};
+
+struct Data_HeaderContainer_itemIterator
+{
+%TypeHeaderCode
+#include "data_header_iterator.h"
+%End
+
+public:
+  Data_HeaderContainer_itemIterator(Data::HeaderContainer&);
+  SIP_PYOBJECT next();
+%MethodCode
+if(sipCpp->_cur != sipCpp->_end)
+{
+  sipRes = Py_BuildValue("(ss)",sipCpp->_cur->first.c_str(),sipCpp->_cur->second.c_str());
+  ++(sipCpp->_cur);
+}
+else
+ PyErr_SetString(PyExc_StopIteration,"");
+%End
+
+Data_HeaderContainer_itemIterator* __iter__();
+%MethodCode
+sipRes = sipCpp;
+%End
+};
+
 struct Data
 {
 %TypeHeaderCode
 #include <Data.h>
+#include <PoolThreadMgr.h>
+#include <sstream>
+#include "data_header_iterator.h"
 %End
+
+  class HeaderContainer
+  {
+  public:
+    HeaderContainer();
+    
+
+SIP_PYOBJECT pop(const char *,const char * = NULL);
+%MethodCode
+PoolThreadMgr::Lock aLock(sipCpp->mutex());
+Data::HeaderContainer::Header &header = sipCpp->header();
+std::map<std::string,std::string>::iterator i = header.find(a0);
+if(i != header.end())
+  sipRes = PyString_FromStringAndSize(i->second.c_str(),i->second.size());
+else if (a1)
+  sipRes = PyString_FromString(a1);
+else
+  sipRes = Py_None;
+%End
+
+void update(SIP_PYDICT);
+%MethodCode
+PyObject *key, *value;
+Py_ssize_t pos = 0;
+PoolThreadMgr::Lock aLock(sipCpp->mutex());
+Data::HeaderContainer::Header &header = sipCpp->header();
+while (PyDict_Next(a0, &pos, &key, &value)) 
+ {
+  const char* keystr = PyString_AsString(key);
+  const char* valuestr = PyString_AsString(value);
+  if(!keystr || !valuestr)
+   {
+    std::cout << "Only string key and value are allowed" << std::endl;
+    break;
+   }
+std::pair<std::map<std::string,std::string>::iterator, bool> result = 
+header.insert(std::pair<std::string,std::string>(PyString_AsString(key),PyString_AsString(value)));
+if(!result.second)
+  result.first->second = PyString_AsString(value);
+ }
+%End
+
+const char* __repr__();
+%MethodCode
+std::stringstream str;
+str << "{";
+PoolThreadMgr::Lock aLock(sipCpp->mutex());
+Data::HeaderContainer::Header &header = sipCpp->header();
+for(std::map<std::string,std::string>::iterator i = header.begin();
+    i != header.end();++i)
+    {
+	str << "'" << i->first << "':";
+	str << "'" << i->second << "',";
+    }
+if(str.str().size() > 1)
+  str.seekp (-1, str.end);
+str << "}";
+sipRes = str.str().c_str();
+%End
+
+const char* __str__();
+%MethodCode
+std::stringstream str;
+str << "{";
+PoolThreadMgr::Lock aLock(sipCpp->mutex());
+Data::HeaderContainer::Header &header = sipCpp->header();
+for(std::map<std::string,std::string>::iterator i = header.begin();
+    i != header.end();++i)
+    {
+	str << "'" << i->first << "':";
+	str << "'" << i->second << "',";
+    }
+if(str.str().size() > 1)
+  str.seekp (-1, str.end);
+str << "}";
+sipRes = str.str().c_str();
+%End
+void __enter__();
+%MethodCode
+sipCpp->lock();
+%End
+
+void __exit__(SIP_PYOBJECT,SIP_PYOBJECT,SIP_PYOBJECT);
+%MethodCode
+sipCpp->unlock();
+%End
+
+SIP_PYOBJECT values();
+%MethodCode
+PoolThreadMgr::Lock aLock(sipCpp->mutex());
+Data::HeaderContainer::Header &header = sipCpp->header();
+sipRes = PyList_New(header.size());
+int index = 0;
+for(std::map<std::string,std::string>::iterator i = header.begin();
+    i != header.end();++i,++index)
+	PyList_SetItem(sipRes,index,
+	               Py_BuildValue("s",i->second.c_str()));
+%End
+
+SIP_PYOBJECT keys();
+%MethodCode
+PoolThreadMgr::Lock aLock(sipCpp->mutex());
+Data::HeaderContainer::Header &header = sipCpp->header();
+sipRes = PyList_New(header.size());
+int index = 0;
+for(std::map<std::string,std::string>::iterator i = header.begin();
+    i != header.end();++i,++index)
+	PyList_SetItem(sipRes,index,
+	               Py_BuildValue("s",i->first.c_str()));
+%End
+
+SIP_PYOBJECT items();
+%MethodCode
+PoolThreadMgr::Lock aLock(sipCpp->mutex());
+Data::HeaderContainer::Header &header = sipCpp->header();
+sipRes = PyList_New(header.size());
+int index = 0;
+for(std::map<std::string,std::string>::iterator i = header.begin();
+    i != header.end();++i,++index)
+	PyList_SetItem(sipRes,index,
+	               Py_BuildValue("(ss)",i->first.c_str(),i->second.c_str()));
+%End
+Data_HeaderContainer_itemIterator iteritems();
+%MethodCode
+sipRes = new Data_HeaderContainer_itemIterator(*sipCpp);
+%End
+
+bool has_key(const char*);
+%MethodCode
+PoolThreadMgr::Lock aLock(sipCpp->mutex());
+Data::HeaderContainer::Header &header = sipCpp->header();
+std::map<std::string,std::string>::iterator i = header.find(a0);
+sipRes = i != header.end();
+%End
+
+int __len__();
+%MethodCode
+sipRes = sipCpp->size();
+%End
+
+const char* __getitem__(const char*);
+%MethodCode
+sipRes = sipCpp->get(a0);
+%End
+
+void  __setitem__(const char*,const char*);
+%MethodCode
+sipCpp->insert(a0,a1);
+%End
+
+
+
+    const char* get(const char *key,const char *defaultValue = NULL) const;
+    int size() const;
+    void clear();
+  };
   int frameNumber;
+  double timestamp;
+  Data::HeaderContainer header;
   void *buffer;
 %GetCode
 if(!sipCpp->buffer || !sipCpp->buffer->data)

@@ -1,6 +1,8 @@
 #include <stdlib.h>
 #include <iostream>
 #include <pthread.h>
+#include <map>
+#include <string>
 
 #ifndef __DATA_H
 #define __DATA_H
@@ -47,8 +49,36 @@ struct Buffer
 };
 struct Data
 {
+  class HeaderContainer
+  {
+  public:
+    typedef std::map<std::string,std::string> Header;
+    
+    HeaderContainer();
+    HeaderContainer(const HeaderContainer &cnt);
+    ~HeaderContainer();
+    
+    void insert(const char *key,const char *value);
+    void insertOrIncKey(const std::string &key,const std::string &value);
+    void erase(const char *key);
+    void clear();
+
+    const char* get(const char *key,const char *defaultValue = NULL) const;
+    int size() const;
+
+    HeaderContainer& operator=(const HeaderContainer&);
+
+    // ExpertMethodes for macro insertion a loop
+    void lock();
+    void unlock();
+    pthread_mutex_t* mutex();
+    Header& header();
+  private:
+    struct HeaderHolder;
+    HeaderHolder *_header;
+  };
   enum TYPE {UNDEF,UINT8,INT8,UINT16,INT16,UINT32,INT32,UINT64,INT64,FLOAT,DOUBLE};
-  Data() : type(UNDEF),width(-1),height(-1),frameNumber(-1),buffer(NULL) {}
+  Data() : type(UNDEF),width(-1),height(-1),frameNumber(-1),timestamp(0.),buffer(NULL) {}
   Data(const Data &aData) : buffer(NULL)
   {
     *this = aData;
@@ -117,7 +147,9 @@ struct Data
     aReturnData.width = width;
     aReturnData.height = height;
     aReturnData.frameNumber = frameNumber;
-    aReturnData.buffer = new Buffer(this->size());
+    aReturnData.timestamp = timestamp;
+    aReturnData.header = header;
+    aReturnData.buffer = new Buffer(aReturnData.size());
     return aReturnData;
   }
   inline Data& operator=(const Data &aData)
@@ -126,6 +158,8 @@ struct Data
     width = aData.width;
     height = aData.height;
     frameNumber = aData.frameNumber;
+    timestamp = aData.timestamp;
+    header    = aData.header;
     setBuffer(aData.buffer);
     return *this;
   }
@@ -133,6 +167,8 @@ struct Data
   int       width;
   int       height;
   int       frameNumber;
+  double    timestamp;
+  mutable HeaderContainer header;
   mutable Buffer *buffer;
 };
 #endif

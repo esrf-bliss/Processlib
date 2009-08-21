@@ -1,5 +1,6 @@
 #include <stdint.h>
 #include "Flip.h"
+#include "Stat.h"
 using namespace Tasks;
 
 Flip::Flip() : _mode(FLIP_NONE) {}
@@ -179,13 +180,22 @@ Data Flip::process(Data &aData)
       switch(_mode)
 	{
 	case FLIP_X:
-	  _flip_x_inplace(aData);
+	  {
+	    Stat aStat(aData,"Flip X");
+	    _flip_x_inplace(aData);
+	  }
 	  break;
 	case FLIP_Y:
-	  _flip_y_inplace(aData);
+	  {
+	    Stat aStat(aData,"Flip Y");
+	    _flip_y_inplace(aData);
+	  }
 	  break;
 	case FLIP_ALL:
-	  _flip_all_inplace(aData);
+	  {
+	    Stat aStat(aData,"Flip X&Y");
+	    _flip_all_inplace(aData);
+	  }
 	  break;
 	default:
 	  break;
@@ -198,13 +208,22 @@ Data Flip::process(Data &aData)
       switch(_mode)
 	{
 	case FLIP_X:
-	  _flip_x(aData,aNewData);
+	  {
+	    Stat aStat(aData,"Flip X");
+	    _flip_x(aData,aNewData);
+	  }
 	  break;
 	case FLIP_Y:
-	  _flip_y(aData,aNewData);
+	  {
+	    Stat aStat(aData,"Flip Y");
+	    _flip_y(aData,aNewData);
+	  }
 	  break;
 	case FLIP_ALL:
-	  _flip_all(aData,aNewData);
+	  {
+	    Stat aStat(aData,"Flip X&Y");
+	    _flip_all(aData,aNewData);
+	  }
 	  break;
 	default:
 	  memcpy(aNewData.data(),aData.data(),aData.size());

@@ -1,6 +1,7 @@
 #include "Binning.h"
+#include "Stat.h"
 #include <iostream>
-
+#include <sstream>
 using namespace Tasks;
 
 //static function
@@ -83,28 +84,26 @@ Binning::Binning(const Binning &anOther) :
 
 Data Binning::process(Data &aData)
 {
-  Data aNewData;
+  Data aNewData = aData;
   if(!aData.empty())
     {
+      std::stringstream info;
+      info << "Binning " << mXFactor << " by " << mYFactor;
+      Stat aStat(aNewData,info.str());
       if(mYFactor > 0 && mXFactor > 0)
 	{
-	  aNewData.type = aData.type;
-	  aNewData.width = aData.width / mXFactor;
-	  aNewData.height = aData.height / mYFactor;
-	  aNewData.frameNumber = aData.frameNumber;
 	  if(mXFactor == 2 && mYFactor == 2 ||
 	     mXFactor == 4 && mYFactor == 4 ||
 	     mXFactor == 8 && mYFactor == 8 ||
 	     mXFactor == 16 && mYFactor == 16 ||
 	     mXFactor == 32 && mYFactor == 32) // Factor 2 (Most used)
 	    {
-	      if(_processingInPlaceFlag)
+	      if(!_processingInPlaceFlag)
 		{
-		  aNewData.buffer = aData.buffer;
-		  if(aNewData.buffer) aNewData.buffer->ref();
+		  Buffer *aNewBuffer = new Buffer(aData.size() >> 2);
+		  aNewData.setBuffer(aNewBuffer);
+		  aNewBuffer->unref();
 		}
-	      else
-		aNewData.buffer = new Buffer(aData.size() >> 2);
 
 	      switch(aData.type)
 		{
@@ -121,13 +120,13 @@ Data Binning::process(Data &aData)
 	    }
 	  else			// DEFAULT case is not optimized
 	    {
-	      if(_processingInPlaceFlag)
+	      if(!_processingInPlaceFlag)
 		{
-		  aNewData.buffer = aData.buffer;
-		  if(aNewData.buffer) aNewData.buffer->ref();
+		  
+		  Buffer *aNewBuffer = new Buffer(aData.size() >> 2);
+		  aNewData.setBuffer(aNewBuffer);
+		  aNewBuffer->unref();
 		}
-	      else
-		aNewData.buffer = new Buffer(aNewData.size());
 
 	      switch(aData.type)
 		{

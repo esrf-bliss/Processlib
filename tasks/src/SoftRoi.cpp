@@ -1,6 +1,6 @@
 #include "SoftRoi.h"
+#include "Stat.h"
 #include <string.h>
-
 using namespace Tasks;
 
 SoftRoi::SoftRoi() : 
@@ -42,6 +42,15 @@ Data SoftRoi::process(Data &aData)
       int endColumnId = min(_x2 + 1,aData.width);
       int cropSize = (endColumnId - startColumnId) * depth;
       int lineSize = aData.width * depth;
+
+      std::stringstream info;
+      info << "SoftRoi " ;
+      info << "(" << startColumnId;
+      info << "," << startLineId << ")";
+      info << " (" << endColumnId - 1;
+      info << "," << endLineId - 1 << ")";
+      Stat aStat(aData,info.str()); 
+
       char *aSrcPt = (char*)aData.data();
       aSrcPt += (startLineId * aData.width + startColumnId) * depth;
       if(_processingInPlaceFlag)
@@ -61,6 +70,8 @@ Data SoftRoi::process(Data &aData)
 	  aNewData.height = endLineId - startLineId;
 	  aNewData.type = aData.type;
 	  aNewData.frameNumber = aData.frameNumber;
+	  aNewData.timestamp = aData.timestamp;
+	  aNewData.header = aData.header;
 	  aNewData.buffer = new Buffer(cropSize * aNewData.height);
 	  char *aDst = (char*)aNewData.buffer->data;
 	  for(int lineId = startLineId;lineId < endLineId;

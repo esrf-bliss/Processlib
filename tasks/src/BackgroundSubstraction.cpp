@@ -3,6 +3,8 @@
 #include <emmintrin.h>
 #endif
 #include "BackgroundSubstraction.h"
+#include "Stat.h"
+
 using namespace Tasks;
 
 template<class IN>
@@ -116,6 +118,7 @@ Data BackgroundSubstraction::process(Data &aData)
      aData.height == _backgroundImageData.height &&
      aData.width == _backgroundImageData.width)
     {
+      Stat aStat(aData,"Background substraction");
       if(_processingInPlaceFlag)
 	{
 	  switch(aData.type)
