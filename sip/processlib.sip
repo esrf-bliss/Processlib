@@ -223,18 +223,16 @@ npy_intp dims[] = {sipCpp->height,sipCpp->width};
 
 switch(sipCpp->type)
 {
-  case Data::UINT8: sipPy = PyArray_SimpleNew(2,dims,NPY_UBYTE);break;
-  case Data::INT8: sipPy = PyArray_SimpleNew(2,dims,NPY_BYTE);break;
-  case Data::UINT16: sipPy = PyArray_SimpleNew(2,dims,NPY_USHORT);break;
-  case Data::INT16: sipPy = PyArray_SimpleNew(2,dims,NPY_SHORT);break;
-  case Data::UINT32: sipPy = PyArray_SimpleNew(2,dims,NPY_UINT);break;
-  case Data::INT32: sipPy = PyArray_SimpleNew(2,dims,NPY_INT32);break;
-  case Data::FLOAT: sipPy = PyArray_SimpleNew(2,dims,NPY_FLOAT32);break;
-  case Data::DOUBLE: sipPy = PyArray_SimpleNew(2,dims,NPY_DOUBLE);break;
+  case Data::UINT8: sipPy = PyArray_SimpleNewFromData(2,dims,NPY_UBYTE,sipCpp->buffer->data);break;
+  case Data::INT8: sipPy = PyArray_SimpleNewFromData(2,dims,NPY_BYTE,sipCpp->buffer->data);break;
+  case Data::UINT16: sipPy = PyArray_SimpleNewFromData(2,dims,NPY_USHORT,sipCpp->buffer->data);break;
+  case Data::INT16: sipPy = PyArray_SimpleNewFromData(2,dims,NPY_SHORT,sipCpp->buffer->data);break;
+  case Data::UINT32: sipPy = PyArray_SimpleNewFromData(2,dims,NPY_UINT,sipCpp->buffer->data);break;
+  case Data::INT32: sipPy = PyArray_SimpleNewFromData(2,dims,NPY_INT32,sipCpp->buffer->data);break;
+  case Data::FLOAT: sipPy = PyArray_SimpleNewFromData(2,dims,NPY_FLOAT32,sipCpp->buffer->data);break;
+  case Data::DOUBLE: sipPy = PyArray_SimpleNewFromData(2,dims,NPY_DOUBLE,sipCpp->buffer->data);break;
   default: return NULL; //Not yet managed
 }
-memcpy(((PyArrayObject*)sipPy)->data,sipCpp->buffer->data,
-	sipCpp->size());
 %End
 %SetCode
 PyArrayObject *tmpObject = (PyArrayObject*)PyArray_ContiguousFromObject(sipPy,NPY_NOTYPE,0,0);
