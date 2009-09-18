@@ -213,7 +213,7 @@ void BpmTask::_calculate_background(const Buffer &projection,double &background_
   else
     background_level = 0.;
 }
-/** @the distribution support is extended from ly to n
+/** @brief the distribution support is extended from ly to n
  *  the values of y at the (n-ly) new points tend to zero linerarly
  */
 static inline void _extend_y(double arr[],int size,
@@ -284,7 +284,7 @@ static void _find_summit(double arr[],int size,int &first_point,int &nb_points)
 
   for(int i = 0;i < size;++i)
     if(arr[i]>max) max = arr[i];
- 
+
   double threshold = max * THRESHOLD;
   nb_points = 0;
   for(int i = 0;i < size;i++)
@@ -293,6 +293,9 @@ static void _find_summit(double arr[],int size,int &first_point,int &nb_points)
 	if(!nb_points) first_point = i;
 	++nb_points;
       }
+#ifdef DEBUG 
+  printf("max %lf,threshold %lf,first_point %d\n",max,threshold,first_point);
+#endif
 }
 #define REAL(z,i) ((z)[i << 1])	// i << 1 == 2i
 #define IMAG(z,i) ((z)[(i << 1) + 1])
@@ -338,7 +341,7 @@ static inline double _compute_center(double y[],int ly)
       // copy first half of data_n at the beginnig of data_n1
       memcpy(data_n1,data_n,n * sizeof(double));
       // copy second half of data_n at the end of data_n1
-      memcpy(data_n1 + (n1 - n / 2),data_n + n,n * sizeof(double));
+      memcpy(data_n1 + (n1 - n),data_n + n,n * sizeof(double));
       // fn1 is squared
       for(int i = 0;i < n1;++i)
 	{
@@ -385,7 +388,14 @@ static inline double _compute_center(double y[],int ly)
 	      printf("solve done..\n");
 #endif
 	      if (!error_flag)
-		result = -X[1]/X[2]/2.0/8.0;
+		{
+		  result = -X[1]/X[2]/2.0/8.0;
+#ifdef DEBUG
+		  printf("X (%lf,%lf,%lf)\t",X[0],X[1],X[2]);
+		  printf("fitting result %lf, first_point %d\n",result,first_point);
+#endif
+
+		}
 	      else 
 		{
 #ifdef DEBUG

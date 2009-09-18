@@ -30,7 +30,7 @@ struct Data_HeaderContainer_itemIterator
 
 public:
   Data_HeaderContainer_itemIterator(Data::HeaderContainer&);
-  SIP_PYOBJECT next();
+  SIP_PYOBJECT __next__();
 %MethodCode
 if(sipCpp->_cur != sipCpp->_end)
 {
@@ -195,19 +195,13 @@ int __len__();
 sipRes = sipCpp->size();
 %End
 
-const char* __getitem__(const char*);
-%MethodCode
-sipRes = sipCpp->get(a0);
-%End
-
 void  __setitem__(const char*,const char*);
 %MethodCode
 sipCpp->insert(a0,a1);
 %End
 
-
-
     const char* get(const char *key,const char *defaultValue = NULL) const;
+    const char* operator[](const char *aKey) const;
     int size() const;
     void clear();
   };

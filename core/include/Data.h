@@ -66,6 +66,8 @@ struct Data
     const char* get(const char *key,const char *defaultValue = NULL) const;
     int size() const;
 
+    const char* operator[](const char *aKey) const {return get(aKey);}
+
     HeaderContainer& operator=(const HeaderContainer&);
 
     // ExpertMethodes for macro insertion a loop
