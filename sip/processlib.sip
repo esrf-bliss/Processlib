@@ -78,7 +78,7 @@ else
 void update(SIP_PYDICT);
 %MethodCode
 PyObject *key, *value;
-Py_ssize_t pos = 0;
+SIP_SSIZE_T pos = 0;
 PoolThreadMgr::Lock aLock(sipCpp->mutex());
 Data::HeaderContainer::Header &header = sipCpp->header();
 while (PyDict_Next(a0, &pos, &key, &value)) 
