@@ -21,8 +21,9 @@ public:
   void ref();
   void unref();
 
-protected:
   virtual ~SinkTaskBase();
+
+protected:
 
   pthread_mutex_t _lock;
 
