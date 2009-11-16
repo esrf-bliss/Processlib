@@ -381,5 +381,6 @@ class PoolThreadMgr
   void setTaskMgr(const TaskMgr *);
   void abort();
   void suspend(bool);
+  bool wait(double timeout = -1.);
   void quit();
 };

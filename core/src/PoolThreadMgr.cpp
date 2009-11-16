@@ -122,6 +122,7 @@ void PoolThreadMgr::quit()
       void *returnThread;
       while(pthread_join(*i,&returnThread));
     }
+  _stopFlag = false;
   _threadID.clear();
 }
 /** @brief abort all process
