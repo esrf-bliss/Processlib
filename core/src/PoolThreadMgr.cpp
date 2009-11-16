@@ -181,13 +181,16 @@ void* PoolThreadMgr::_run(void *arg)
   while(1)
     {
       processMgrPt->_runningThread--;
+
+      if(processMgrPt->_suspendFlag)
+	 pthread_cond_broadcast(&processMgrPt->_cond);	// synchro if abort
+
       while(processMgrPt->_suspendFlag ||
 	    (!processMgrPt->_stopFlag && processMgrPt->_processQueue.empty()))
-	{
-	  pthread_cond_broadcast(&processMgrPt->_cond);	// synchro if abort
-	  pthread_cond_wait(&processMgrPt->_cond,&processMgrPt->_lock);
-	}
+	 pthread_cond_wait(&processMgrPt->_cond,&processMgrPt->_lock);
+      
       processMgrPt->_runningThread++;
+
       if(!processMgrPt->_processQueue.empty())
 	{
 	  TaskMgr *processPt = processMgrPt->_processQueue.front();
