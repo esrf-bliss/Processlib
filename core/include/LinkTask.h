@@ -37,10 +37,10 @@ public:
   void ref();
   void unref();
 
-  virtual ~LinkTask();
 
 protected:
 
+  virtual ~LinkTask();
 
   bool _processingInPlaceFlag;
   TaskEventCallback *_eventCbkPt;

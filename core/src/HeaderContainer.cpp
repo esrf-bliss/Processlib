@@ -1,4 +1,5 @@
 #include "Data.h"
+#include "PoolThreadMgr.h"
 #include <sstream>
 
 struct Data::HeaderContainer::HeaderHolder
@@ -144,7 +145,7 @@ void Data::HeaderContainer::unlock()
 {
   _header->unlock();
 }
-pthread_mutex_t* Data::HeaderContainer::mutex()
+pthread_mutex_t* Data::HeaderContainer::mutex() const
 {
   return &_header->_lock;
 }
@@ -152,4 +153,23 @@ pthread_mutex_t* Data::HeaderContainer::mutex()
 Data::HeaderContainer::Header& Data::HeaderContainer::header()
 {
   return _header->header;
+}
+
+const Data::HeaderContainer::Header& Data::HeaderContainer::header() const
+{
+  return _header->header;
+}
+
+
+std::ostream& operator<<(std::ostream &os,
+			 const Data::HeaderContainer &aHeader)
+{
+  os << "< ";
+  PoolThreadMgr::Lock aLock(aHeader.mutex());
+  const Data::HeaderContainer::Header &header = aHeader.header();
+  for(Data::HeaderContainer::Header::const_iterator i = header.begin();
+      i != header.end();++i)
+    os << "(" << i->first << "," << i->second << ") ";
+  os << ">";
+  return os;
 }

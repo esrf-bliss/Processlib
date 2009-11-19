@@ -73,8 +73,9 @@ struct Data
     // ExpertMethodes for macro insertion a loop
     void lock();
     void unlock();
-    pthread_mutex_t* mutex();
+    pthread_mutex_t* mutex() const;
     Header& header();
+    const Header& header() const;
   private:
     struct HeaderHolder;
     HeaderHolder *_header;
@@ -173,4 +174,34 @@ struct Data
   mutable HeaderContainer header;
   mutable Buffer *buffer;
 };
+
+std::ostream& operator<<(std::ostream &os,
+			 const Data::HeaderContainer &aHeader);
+
+inline std::ostream& operator<<(std::ostream &os,const Buffer &aBuffer)
+{
+  const char *anOwnerShip = (aBuffer.owner == 
+			     Buffer::MAPPED) ? "Mapped" : "Shared";
+  os << "<"
+     << "owner=" << anOwnerShip << ", "
+     << "refcount=" << aBuffer.refcount << ", "
+     << "data=" << aBuffer.data 
+     << ">";
+  return os;
+}
+inline std::ostream& operator<<(std::ostream &os,const Data &aData)
+{
+  os << "<"
+     << "type=" << aData.type << ", "
+     << "width=" << aData.width << ", "
+     << "height=" << aData.height << ", "
+     << "frameNumber=" << aData.frameNumber << ", "
+     << "timestamp=" << aData.timestamp << ", "
+     << "header=" << aData.header << ", "
+     << "buffer=" << aData.buffer
+     << ">";
+  return os;
+}
+
+
 #endif

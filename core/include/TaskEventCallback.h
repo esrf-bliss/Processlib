@@ -8,7 +8,6 @@ class TaskEventCallback
 {
  public:
   TaskEventCallback();
-  virtual ~TaskEventCallback();
   virtual void started(Data &) {}
   virtual void finished(Data &) {}
   virtual void error(Data &,const char*) {}
@@ -16,6 +15,8 @@ class TaskEventCallback
   void ref();
   void unref();
 
+ protected:
+  virtual ~TaskEventCallback();
  private:
   pthread_mutex_t _lock;
   int		  _refCounter;
