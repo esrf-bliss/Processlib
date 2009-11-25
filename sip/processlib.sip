@@ -287,6 +287,13 @@ extern "C"
   sipRes = PyLong_FromLong(sipCpp->buffer ? sipCpp->buffer->refcount : 0);
   Py_END_ALLOW_THREADS
 %End
+
+  const char* __repr__();
+%MethodCode
+	std::ostringstream str;
+	str << *sipCpp;	
+	sipRes = str.str().c_str();
+%End
 };
 
 
