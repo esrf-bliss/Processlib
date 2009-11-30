@@ -52,7 +52,7 @@ public:
     inline void lock() 
     {
       if(!_lockFlag)
-	while(pthread_mutex_lock(_lock));
+	while(pthread_mutex_lock(_lock)) ;
       _lockFlag = true;
     }
     inline void unLock()

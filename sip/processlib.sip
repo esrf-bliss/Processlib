@@ -230,9 +230,17 @@ switch(sipCpp->type)
 %End
 %SetCode
 PyArrayObject *tmpObject = (PyArrayObject*)PyArray_ContiguousFromObject(sipPy,NPY_NOTYPE,0,0);
+#if(SIP_VERSION >= 0x041000)
+if(!tmpObject) return -1; //should throw an error
+#else
 if(!tmpObject) return NULL; //should throw an error
+#endif
 int nbDim = PyArray_NDIM(tmpObject);
+#if(SIP_VERSION >= 0x041000)
+if(nbDim > 2) return -1;
+#else
 if(nbDim > 2) return NULL;
+#endif
 int width,height;
 height =  PyArray_DIM(tmpObject,0);
 if(nbDim < 2) width = 1;
@@ -257,7 +265,11 @@ switch(tmpObject->descr->type_num)
   case NPY_DOUBLE:
 	sipCpp->type = Data::DOUBLE;break;
   default:
-        return NULL;
+#if(SIP_VERSION >= 0x041000)
+        return -1;
+#else
+	return NULL;
+#endif
 }
 sipCpp->width = width,sipCpp->height = height;
 int aSize = sipCpp->size();
@@ -304,15 +316,17 @@ class TaskEventCallback
 %End
  public:
   TaskEventCallback();
+  virtual void started(Data &);
+  virtual void finished(Data &);
+  virtual void error(Data &,const char*);
+ protected:
   virtual ~TaskEventCallback();
 %MethodCode
   Py_BEGIN_ALLOW_THREADS
   sipCpp->unref();
+  sipCppV = NULL;
   Py_END_ALLOW_THREADS
 %End
-  virtual void started(Data &);
-  virtual void finished(Data &);
-  virtual void error(Data &,const char*);
 };
 
 class LinkTask
@@ -322,16 +336,18 @@ class LinkTask
 %End
  public:
   LinkTask(bool = true);
-  ~LinkTask();
-%MethodCode
- Py_BEGIN_ALLOW_THREADS;
- sipCpp->unref();
- Py_END_ALLOW_THREADS;
-%End
   virtual Data process(Data&);
   void setProcessingInPlace(bool);
   void setEventCallback(TaskEventCallback *);
   TaskEventCallback* getEventCallback();
+ protected:
+  ~LinkTask();
+%MethodCode
+ Py_BEGIN_ALLOW_THREADS;
+ sipCpp->unref();
+ sipCppV = NULL;
+ Py_END_ALLOW_THREADS;
+%End
 };
 
 class SinkTaskBase
@@ -340,15 +356,17 @@ class SinkTaskBase
 #include <SinkTask.h>
 %End
 public:
+  virtual void process(Data&);
+  void setEventCallback(TaskEventCallback *);
+  TaskEventCallback* getEventCallback();
+protected:
   virtual ~SinkTaskBase();
 %MethodCode
  Py_BEGIN_ALLOW_THREADS;
  sipCpp->unref();
+ sipCppV = NULL;
  Py_END_ALLOW_THREADS;
 %End
-  virtual void process(Data&);
-  void setEventCallback(TaskEventCallback *);
-  TaskEventCallback* getEventCallback();
 };
 
 class TaskMgr

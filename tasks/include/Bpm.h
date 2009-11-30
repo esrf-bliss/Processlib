@@ -107,7 +107,7 @@ namespace Tasks
 					     const BpmResult&);
     double _calculate_fwhm(const Buffer &projection,int size,
 			   int max_index,double background_level,
-			   int &min_index,int &max_index);
+			   int &,int &);
     void _calculate_background(const Buffer &projection,double &background_level,
 			       int min_index,int max_index);
   };

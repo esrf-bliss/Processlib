@@ -25,7 +25,7 @@ struct Buffer
   }
   void unref()
   {
-    while(pthread_mutex_lock(&_lock));
+    while(pthread_mutex_lock(&_lock)) ;
     if(!(--refcount))
       {
 	if(owner == SHARED && data)
@@ -38,7 +38,7 @@ struct Buffer
   }
   void ref()
   {
-    while(pthread_mutex_lock(&_lock));
+    while(pthread_mutex_lock(&_lock)) ;
     ++refcount;
     pthread_mutex_unlock(&_lock);
   }
