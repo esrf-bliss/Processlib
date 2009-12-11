@@ -207,6 +207,9 @@ double BpmTask::_calculate_fwhm(const Buffer &projectionBuffer,int size,
 void BpmTask::_calculate_background(const Buffer &projection,double &background_level,
 				    int min_index,int max_index)
 {
+#if DEBUG
+  printf("min_index %d, max_index %d\n",min_index,max_index);
+#endif
   unsigned long long *aProjectionPt = (unsigned long long*)projection.data;
   if(mEnableBackgroundSubstration)
     background_level = (aProjectionPt[min_index] + aProjectionPt[max_index]) / 2.;
@@ -308,7 +311,10 @@ static inline double _compute_center(double y[],int ly)
   int n;
   for(n = 1;n < ly;n <<= 1);	// Find the next above power of two
   int n1 = n << 2;
-  
+#ifdef DEBUG
+  printf("n : %d , n1 %d\n",n,n1);
+#endif
+ 
   GslErrorMgr::get().resetErrorMsg();
 
   Buffer *ynRe = new Buffer(n * sizeof(double));
@@ -326,7 +332,6 @@ static inline double _compute_center(double y[],int ly)
       REAL(data_n,i) = yn_re[i];
       IMAG(data_n,i) = 0.0;
     }
-
   int error_flag = gsl_fft_complex_radix2_forward(data_n,1,n);
 
   Buffer *dataN1 = new Buffer(2 * n1 * sizeof(double));
@@ -337,23 +342,24 @@ static inline double _compute_center(double y[],int ly)
     {
       // f is extended from n to n1 to give fn1
       // (fn is split in two and zero-padded in the middle)
-      memset(data_n1,0,n1 * sizeof(double));
+      memset(data_n1 + n,0,((n1 - n) << 1) * sizeof(double));
       // copy first half of data_n at the beginnig of data_n1
       memcpy(data_n1,data_n,n * sizeof(double));
       // copy second half of data_n at the end of data_n1
-      memcpy(data_n1 + (n1 - n),data_n + n,n * sizeof(double));
+      memcpy(data_n1 + ((n1 << 1) - n),data_n + n,n * sizeof(double));
       // fn1 is squared
       for(int i = 0;i < n1;++i)
 	{
 	  double rl = REAL(data_n1,i);
 	  double img = IMAG(data_n1,i);
+
 	  REAL(data_n1,i) = rl*rl-img*img;
 	  IMAG(data_n1,i)=2*rl*img;
 	}
       //yn1=IFFT(fn1)...
       error_flag = gsl_fft_complex_radix2_inverse (data_n1, 1, n1);
 #ifdef DEBUG
-      printf("ifft done..\n");
+      printf("ifft done.. error_flag=%d\n",error_flag);
 #endif
        
       //absolute value of yn1
@@ -365,7 +371,6 @@ static inline double _compute_center(double y[],int ly)
 	      double img = IMAG(data_n1,i);
 	      yn1_re[i] = sqrt(rl*rl+img*img);
 	    }
-
 	  //find  point and width of yn1 such as yn1>threshold
 	  int first_point,nb_points;
 	  _find_summit(yn1_re,n1,first_point,nb_points);
@@ -490,7 +495,7 @@ BpmTask::BpmTask(const BpmTask &aTask) :
       int size = max_index - min_index + 1; \
       Buffer *profile = new Buffer(size * sizeof(double)); \
       double *aProfilePt = (double*)profile->data; \
-      unsigned long long *aSrcProfilePt = (unsigned long long*)projection_##XorY->data; \
+      unsigned long long *aSrcProfilePt = (unsigned long long*)projection_##XorY->data + min_index; \
       for(int i = 0;i < size;++i) /* @todo optimized if needed */	\
 	aProfilePt[i] = double(aSrcProfilePt[i]); \
 	       \
