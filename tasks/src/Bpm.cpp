@@ -1,6 +1,3 @@
-#include "Bpm.h"
-#include "GslErrorMgr.h"
-//#include <gsl_cw.h>
 #include <gsl/gsl_fft_complex.h>
 #include <gsl/gsl_linalg.h>
 #include <gsl/gsl_multifit.h>
@@ -8,7 +5,11 @@
 #include <iostream>
 #include <sys/time.h>
 #include <time.h>
+
+#include "Bpm.h"
+#include "GslErrorMgr.h"
 #include "PoolThreadMgr.h"
+#include "SoftRoi.h"
 
 using namespace Tasks;
 
@@ -433,11 +434,12 @@ BpmTask::BpmTask(BpmManager &aMgr) :
   mEnableX(true),
   mEnableY(true),
   mEnableBackgroundSubstration(false),
-  mRoiAutomatic(true)
+  mRoiAutomatic(true),
+  _RoiX1(-1),_RoiX2(-1),
+  _RoiY1(-1),_RoiY2(-1)
 {
-  //Init Roi
-  //  mRoi = {-1,-1,-1,-1};
 }
+
 BpmTask::BpmTask(const BpmTask &aTask) :
   SinkTask<BpmResult>(aTask),
   mFwhmTunning(aTask.mFwhmTunning),
@@ -450,7 +452,9 @@ BpmTask::BpmTask(const BpmTask &aTask) :
   mEnableX(aTask.mEnableX),
   mEnableY(aTask.mEnableY),
   mEnableBackgroundSubstration(aTask.mEnableBackgroundSubstration),
-  mRoiAutomatic(aTask.mRoiAutomatic)
+  mRoiAutomatic(aTask.mRoiAutomatic),
+  _RoiX1(aTask._RoiX1),_RoiX2(aTask._RoiX2),
+  _RoiY1(aTask._RoiY1),_RoiY2(aTask._RoiY2)
 {
   
 }
@@ -542,8 +546,21 @@ if(mFwhmTunning) \
       } \
   } \
 }
-void BpmTask::process(Data &aSrc)
+
+void BpmTask::process(Data &aInputSrc)
 {
+  Data aSrc;
+  if(!(_RoiX1 < 0 && _RoiX2 < 0 &&
+       _RoiY1 < 0 && _RoiY2 < 0))
+    {
+      SoftRoi *roiTaskPt = new SoftRoi();
+      roiTaskPt->setRoi(_RoiX1,_RoiX2,_RoiY1,_RoiY2);
+      roiTaskPt->setProcessingInPlace(false);
+      aSrc = roiTaskPt->process(aInputSrc);
+      roiTaskPt->unref();
+    }
+  else
+    aSrc = aInputSrc;
 
   BpmResult aResult;
   BpmResult aLastResult = _mgr.getResult();
@@ -576,7 +593,33 @@ void BpmTask::process(Data &aSrc)
  clean:
   projection_x->unref();
   projection_y->unref();
+  if(!(_RoiX1 < 0 && _RoiX2 < 0 &&
+       _RoiY1 < 0 && _RoiY2 < 0))
+    {
+      aResult.beam_center_x += _RoiX1;
+      aResult.beam_fwhm_min_x_index += _RoiX1;
+      aResult.beam_fwhm_max_x_index += _RoiX1;
+      
+      aResult.beam_center_y += _RoiY1;
+      aResult.beam_fwhm_min_y_index += _RoiY1;
+      aResult.beam_fwhm_max_y_index += _RoiY1;
+    }
   _mgr.setResult(aResult);
 }
 
-
+/**@brief set roi corner
+ * @todo maybe add a lock to be mt-safe!!
+ */
+void BpmTask::setRoi(int x1,int x2,
+		     int y1,int y2)
+{
+  _RoiX1 = x1,_RoiX2 = x2;
+  _RoiY1 = y1,_RoiY2 = y2;
+}
+//@brief get roi corner
+void BpmTask::getRoi(int &x1,int &x2,
+		       int &y1,int &y2) const
+{
+  x1 = _RoiX1,x2 = _RoiX2;
+  y1 = _RoiY1,y2 = _RoiY2;
+}

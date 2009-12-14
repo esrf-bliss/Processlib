@@ -85,7 +85,13 @@ namespace Tasks
     BpmTask(BpmManager &);
     BpmTask(const BpmTask&);
     virtual void process(Data&); 
-      
+    
+    //if all values are < 0 => roi inactive
+    void	setRoi(int x1,int x2,
+		       int y1,int y2);
+    void	getRoi(int &x1,int &x2,
+		       int &y1,int &y2) const;
+
     bool		mFwhmTunning;
     double		mFwhmTunningExtension;
     double		mAoiExtension;
@@ -95,8 +101,12 @@ namespace Tasks
     bool		mEnableY;
     bool		mEnableBackgroundSubstration;
     bool		mRoiAutomatic;
-      
+    
+    
   private:
+    int			_RoiX1,_RoiX2;
+    int			_RoiY1,_RoiY2;
+
     template<class IN>
       void _treat_image(const Data &aSrc,
 	                Buffer &projection_x,

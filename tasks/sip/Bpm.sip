@@ -62,7 +62,11 @@ namespace Tasks
     BpmTask(Tasks::BpmManager &);
     BpmTask(const Tasks::BpmTask&);
     virtual void process(Data&); 
-      
+    void setRoi(int x1,int x2,
+		int y1,int y2);
+    void getRoi(int &x1 /Out/,int &x2 /Out/,
+		int &y1 /Out/,int &y2 /Out/) const;
+
     bool		mFwhmTunning;
     double		mFwhmTunningExtension;
     double		mAoiExtension;
