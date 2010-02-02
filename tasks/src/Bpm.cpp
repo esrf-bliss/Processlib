@@ -493,18 +493,21 @@ BpmTask::BpmTask(const BpmTask &aTask) :
 	  min_index = 0; \
 	  max_index = WidthorHeight; \
 	} \
-      _calculate_background(*projection_##XorY,aResult.mBackgroundLevel##XorY, \
-			    min_index,max_index);		      \
-      /* calculate the beam center */				      \
-      int size = max_index - min_index + 1; \
-      Buffer *profile = new Buffer(size * sizeof(double)); \
-      double *aProfilePt = (double*)profile->data; \
-      unsigned long long *aSrcProfilePt = (unsigned long long*)projection_##XorY->data + min_index; \
-      for(int i = 0;i < size;++i) /* @todo optimized if needed */	\
-	aProfilePt[i] = double(aSrcProfilePt[i]); \
-	       \
-      aResult.beam_center_##XorY = _compute_center(aProfilePt,size) + min_index; \
-      profile->unref();	/* free */					\
+      if(min_index < max_index)			\
+	{								\
+	  _calculate_background(*projection_##XorY,aResult.mBackgroundLevel##XorY, \
+				min_index,max_index);			\
+	  /* calculate the beam center */				\
+	  int size = max_index - min_index + 1;				\
+	  Buffer *profile = new Buffer(size * sizeof(double));		\
+	  double *aProfilePt = (double*)profile->data;			\
+	  unsigned long long *aSrcProfilePt = (unsigned long long*)projection_##XorY->data + min_index; \
+	  for(int i = 0;i < size;++i) /* @todo optimized if needed */	\
+	    aProfilePt[i] = double(aSrcProfilePt[i]);			\
+									\
+	  aResult.beam_center_##XorY = _compute_center(aProfilePt,size) + min_index; \
+	  profile->unref();	/* free */				\
+	}								\
 	       \
       /*if(aResult.beam_center_x <= 0) @todo should manage error	\
        error = "Beam center calculation failed" \
