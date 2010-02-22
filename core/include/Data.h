@@ -197,9 +197,12 @@ inline std::ostream& operator<<(std::ostream &os,const Data &aData)
      << "height=" << aData.height << ", "
      << "frameNumber=" << aData.frameNumber << ", "
      << "timestamp=" << aData.timestamp << ", "
-     << "header=" << aData.header << ", "
-     << "buffer=" << aData.buffer
-     << ">";
+     << "header=" << aData.header << ", ";
+  if(aData.buffer)
+    os << "buffer=" << *aData.buffer;
+  else
+    os << "buffer=" << NULL;
+  os << ">";
   return os;
 }
 
