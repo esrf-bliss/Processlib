@@ -43,7 +43,7 @@ struct Buffer
     pthread_mutex_unlock(&_lock);
   }
   Ownership		owner;
-  int			refcount;
+  volatile int          refcount;
   void			*data;
   pthread_mutex_t	_lock;
 };

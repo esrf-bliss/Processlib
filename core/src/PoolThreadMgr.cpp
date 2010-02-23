@@ -184,9 +184,6 @@ void* PoolThreadMgr::_run(void *arg)
       bool aBroadcastFlag = true;
       processMgrPt->_runningThread--;
 
-      if(processMgrPt->_suspendFlag)
-	pthread_cond_broadcast(&processMgrPt->_cond);	// synchro if abort
-
       while(processMgrPt->_suspendFlag ||
 	    (!processMgrPt->_stopFlag && processMgrPt->_processQueue.empty()))
 	{
