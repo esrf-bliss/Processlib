@@ -201,7 +201,7 @@ inline std::ostream& operator<<(std::ostream &os,const Data &aData)
   if(aData.buffer)
     os << "buffer=" << *aData.buffer;
   else
-    os << "buffer=" << NULL;
+    os << "buffer=" << "NULL";
   os << ">";
   return os;
 }

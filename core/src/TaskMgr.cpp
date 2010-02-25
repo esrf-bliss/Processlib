@@ -7,7 +7,8 @@
 class TaskLinkWrap : public TaskMgr::TaskWrap
 {
 public:
-  TaskLinkWrap(TaskMgr &aMgr,LinkTask *aTask) : TaskWrap(aMgr),_LinkTask(aTask) {}
+  TaskLinkWrap(TaskMgr &aMgr,LinkTask *aTask,Data &aCurrentData) : 
+    TaskWrap(aMgr),_LinkTask(aTask),_currentData(aCurrentData) {}
   virtual ~TaskLinkWrap()
   {
     _endLinkTask(_LinkTask);
@@ -16,21 +17,24 @@ public:
   {
     TaskEventCallback* eventCbkPt = _LinkTask->getEventCallback();
     if(eventCbkPt)
-      eventCbkPt->started(_currentData());
-    Data aResult = _LinkTask->process(_currentData());
+      eventCbkPt->started(_currentData);
+    Data aResult = _LinkTask->process(_currentData);
     if(eventCbkPt)
       eventCbkPt->finished(aResult);
     _setNextData(aResult);
   }
 private:
   LinkTask	*_LinkTask;
+  Data          _currentData;
 };
 
 //Class TaskSinkWrap
 class TaskSinkWrap : public TaskMgr::TaskWrap
 {
 public:
-  TaskSinkWrap(TaskMgr &aMgr,SinkTaskBase *aTask) : TaskWrap(aMgr),_SinkTask(aTask) {}
+  TaskSinkWrap(TaskMgr &aMgr,SinkTaskBase *aTask,Data &aCurrentData) : 
+    TaskWrap(aMgr),_SinkTask(aTask),_currentData(aCurrentData) {}
+
   virtual ~TaskSinkWrap()
   {
     _endSinkTask(_SinkTask);
@@ -39,13 +43,14 @@ public:
   {
     TaskEventCallback* eventCbkPt = _SinkTask->getEventCallback();
     if(eventCbkPt)
-      eventCbkPt->started(_currentData());
-    _SinkTask->process(_currentData());
+      eventCbkPt->started(_currentData);
+    _SinkTask->process(_currentData);
     if(eventCbkPt)
-      eventCbkPt->finished(_currentData());
+      eventCbkPt->finished(_currentData);
   }
 private:
   SinkTaskBase	*_SinkTask;
+  Data          _currentData;
 };
 
 //struct Task
@@ -76,7 +81,7 @@ TaskMgr::Task::~Task()
     (*i)->unref();
 }
 
-TaskMgr::TaskMgr() {}
+TaskMgr::TaskMgr() : _PendingLinkTask(NULL) {}
 
 TaskMgr::TaskMgr(const TaskMgr &aMgr)
 {
@@ -140,7 +145,7 @@ TaskMgr::TaskWrap* TaskMgr::next()
       _PendingLinkTask = aTaskPt->_linkTask;
       aTaskPt->_linkTask = NULL;
       CHECK_END_STAGE();
-      return new TaskLinkWrap(*this,_PendingLinkTask);
+      return new TaskLinkWrap(*this,_PendingLinkTask,_currentData);
     }
   else
     {
@@ -148,7 +153,7 @@ TaskMgr::TaskWrap* TaskMgr::next()
       aTaskPt->_sinkTaskQueue.pop_front();
       _PendingSinkTask.push_back(std::pair<SinkTaskBase*,bool>(aNewSinkTaskPt,false));
       CHECK_END_STAGE();
-      return new TaskSinkWrap(*this,aNewSinkTaskPt);
+      return new TaskSinkWrap(*this,aNewSinkTaskPt,_currentData);
     }
 }
 

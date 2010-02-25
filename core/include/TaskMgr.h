@@ -36,8 +36,6 @@ public:
       {_Mgr._endSinkTask(aFinnishedTask);}
     inline void _setNextData(Data &aNextData)
       {_Mgr._nextData = aNextData;}
-    inline Data& _currentData() 
-      {return _Mgr._currentData;}
     TaskMgr &_Mgr;
   };
   friend class TaskWrap;
