@@ -65,7 +65,7 @@ public:
     }
   private:
     pthread_mutex_t *_lock;
-    volatile bool   _lockFlag;
+    bool   _lockFlag;
   };
 
 private:
