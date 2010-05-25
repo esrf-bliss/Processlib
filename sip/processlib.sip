@@ -72,7 +72,10 @@ if(i != header.end())
 else if (a1)
   sipRes = PyString_FromString(a1);
 else
-  sipRes = Py_None;
+  {
+   Py_INCREF(Py_None);
+   sipRes = Py_None;
+  }
 %End
 
 void update(SIP_PYDICT);
@@ -211,7 +214,7 @@ sipCpp->insert(a0,a1);
   void *buffer;
 %GetCode
 if(!sipCpp->buffer || !sipCpp->buffer->data)
-   return Py_None;
+   Py_RETURN_NONE;
 
 npy_intp dims[] = {sipCpp->height,sipCpp->width};
 

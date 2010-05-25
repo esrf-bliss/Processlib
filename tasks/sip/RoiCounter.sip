@@ -13,7 +13,7 @@ namespace Tasks
 
     Tasks::RoiCounterResult	getResult(double = 0.,int = -1) const;
     void	resizeHistory(int aSize);
-    void  reset();
+    void  resetHistory();
     int	  historySize() const;
     int   lastFrameNumber() const;
    };
@@ -42,5 +42,7 @@ namespace Tasks
     virtual void process(Data&);
 
     void setRoi(int,int,int,int);
+    void getRoi(int &x /Out/,int &y /Out/,
+		int &width /Out/,int &height /Out/);
    };
 };

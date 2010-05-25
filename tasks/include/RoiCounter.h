@@ -32,11 +32,18 @@ namespace Tasks
     RoiCounterTask(RoiCounterManager&);
     RoiCounterTask(const RoiCounterTask&);
     virtual void process(Data&);
+    
+    void setMask(Data &aMask) {_mask = aMask;}
 
     void setRoi(int x,int y,int width,int height);
+    void getRoi(int &x,int &y,int &width,int &height)
+    {
+      x = _x,y = _y,width = _width,height = _height;
+    }
   private:
     int _x,_y;
     int _width,_height;
+    Data _mask;
   };
 }
 #endif

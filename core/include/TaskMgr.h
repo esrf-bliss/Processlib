@@ -47,8 +47,10 @@ public:
   void setInputData(Data &aData) {_currentData = aData;}
   bool setLinkTask(int aStage,LinkTask *);
   void addSinkTask(int aStage,SinkTaskBase *);
+  void getLastTask(std::pair<int,LinkTask*>&,
+		   std::pair<int,SinkTaskBase*>&);
   TaskWrap* next();
-  //@brief do all the task in synchronously
+  //@brief do all the task synchronously
   void syncProcess();
 private:
   StageTask		_Tasks;

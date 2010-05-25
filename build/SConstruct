@@ -1,0 +1,9 @@
+import os
+try:
+    Import('env')
+except:
+    env = Environment()
+
+files = Glob(os.path.join('..','core','src','*.cpp')) + Glob(os.path.join('..','tasks','src','*.cpp'))
+env.SharedLibrary('libprocesslib',files,
+                  CPPPATH = [os.path.join('..','core','include'),os.path.join('..','tasks','include')])

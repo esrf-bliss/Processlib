@@ -30,7 +30,7 @@ public:
 		   int frameNumber = -1) const;
   void	getHistory(std::list<Result> &aHistory,int fromFrameNumber = 0) const;
   void	resizeHistory(int aSize);
-  void  reset();
+  void  resetHistory();
   int	historySize() const;
   //@brief return the last available frame with no hole before
   int lastFrameNumber() const;
@@ -60,7 +60,7 @@ SinkTaskMgr<Result>::SinkTaskMgr(int historySize) :
   pthread_mutex_init(&_lock,NULL);
   pthread_cond_init(&_cond,NULL);
   _historyResult.resize(historySize);
-  reset();
+  resetHistory();
 }
 template<class Result>
 SinkTaskMgr<Result>::~SinkTaskMgr()
@@ -135,7 +135,7 @@ void SinkTaskMgr<Result>::setResult(const Result &aResult)
 }
 
 template<class Result>
-void SinkTaskMgr<Result>::reset()
+void SinkTaskMgr<Result>::resetHistory()
 {
   PoolThreadMgr::Lock aLock(&_lock);
   typename std::vector<Result>::iterator i;
@@ -169,7 +169,7 @@ void SinkTaskMgr<Result>::resizeHistory(int aSize)
   if(aSize < 1) aSize = 1;
   PoolThreadMgr::Lock aLock(&_lock);
   _historyResult.resize(aSize);
-  reset();
+  resetHistory();
 }
 
 template<class Result>

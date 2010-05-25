@@ -13,7 +13,7 @@ namespace Tasks
 
     Tasks::BpmResult	getResult(double = 0.,int = -1) const;
     void	resizeHistory(int aSize);
-    void  reset();
+    void  resetHistory();
     int	  historySize() const;
     int lastFrameNumber() const;
   };

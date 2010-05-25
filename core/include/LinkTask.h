@@ -12,8 +12,6 @@ public:
   LinkTask(bool aProcessingInPlaceFlag);
   LinkTask(const LinkTask &aLinkTask);
       
-  //@brief ask if this task need a internal tmp buffer
-  //
   //@brief start the processing of this LinkTask
   virtual Data process(Data &aData) {return aData;}
 
