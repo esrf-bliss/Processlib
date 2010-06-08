@@ -1,6 +1,8 @@
 INSTALATION:
 
+- go to build directory
+- then "make"
 - go to sip directory
 - type "python configuration.py"
 - then "make"
-after all you will have the processlib.so python module ;)
+after all you will have libprocesslib.so (C++ library) and processlib.so which is a python module ;)
