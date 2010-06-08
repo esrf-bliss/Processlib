@@ -232,55 +232,53 @@ switch(sipCpp->type)
 }
 %End
 %SetCode
-PyArrayObject *tmpObject = (PyArrayObject*)PyArray_ContiguousFromObject(sipPy,NPY_NOTYPE,0,0);
-#if(SIP_VERSION >= 0x041000)
-if(!tmpObject) return -1; //should throw an error
-#else
-if(!tmpObject) return NULL; //should throw an error
-#endif
-int nbDim = PyArray_NDIM(tmpObject);
-#if(SIP_VERSION >= 0x041000)
-if(nbDim > 2) return -1;
-#else
-if(nbDim > 2) return NULL;
-#endif
 int width,height;
-height =  PyArray_DIM(tmpObject,0);
-if(nbDim < 2) width = 1;
-else width = PyArray_DIM(tmpObject,1);
+PyArrayObject *tmpObject = (PyArrayObject*)PyArray_ContiguousFromObject(sipPy,NPY_NOTYPE,0,0);
+if(!tmpObject) sipErr=1;
+else
+ {
+  int nbDim = PyArray_NDIM(tmpObject);
+  if(nbDim > 2)
+     sipErr=1;
+  else
+   {
+    height =  PyArray_DIM(tmpObject,0);
+    if(nbDim < 2) width = 1;
+    else width = PyArray_DIM(tmpObject,1);
 
-switch(tmpObject->descr->type_num)
-{
-  case NPY_BYTE:
+    switch(tmpObject->descr->type_num)
+    {
+     case NPY_BYTE:
 	sipCpp->type = Data::INT8;break;
-  case NPY_UBYTE:
+     case NPY_UBYTE:
 	sipCpp->type = Data::UINT8;break;
-  case NPY_SHORT:
+     case NPY_SHORT:
 	sipCpp->type = Data::INT16;break;
-  case NPY_USHORT:
+     case NPY_USHORT:
         sipCpp->type = Data::UINT16;break;
-  case NPY_INT32:
+     case NPY_INT32:
 	sipCpp->type = Data::INT32;break;
-  case NPY_UINT:
+     case NPY_UINT:
         sipCpp->type = Data::UINT32;break;
-  case NPY_FLOAT32:
+     case NPY_FLOAT32:
 	sipCpp->type = Data::FLOAT;break;
-  case NPY_DOUBLE:
+     case NPY_DOUBLE:
 	sipCpp->type = Data::DOUBLE;break;
-  default:
-#if(SIP_VERSION >= 0x041000)
-        return -1;
-#else
-	return NULL;
-#endif
+     default:
+        sipErr=1;break;
+    }
+  }
+ }
+if(!sipErr)
+{
+ sipCpp->width = width,sipCpp->height = height;
+ int aSize = sipCpp->size();
+ Buffer *aNewBuffer = new Buffer(aSize);
+ memcpy(aNewBuffer->data,PyArray_DATA(tmpObject),aSize);
+ Py_DECREF(tmpObject);
+ sipCpp->setBuffer(aNewBuffer);
+ aNewBuffer->unref();
 }
-sipCpp->width = width,sipCpp->height = height;
-int aSize = sipCpp->size();
-Buffer *aNewBuffer = new Buffer(aSize);
-memcpy(aNewBuffer->data,PyArray_DATA(tmpObject),aSize);
-Py_DECREF(tmpObject);
-sipCpp->setBuffer(aNewBuffer);
-aNewBuffer->unref();
 %End
 
 %TypeCode

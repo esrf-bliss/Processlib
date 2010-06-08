@@ -30,7 +30,7 @@ public:
 		   int frameNumber = -1) const;
   void	getHistory(std::list<Result> &aHistory,int fromFrameNumber = 0) const;
   void	resizeHistory(int aSize);
-  void  resetHistory();
+  void  resetHistory(bool alockFlag = true);
   int	historySize() const;
   //@brief return the last available frame with no hole before
   int lastFrameNumber() const;
@@ -135,9 +135,9 @@ void SinkTaskMgr<Result>::setResult(const Result &aResult)
 }
 
 template<class Result>
-void SinkTaskMgr<Result>::resetHistory()
+void SinkTaskMgr<Result>::resetHistory(bool lockFlag)
 {
-  PoolThreadMgr::Lock aLock(&_lock);
+  PoolThreadMgr::Lock aLock(&_lock,lockFlag);
   typename std::vector<Result>::iterator i;
   for(i = _historyResult.begin();i != _historyResult.end();++i)
     i->frameNumber = -1;
@@ -169,7 +169,7 @@ void SinkTaskMgr<Result>::resizeHistory(int aSize)
   if(aSize < 1) aSize = 1;
   PoolThreadMgr::Lock aLock(&_lock);
   _historyResult.resize(aSize);
-  resetHistory();
+  resetHistory(false);
 }
 
 template<class Result>
