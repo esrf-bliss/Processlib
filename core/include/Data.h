@@ -141,6 +141,22 @@ struct Data
       }
     return depth;
   }
+  inline bool is_signed() const
+  {
+    bool signedFlag;
+    switch(type)
+      {
+      case UINT8:
+      case UINT16:
+      case UINT32:
+      case UINT64:
+	signedFlag = false;break;
+      default:
+	signedFlag = true;break;
+      }
+    return signedFlag;
+  }
+
   inline bool empty() const { return buffer ? !buffer->data : true;}
   //@brief return a data with the same header but with different buffer.
   inline Data copyHeader(TYPE aType)
