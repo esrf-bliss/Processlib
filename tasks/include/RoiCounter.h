@@ -1,6 +1,7 @@
 #ifndef __ROICOUNTER_H__
 #define __ROICOUNTER_H__
 
+#include <sstream>
 #include "SinkTask.h"
 
 namespace Tasks
@@ -25,7 +26,18 @@ namespace Tasks
     int                          frameNumber;
     RoiCounterManager::ErrorCode errorCode;
   };
-  
+
+  inline std::ostream& operator<<(std::ostream &os,const RoiCounterResult &aRoiResult)
+    {
+      os << "<"
+	 << "frameNumber=" << aRoiResult.frameNumber << ", "
+	 << "sum=" << aRoiResult.sum << ", "
+	 << "average=" << aRoiResult.average << ", "
+	 << "std=" << aRoiResult.std;
+      os << ">";
+      return os;
+    }
+
   class RoiCounterTask : public SinkTask<RoiCounterResult>
   {
   public:

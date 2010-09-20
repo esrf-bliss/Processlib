@@ -29,6 +29,13 @@ namespace Tasks
     double                       std;
     int                          frameNumber;
     Tasks::RoiCounterManager::ErrorCode errorCode;
+
+const char* __repr__();
+%MethodCode
+std::stringstream str;
+str << *sipCpp;
+sipRes = str.str().c_str();
+%End
   };
   
   class RoiCounterTask : SinkTaskBase

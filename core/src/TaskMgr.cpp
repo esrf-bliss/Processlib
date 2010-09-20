@@ -81,7 +81,7 @@ TaskMgr::Task::~Task()
     (*i)->unref();
 }
 
-TaskMgr::TaskMgr() : _PendingLinkTask(NULL) {}
+TaskMgr::TaskMgr() : _PendingLinkTask(NULL),_initStageFlag(false) {}
 
 TaskMgr::TaskMgr(const TaskMgr &aMgr)
 {
@@ -161,8 +161,17 @@ TaskMgr::TaskWrap* TaskMgr::next()
       delete aTaskPt;						\
       _Tasks.pop_front();					\
     }								
-
+  
   Task *aTaskPt = _Tasks.front();
+  while(!aTaskPt->_linkTask && aTaskPt->_sinkTaskQueue.empty())
+    {
+      delete aTaskPt;
+      _Tasks.pop_front();
+      aTaskPt = _Tasks.front();
+    }
+  if(!_initStageFlag)
+      _initStageFlag = true,_nbPendingSinkTask = aTaskPt->_sinkTaskQueue.size();
+
   if(aTaskPt->_linkTask)		// first linked task
     {
       _PendingLinkTask = aTaskPt->_linkTask;
@@ -174,7 +183,6 @@ TaskMgr::TaskWrap* TaskMgr::next()
     {
       SinkTaskBase *aNewSinkTaskPt = aTaskPt->_sinkTaskQueue.front();
       aTaskPt->_sinkTaskQueue.pop_front();
-      _PendingSinkTask.push_back(std::pair<SinkTaskBase*,bool>(aNewSinkTaskPt,false));
       CHECK_END_STAGE();
       return new TaskSinkWrap(*this,aNewSinkTaskPt,_currentData);
     }
@@ -187,32 +195,16 @@ void TaskMgr::_endLinkTask(LinkTask*)
       _PendingLinkTask->unref();
       _PendingLinkTask = NULL;
     }
-  int aNbPendingSinkTask = _PendingSinkTask.size();
-  int aNbFinnishedSinkTask = 0;
-  for(PendingSinkTask::iterator i = _PendingSinkTask.begin();
-      i != _PendingSinkTask.end();++i)
-    if(i->second) ++aNbFinnishedSinkTask;
-  
-  if(aNbFinnishedSinkTask == aNbPendingSinkTask) 
+
+  if(!_nbPendingSinkTask)
     _goToNextStage();
 }
 
-void TaskMgr::_endSinkTask(SinkTaskBase *aFinnishedTask)
+void TaskMgr::_endSinkTask(SinkTaskBase*)
 {
-  int aNbPendingTask = _PendingSinkTask.size();
-  int aNbFinnishedTask = 0;
-  for(PendingSinkTask::iterator i = _PendingSinkTask.begin();
-      i != _PendingSinkTask.end();++i)
-    {
-      if(i->first == aFinnishedTask)
-	i->first->unref(),i->second = true;
-      if(i->second) ++aNbFinnishedTask;
-    }
-  if(!_PendingLinkTask && aNbFinnishedTask == aNbPendingTask)
-    {
-      _PendingSinkTask.clear();	// Reset Pending task for this stage
+  --_nbPendingSinkTask;
+  if(!_PendingLinkTask && !_nbPendingSinkTask)
       _goToNextStage();
-    }
 }
 
 //@brief Processing Stage finished, going to next stage
@@ -223,7 +215,10 @@ void TaskMgr::_goToNextStage()
   if(_Tasks.empty())	// Process is finished
     delete this;		// suicide
   else
-    PoolThreadMgr::get().addProcess(this,false); // Re insert in the Poll
+    {
+      _initStageFlag = false;
+      PoolThreadMgr::get().addProcess(this,false); // Re insert in the Poll
+    }
 }
 
 void TaskMgr::syncProcess()

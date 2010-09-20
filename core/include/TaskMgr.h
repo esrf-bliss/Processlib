@@ -18,7 +18,6 @@ class TaskMgr
     std::deque<SinkTaskBase*>	_sinkTaskQueue;
   };
   typedef std::deque<Task*> StageTask;
-  typedef std::deque<std::pair<SinkTaskBase*,bool> > PendingSinkTask;
   
 public:
   class TaskWrap
@@ -53,11 +52,12 @@ public:
   //@brief do all the task synchronously
   void syncProcess();
 private:
-  StageTask		_Tasks;
-  LinkTask		*_PendingLinkTask;
-  PendingSinkTask	_PendingSinkTask;
-  Data       _currentData;
-  Data       _nextData;
+  StageTask			_Tasks;
+  LinkTask		       *_PendingLinkTask;
+  bool				_initStageFlag;
+  int				_nbPendingSinkTask;
+  Data       			_currentData;
+  Data       			_nextData;
 
   void _endLinkTask(LinkTask *aFinnishedTask);
   void _endSinkTask(SinkTaskBase *aFinnishedTask);
