@@ -53,3 +53,8 @@ void SinkTaskBase::unref()
     }
 }
 
+int SinkTaskBase::getRefCounter() const
+{
+  PoolThreadMgr::Lock aLock(&_lock);
+  return _refCounter;
+}

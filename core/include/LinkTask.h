@@ -35,6 +35,7 @@ public:
   void ref();
   void unref();
 
+  int getRefCounter() const;
 
 protected:
 
@@ -43,7 +44,7 @@ protected:
   bool _processingInPlaceFlag;
   TaskEventCallback *_eventCbkPt;
 
-  pthread_mutex_t _lock;
+  mutable pthread_mutex_t _lock;
 private:
   int		  _refCounter;
 };

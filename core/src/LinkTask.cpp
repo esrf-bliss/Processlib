@@ -59,3 +59,9 @@ void LinkTask::unref()
       delete this;
     }
 }
+
+int LinkTask::getRefCounter() const
+{
+  PoolThreadMgr::Lock aLock(&_lock);
+  return _refCounter;
+}

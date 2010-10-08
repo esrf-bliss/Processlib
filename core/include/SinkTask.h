@@ -20,11 +20,13 @@ public:
 
   void ref();
   void unref();
-
+  
+  // @brief only use for debuging purpose
+  int getRefCounter() const;
 protected:
   virtual ~SinkTaskBase();
 
-  pthread_mutex_t _lock;
+  mutable pthread_mutex_t _lock;
 
 private:
   TaskEventCallback	*_eventCbkPt;

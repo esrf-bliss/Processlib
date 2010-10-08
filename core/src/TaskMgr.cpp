@@ -200,8 +200,9 @@ void TaskMgr::_endLinkTask(LinkTask*)
     _goToNextStage();
 }
 
-void TaskMgr::_endSinkTask(SinkTaskBase*)
+void TaskMgr::_endSinkTask(SinkTaskBase *aSinkTaskPt)
 {
+  aSinkTaskPt->unref();
   --_nbPendingSinkTask;
   if(!_PendingLinkTask && !_nbPendingSinkTask)
       _goToNextStage();
