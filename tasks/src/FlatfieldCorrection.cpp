@@ -3,13 +3,13 @@
 #include "FlatfieldCorrection.h"
 using namespace Tasks;
 
-template<class IN>
+template<class INPUT>
 void _div(void *src,int aSize,void *flatfield)
 {
-  IN *aSrcPt,*aFFieldPt;
-  aSrcPt = (IN*)src;
-  aFFieldPt = (IN*)flatfield;
-  for(int i = aSize / sizeof(IN);i;--i,++aSrcPt,++aFFieldPt)
+  INPUT *aSrcPt,*aFFieldPt;
+  aSrcPt = (INPUT*)src;
+  aFFieldPt = (INPUT*)flatfield;
+  for(int i = aSize / sizeof(INPUT);i;--i,++aSrcPt,++aFFieldPt)
     *aSrcPt /= *aFFieldPt;
 }
 
@@ -74,7 +74,11 @@ void FlatfieldCorrection::_calcFlatFieldImage(int,int,Data::TYPE)
 {
   _flatFieldCorrectionDirty = false;
 				// TODO calc correction array
-  #warning "_calcFlatFieldImage is not yet done -> can't use setDetectorDistance,setLambda,setYCenter,setXCenter"
+#ifdef __unix
+#warning "_calcFlatFieldImage is not yet done -> can't use setDetectorDistance,setLambda,setYCenter,setXCenter"
+#else
+#pragma message ( "_calcFlatFieldImage is not yet done -> can't use setDetectorDistance,setLambda,setYCenter,setXCenter" )
+#endif
 }
 Data FlatfieldCorrection::process(Data &aData)
 {

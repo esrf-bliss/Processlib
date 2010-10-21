@@ -6,7 +6,7 @@
 
 namespace Tasks
 {
-  class RoiCounterResult;
+  struct RoiCounterResult;
   
   typedef SinkTaskMgr<RoiCounterResult> RoiCounterManager;
 

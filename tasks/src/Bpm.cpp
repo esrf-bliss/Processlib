@@ -3,7 +3,10 @@
 #include <gsl/gsl_multifit.h>
 #include <gsl/gsl_spline.h>
 #include <iostream>
+#include <math.h>
+#ifdef __unix
 #include <sys/time.h>
+#endif
 #include <time.h>
 
 #include "Bpm.h"
@@ -12,19 +15,20 @@
 #include "SoftRoi.h"
 
 using namespace Tasks;
-
-template<class IN> static inline IN max(IN a,IN b)
+#ifdef __unix
+template<class INPUT> static inline INPUT max(INPUT a,INPUT b)
 {
   return a > b ? a : b;
 }
-template<class IN> static inline IN min(IN a,IN b)
+template<class INPUT> static inline INPUT min(INPUT a,INPUT b)
 {
   return a < b ? a : b;
 }
+#endif
 /** @brief Calculate the image projections in X and Y and
  *  the integrated pixel intensity on the image.
  */
-template<class IN> 
+template<class INPUT> 
 void BpmTask::_treat_image(const Data &aSrc,
 			   Buffer &projection_x,Buffer &projection_y,
 			   BpmResult &aResult)
@@ -32,7 +36,7 @@ void BpmTask::_treat_image(const Data &aSrc,
   unsigned long long *aProjectionX = (unsigned long long*)projection_x.data;
   unsigned long long *aProjectionY = (unsigned long long*)projection_y.data;
   Buffer *aBufferPt = aSrc.buffer;
-  IN *aSrcPt = (IN*)aBufferPt->data;
+  INPUT *aSrcPt = (INPUT*)aBufferPt->data;
   for(int y = 0;y < aSrc.height;++y)
     for(int x = 0;x < aSrc.width;++x)
       {
@@ -48,7 +52,7 @@ void BpmTask::_treat_image(const Data &aSrc,
 /** @brief Calculates the projection X on a limitied area of
  *  the image around the maximum.
  */
-template<class IN>
+template<class INPUT>
 void BpmTask::_tune_projection(const Data &aSrc,
 			       Buffer &projection_x,Buffer &projection_y,
 			       const BpmResult &aResult)
@@ -60,7 +64,7 @@ void BpmTask::_tune_projection(const Data &aSrc,
   memset(aProjectionY,0,aSrc.height * sizeof(unsigned long long));
 
   Buffer *aBufferPt = aSrc.buffer;
-  IN *aSrcPt = (IN*)aBufferPt->data;
+  INPUT *aSrcPt = (INPUT*)aBufferPt->data;
   
   // X tuning profile
   int tuning_margin = (int)round((aResult.beam_fwhm_y * (mFwhmTunningExtension - 1)) / 2.);
@@ -69,7 +73,7 @@ void BpmTask::_tune_projection(const Data &aSrc,
 		     aSrc.height - 1 - mBorderExclusion);
   for(int y = fwhm_min;y < (fwhm_max + 1);++y)
     {
-      IN *aBufferPt = aSrcPt + (y * aSrc.width) + mBorderExclusion;
+      INPUT *aBufferPt = aSrcPt + (y * aSrc.width) + mBorderExclusion;
       for(int x = mBorderExclusion;x < (aSrc.width - mBorderExclusion);++x,++aBufferPt)
 	aProjectionX[x] += *aBufferPt;
     }
@@ -82,7 +86,7 @@ void BpmTask::_tune_projection(const Data &aSrc,
   
   for(int y = mBorderExclusion;y < (aSrc.height - mBorderExclusion);++y)
     {
-      IN *aBufferPt = aSrcPt + (y * aSrc.width) + fwhm_min;
+      INPUT *aBufferPt = aSrcPt + (y * aSrc.width) + fwhm_min;
       for(int x = fwhm_min;x < (fwhm_max + 1);++x,++aBufferPt)
 	aProjectionY[y] += *aBufferPt;
     }
@@ -109,13 +113,13 @@ inline int _max_intensity_position(const Buffer &projection,int aSize)
  *  over 5 pixels.
  *  Normally this should be the position of the beam spot.
  */
-template<class IN> 
+template<class INPUT> 
 static void _max_intensity(const Data &aSrc,
 			   const Buffer &projection_x,const Buffer & projection_y,
 			   BpmResult &aResult)
 {
   Buffer *aBufferPt = aSrc.buffer;
-  IN *aSrcPt = (IN*)aBufferPt->data;
+  INPUT *aSrcPt = (INPUT*)aBufferPt->data;
   
   int yMaxPos = _max_intensity_position(projection_y,aSrc.height);
   int xMaxPos = _max_intensity_position(projection_x,aSrc.width);

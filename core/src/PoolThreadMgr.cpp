@@ -1,5 +1,7 @@
 #include <iostream>
+#ifdef __unix
 #include <sys/time.h>
+#endif
 #include <errno.h>
 #include "PoolThreadMgr.h"
 #include "TaskMgr.h"

@@ -13,20 +13,20 @@ void Mask::setMaskImageData(Data &aMaskImage)
   _MaskImage.setData(aMaskImage);
 }
 
-template<class IN,class MASK>
-static void _mask_inplace(IN *src,int aSize,MASK *mask)
+template<class INPUT,class MASK>
+static void _mask_inplace(INPUT *src,int aSize,MASK *mask)
 {
-  for(int i = aSize / sizeof(IN);i;--i,++src,++mask)
-    if(*mask) *src = IN(*mask);
+  for(int i = aSize / sizeof(INPUT);i;--i,++src,++mask)
+    if(*mask) *src = INPUT(*mask);
 }
 
-template<class IN,class MASK>
-static void _mask(IN *src,IN *dst,int aSize,MASK *mask)
+template<class INPUT,class MASK>
+static void _mask(INPUT *src,INPUT *dst,int aSize,MASK *mask)
 {
-  for(int i = aSize / sizeof(IN);i;--i,++src,++dst,++mask)
+  for(int i = aSize / sizeof(INPUT);i;--i,++src,++dst,++mask)
     {
       if(*mask) 
-	*dst = IN(*mask);
+	*dst = INPUT(*mask);
       else
 	*dst = *src;
     }

@@ -1,4 +1,6 @@
+#ifdef __unix
 #include <stdint.h>
+#endif
 #include "Flip.h"
 #include "Stat.h"
 using namespace Tasks;
@@ -39,19 +41,28 @@ static void _flip_y(Data &aSrcData,Data &aDestData)
     memcpy(aDestPt,aSrcPt,lineSize);
 }
 
-template<class IN>
-inline static void _flip_x_inplace_template(IN *aSrcPt,int width, int height)
+template<class INPUT>
+inline static void _flip_x_inplace_template(INPUT *aSrcPt,int width, int height)
 {
-  IN *aDestPt = aSrcPt + width - 1;
+  INPUT *aDestPt = aSrcPt + width - 1;
   for(int aNbLine = height;aNbLine;
       --aNbLine,aDestPt += width + width / 2,aSrcPt += width - width / 2)
     for(int aNbColumn = width / 2 ;aNbColumn;--aNbColumn,--aDestPt,++aSrcPt)
       {
-	IN aTmpValue = *aDestPt;
+	INPUT aTmpValue = *aDestPt;
 	*aDestPt = *aSrcPt;
 	*aSrcPt = aTmpValue;
       }
 }
+#ifndef __unix
+typedef signed char int8_t;
+typedef signed short int16_t;
+typedef signed long int32_t;
+typedef unsigned char uint8_t;
+typedef unsigned short uint16_t;
+typedef unsigned long uint32_t; 
+typedef unsigned long long uint64_t; 
+#endif
 static void _flip_x_inplace(Data &aSrcData)
 {
    switch(aSrcData.depth())
@@ -74,8 +85,8 @@ static void _flip_x_inplace(Data &aSrcData)
       break;
     }
 }
-template<class IN>
-inline static void _flip_x_template(const IN *aSrcPt,IN *aDestPt,int width, int height)
+template<class INPUT>
+inline static void _flip_x_template(const INPUT *aSrcPt,INPUT *aDestPt,int width, int height)
 {
   aDestPt += width - 1;
   for(int aNbLine = height;aNbLine;--aNbLine,aDestPt += (2 * width))
@@ -106,14 +117,14 @@ static void _flip_x(Data &aSrcData,Data &aDestData)
     }
 }
 
-template<class IN>
-inline static void _flip_all_inplace_template(IN *aSrcPt,int width, int height)
+template<class INPUT>
+inline static void _flip_all_inplace_template(INPUT *aSrcPt,int width, int height)
 {
-  IN *aDestPt = aSrcPt + width * height - 1;
+  INPUT *aDestPt = aSrcPt + width * height - 1;
   for(int aNbPixel = (height * width) / 2;aNbPixel;
       --aNbPixel,--aDestPt,++aSrcPt)
     {
-      IN aPixelBuff = *aDestPt;
+      INPUT aPixelBuff = *aDestPt;
       *aDestPt = *aSrcPt;
       *aSrcPt = aPixelBuff;
     }
@@ -141,8 +152,8 @@ static void _flip_all_inplace(Data &aSrcData)
       break;
     }
 }
-template<class IN>
-inline static void _flip_all_template(const IN *aSrcPt,IN *aDestPt,int width, int height)
+template<class INPUT>
+inline static void _flip_all_template(const INPUT *aSrcPt,INPUT *aDestPt,int width, int height)
 {
   aDestPt += width * height - 1;
   for(int aNbPixel = height * width;aNbPixel;

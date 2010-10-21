@@ -19,7 +19,12 @@ struct Buffer
   }
   explicit Buffer(int aSize) :owner(SHARED),refcount(1)
   {
+#ifdef __unix
     if(posix_memalign(&data,16,aSize))
+#else  /* window */
+    data = _aligned_malloc(aSize,16);
+    if(!data)
+#endif
       std::cerr << "Can't allocate memory" << std::endl;
     pthread_mutex_init(&_lock,NULL);
   }

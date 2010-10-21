@@ -5,27 +5,27 @@
 using namespace Tasks;
 
 //static function
-template<class IN> static IN max_value(const IN &)
+template<class INPUT> static INPUT max_value(const INPUT &)
 {
-  return IN((1ULL << (8 * sizeof(IN))) - 1);
+  return INPUT((1ULL << (8 * sizeof(INPUT))) - 1);
 }
 
 /** @brief generique binning but not optimized at all
  */
-template<class IN>
+template<class INPUT>
 inline void _default_binning(Data &aSrcData,Data &aDstData,
 			     int xFactor,int yFactor)
 {
-  IN *aSrcPt = (IN*)aSrcData.data();
-  IN *aDstPt = (IN*)aDstData.data();
-  IN MAX_VALUE = max_value(*aSrcPt);
+  INPUT *aSrcPt = (INPUT*)aSrcData.data();
+  INPUT *aDstPt = (INPUT*)aDstData.data();
+  INPUT MAX_VALUE = max_value(*aSrcPt);
   int *lineOffset = new int[yFactor];
   int aTmpOffSet = 0;
   for(int linId = 0;linId < yFactor;++linId,aTmpOffSet += aSrcData.width)
     lineOffset[linId] = aTmpOffSet;
 
-  IN *aLineSrcPt = aSrcPt;
-  IN *aLineDstPt = aDstPt;
+  INPUT *aLineSrcPt = aSrcPt;
+  INPUT *aLineDstPt = aDstPt;
   for(int lineId = 0;lineId <= (aSrcData.height - yFactor);
       lineId += yFactor,aLineSrcPt += aSrcData.width,aLineDstPt += aDstData.width)
     {
@@ -41,7 +41,7 @@ inline void _default_binning(Data &aSrcData,Data &aDstData,
 	  if(result > MAX_VALUE)
 	    aLineDstPt[aDstColumnId] = MAX_VALUE;
 	  else
-	    aLineDstPt[aDstColumnId] = IN(result);
+	    aLineDstPt[aDstColumnId] = INPUT(result);
 	}
     }
   delete lineOffset;
@@ -49,14 +49,14 @@ inline void _default_binning(Data &aSrcData,Data &aDstData,
 
 /** @brief binning 2 x 2
  */
-template<class IN>
+template<class INPUT>
 static void _binning2x2(Data &aSrcData,Data &aDstData,int Factor)
 {
 
-  IN *aSrcFirstLinePt = (IN*)aSrcData.data();
-  IN *aSrcSecondLinePt = aSrcFirstLinePt + aSrcData.width;
-  IN *aDstPt = (IN*)aDstData.data();
-  IN MAX_VALUE = max_value(*aDstPt);
+  INPUT *aSrcFirstLinePt = (INPUT*)aSrcData.data();
+  INPUT *aSrcSecondLinePt = aSrcFirstLinePt + aSrcData.width;
+  INPUT *aDstPt = (INPUT*)aDstData.data();
+  INPUT MAX_VALUE = max_value(*aDstPt);
   for(int lineId = 0;lineId < aSrcData.height;lineId += 2)
     {
       for(int columnId = 0;columnId < aSrcData.width;columnId += 2,
@@ -67,13 +67,13 @@ static void _binning2x2(Data &aSrcData,Data &aDstData,int Factor)
 	  if(result > MAX_VALUE)
 	    *aDstPt = MAX_VALUE;
 	  else
-	    *aDstPt = IN(result);
+	    *aDstPt = INPUT(result);
 	}
       aSrcFirstLinePt = aSrcSecondLinePt;
       aSrcSecondLinePt = aSrcFirstLinePt + aSrcData.width;
     }
   if(Factor > 2)
-    _binning2x2<IN>(aDstData,aDstData,Factor >> 1);
+    _binning2x2<INPUT>(aDstData,aDstData,Factor >> 1);
 }
 
 Binning::Binning() : mXFactor(-1),mYFactor(-1) {};

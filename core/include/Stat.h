@@ -1,5 +1,7 @@
 #include <stdio.h>      /* for printf() and fprintf() */
+#ifdef __unix
 #include <sys/time.h>
+#endif
 #include <stdlib.h>
 #include <sstream>
 #include <string>

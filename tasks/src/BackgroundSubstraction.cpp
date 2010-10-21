@@ -7,18 +7,18 @@
 
 using namespace Tasks;
 
-template<class IN>
+template<class INPUT>
 static void _substract_on_itself(void *src,int aSize,void *background)
 {
-  IN *aSrcPt,*aBackPt;
-  aSrcPt = (IN*)src;
-  aBackPt = (IN*)background;
-  for(int i = aSize / sizeof(IN);i;--i,++aSrcPt,++aBackPt)
+  INPUT *aSrcPt,*aBackPt;
+  aSrcPt = (INPUT*)src;
+  aBackPt = (INPUT*)background;
+  for(int i = aSize / sizeof(INPUT);i;--i,++aSrcPt,++aBackPt)
     {
       if(*aSrcPt > *aBackPt)
 	*aSrcPt -= *aBackPt;
       else
-	*aSrcPt = IN(0);
+	*aSrcPt = INPUT(0);
     }
 }
 #ifdef __SSE2__
@@ -51,19 +51,19 @@ static void _substract_on_itself<unsigned short>(void *source,int aSize,void *ba
 }
 #endif
 
-template<class IN>
+template<class INPUT>
 static void _substract(void *src,void *dst,int aSize,void *background)
 {
-  IN *aSrcPt,*aBackPt,*aDestPt;
-  aSrcPt = (IN*)src;
-  aBackPt = (IN*)background;
-  aDestPt = (IN*)dst;
-  for(int i = aSize / sizeof(IN);i;--i,++aSrcPt,++aBackPt,++aDestPt)
+  INPUT *aSrcPt,*aBackPt,*aDestPt;
+  aSrcPt = (INPUT*)src;
+  aBackPt = (INPUT*)background;
+  aDestPt = (INPUT*)dst;
+  for(int i = aSize / sizeof(INPUT);i;--i,++aSrcPt,++aBackPt,++aDestPt)
     {
       if(*aSrcPt > *aBackPt)
 	*aDestPt = *aSrcPt - *aBackPt;
       else
-	*aDestPt = IN(0);
+	*aDestPt = INPUT(0);
     }
 }
 

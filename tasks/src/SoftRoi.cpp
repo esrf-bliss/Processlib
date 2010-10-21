@@ -28,7 +28,9 @@ void SoftRoi::setRoi(int x1,int x2,
    _y1 = y1,_y2 = y2;
 }
 
+#ifdef __unix
 static inline int min(int a,int b) {return a < b ? a : b;}
+#endif
 
 Data SoftRoi::process(Data &aData)
 {

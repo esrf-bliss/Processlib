@@ -2,7 +2,9 @@
 #define __SINKTASKMGR_H
 
 #include <pthread.h>
+#ifdef __unix
 #include <sys/time.h>
+#endif
 #include <time.h>
 #include <errno.h>
 
@@ -70,7 +72,7 @@ SinkTaskMgr<Result>::~SinkTaskMgr()
 }
 
 template<class Result>
-void SinkTaskMgr<Result>::setMode(SinkTaskMgr<Result>::RUN_MODE aMode)
+void SinkTaskMgr<Result>::setMode(typename SinkTaskMgr<Result>::RUN_MODE aMode)
 {
   PoolThreadMgr::Lock aLock(&_lock);
   _mode = aMode;

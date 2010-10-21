@@ -1,0 +1,61 @@
+#
+#device_server= MonochromatorCassiopee
+#
+
+GNU_LIB="c:\Program Files\GnuWin32"
+
+#  LEs PATHS des includes propres à ce DServer
+#  Mettre /Ic:\monchemininclude /ID:\monautrechemininclude
+INCUSER=/I$(GNU_LIB)\include
+
+#
+
+#  Le chemin complet de vos Librairies
+# 
+# LIBUSER = "x:\moncheminlibrairie\malibrairie.lib"
+
+!ifdef DEBUG
+!message "Using libraries in Debug..."
+LIBUSER= 	$(GNU_LIB)\bin\libgsl.dll
+
+!else
+!message "Using libraries in Release..."
+LIBUSER= 	$(GNU_LIB)\bin\libgsl.dll
+
+!endif
+
+#	 Si vous souhaitez générer une librairie et pas un executable
+#	 decommentez la ligne suivante
+LIBRARY_NAME= processlib.lib
+#
+
+#
+# ------------------Fin des modifications pour le end user -------------------------------------
+#
+
+#  Les définitions communes à tous les DeviceServeurs
+!include processlib.opt
+
+# --------------------------------------
+#   Partie spécifique
+# --------------------------------------
+LISTEOBJ = \
+	..\core\src\GslErrorMgr.obj\
+ 	..\core\src\PoolThreadMgr.obj\
+ 	..\core\src\TaskEventCallback.obj\
+ 	..\core\src\LinkTask.obj\
+ 	..\core\src\SinkTask.obj\
+ 	..\core\src\TaskMgr.obj\
+ 	..\core\src\HeaderContainer.obj\
+ 	..\tasks\src\BackgroundSubstraction.obj\
+ 	..\tasks\src\FlatfieldCorrection.obj\
+ 	..\tasks\src\RoiCounter.obj\
+ 	..\tasks\src\Binning.obj\
+ 	..\tasks\src\Flip.obj\
+ 	..\tasks\src\SoftRoi.obj\
+ 	..\tasks\src\Bpm.obj\
+ 	..\tasks\src\Mask.obj
+
+# --------------------------------------
+!include common_target.opt
+

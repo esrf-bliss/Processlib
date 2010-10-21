@@ -16,7 +16,7 @@ RoiCounterTask::RoiCounterTask(const RoiCounterTask &aTask) :
 {
 }
 
-template<class IN> static void _get_average_std(const IN *aSrcPt,
+template<class INPUT> static void _get_average_std(const INPUT *aSrcPt,
 						int x,int y,
 						int width,int height,
 						RoiCounterResult &aResult)
@@ -24,7 +24,7 @@ template<class IN> static void _get_average_std(const IN *aSrcPt,
   double aSum = 0.;
   for(int lineId = y;lineId < y + height;++lineId)
     {
-      const IN *aLinePt = aSrcPt + lineId * width + x;
+      const INPUT *aLinePt = aSrcPt + lineId * width + x;
       for(int i = 0;i < width;++i,++aLinePt)
 	aSum += double(*aLinePt);
     }
@@ -36,7 +36,7 @@ template<class IN> static void _get_average_std(const IN *aSrcPt,
   aSum = 0.;
   for(int lineId = y;lineId < y + height;++lineId)
     {
-      const IN *aLinePt = aSrcPt + lineId * width + x;
+      const INPUT *aLinePt = aSrcPt + lineId * width + x;
       for(int i = 0;i < width;++i,++aLinePt)
 	{
 	  double diff = *aLinePt - aResult.average;
@@ -48,7 +48,7 @@ template<class IN> static void _get_average_std(const IN *aSrcPt,
   aResult.std = sqrt(aSum);
 }
 
-template<class IN> static void _get_average_std_with_mask(const IN *aSrcPt,
+template<class INPUT> static void _get_average_std_with_mask(const INPUT *aSrcPt,
 							  const char *aMaskPt,
 							  int x,int y,
 							  int width,int height,
@@ -59,7 +59,7 @@ template<class IN> static void _get_average_std_with_mask(const IN *aSrcPt,
   for(int lineId = y;lineId < y + height;++lineId)
     {
       int offset = lineId * width + x;
-      const IN *aLinePt = aSrcPt + offset;
+      const INPUT *aLinePt = aSrcPt + offset;
       const char *aMaskLinePt = aMaskPt + offset;
       for(int i = 0;i < width;++i,++aLinePt,++aMaskLinePt)
 	{
@@ -81,7 +81,7 @@ template<class IN> static void _get_average_std_with_mask(const IN *aSrcPt,
   for(int lineId = y;lineId < y + height;++lineId)
     {
       int offset = lineId * width + x;
-      const IN *aLinePt = aSrcPt + offset;
+      const INPUT *aLinePt = aSrcPt + offset;
       const char *aMaskLinePt = aMaskPt + offset;
       for(int i = 0;i < width;++i,++aLinePt,++aMaskLinePt)
 	{
