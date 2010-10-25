@@ -60,14 +60,14 @@ SYSLIBS = kernel32.lib user32.lib gdi32.lib advapi32.lib ws2_32.lib comctl32.lib
 !ifdef PROD
 !message Compilation en mode RELEASE
 
-OPT_CPPFLAGS = /O2 /MD /DNDEBUG
+OPT_CPPFLAGS = /O2 /Ob2 /Gy /MD /DNDEBUG
 OPT_LINKFLAGS_EXE = /DEBUG 
 OPT_LINKFLAGS_STATIC_LIB =
 
 !else
 
 !message Compilation en mode DEBUG
-OPT_CPPFLAGS = /Oi /RTC1 /MDd /DDEBUG /D_DEBUG
+OPT_CPPFLAGS = /Oi /Gy /RTC1 /MDd /DDEBUG /D_DEBUG
 OPT_LINKFLAGS_EXE = /DEBUG
 OPT_LINKFLAGS_STATIC_LIB =
 
@@ -93,171 +93,4 @@ LINKFLAGS   = $(COMMON_LINK_FLAGS_EXE) $(OPT_LINKFLAGS_EXE)
 LINK = link.exe
 LINKFLAGS   = $(COMMON_LINK_FLAGS_EXE) $(OPT_LINKFLAGS_EXE)
 !endif
-
-
-#
-#-------------------------------------------------------------
-#
-# Regle de dependances entre les sources et les objets
-#
-#-------------------------------------------------------------
-
-.SUFFIXES:  .c .cpp .cxx .cc .obj
-
-.cpp{$(OBJDIR)}.obj:
-  $(CXX) $(CPPFLAGS) /Fo$@ $<
-
-.c{$(OBJDIR)}.obj:
-  $(CXX) $(CPPFLAGS) /Fo$@ $<
-
-.cxx{$(OBJDIR)}.obj:
-  $(CXX) $(CPPFLAGS) /Fo$@ $<
-
-.cc{$(OBJDIR)}.obj:
-  $(CXX) $(CPPFLAGS) /Fo$@ $<
-
-{$(OBJDIR)}.obj{$(CPPDIRUSER)}.cpp:
-  $(CXX) $(CPPFLAGS) /Fo $< $@
-
-{$(CPPDIRUSER)\}.c{$(OBJDIR)}.obj:
-  $(CXX) $(CPPFLAGS) /Fo$@ $<
-
-{$(CPPDIRUSER)\}.cxx{$(OBJDIR)}.obj:
-  $(CXX) $(CPPFLAGS) /Fo$@ $<
-
-{$(CPPDIRUSER)\}.cc{$(OBJDIR)}.obj:
-  $(CXX) $(CPPFLAGS) /Fo$@ $<
-
-
-
-{$(CPPDIRUSER1)\}.cpp{$(OBJDIR)}.obj:
-  $(CXX) $(CPPFLAGS) /Fo$@ $<
-
-{$(CPPDIRUSER1)\}.c{$(OBJDIR)}.obj:
-  $(CXX) $(CPPFLAGS) /Fo$@ $<
-
-{$(CPPDIRUSER1)\}.cxx{$(OBJDIR)}.obj:
-  $(CXX) $(CPPFLAGS) /Fo$@ $<
-
-{$(CPPDIRUSER1)\}.cc{$(OBJDIR)}.obj:
-  $(CXX) $(CPPFLAGS) /Fo$@ $<
-
-
-{$(CPPDIRUSER2)\}.cpp{$(OBJDIR)}.obj:
-  $(CXX) $(CPPFLAGS) /Fo$@ $<
-
-{$(CPPDIRUSER2)\}.c{$(OBJDIR)}.obj:
-  $(CXX) $(CPPFLAGS) /Fo$@ $<
-
-{$(CPPDIRUSER2)\}.cxx{$(OBJDIR)}.obj:
-  $(CXX) $(CPPFLAGS) /Fo$@ $<
-
-{$(CPPDIRUSER2)\}.cc{$(OBJDIR)}.obj:
-  $(CXX) $(CPPFLAGS) /Fo$@ $<
-
-
-{$(CPPDIRUSER3)\}.cpp{$(OBJDIR)}.obj:
-  $(CXX) $(CPPFLAGS) /Fo$@ $<
-
-{$(CPPDIRUSER3)\}.c{$(OBJDIR)}.obj:
-  $(CXX) $(CPPFLAGS) /Fo$@ $<
-
-{$(CPPDIRUSER3)\}.cxx{$(OBJDIR)}.obj:
-  $(CXX) $(CPPFLAGS) /Fo$@ $<
-
-{$(CPPDIRUSER3)\}.cc{$(OBJDIR)}.obj:
-  $(CXX) $(CPPFLAGS) /Fo$@ $<
-
-
-{$(CPPDIRUSER4)\}.cpp{$(OBJDIR)}.obj:
-  $(CXX) $(CPPFLAGS) /Fo$@ $<
-
-{$(CPPDIRUSER4)\}.c{$(OBJDIR)}.obj:
-  $(CXX) $(CPPFLAGS) /Fo$@ $<
-
-{$(CPPDIRUSER4)\}.cxx{$(OBJDIR)}.obj:
-  $(CXX) $(CPPFLAGS) /Fo$@ $<
-
-{$(CPPDIRUSER4)\}.cc{$(OBJDIR)}.obj:
-  $(CXX) $(CPPFLAGS) /Fo$@ $<
-
-
-{$(CPPDIRUSER5)\}.cpp{$(OBJDIR)}.obj:
-  $(CXX) $(CPPFLAGS) /Fo$@ $<
-
-{$(CPPDIRUSER5)\}.c{$(OBJDIR)}.obj:
-  $(CXX) $(CPPFLAGS) /Fo$@ $<
-
-{$(CPPDIRUSER5)\}.cxx{$(OBJDIR)}.obj:
-  $(CXX) $(CPPFLAGS) /Fo$@ $<
-
-{$(CPPDIRUSER5)\}.cc{$(OBJDIR)}.obj:
-  $(CXX) $(CPPFLAGS) /Fo$@ $<
-
-
-{$(CPPDIRUSER6)\}.cpp{$(OBJDIR)}.obj:
-  $(CXX) $(CPPFLAGS) /Fo$@ $<
-
-{$(CPPDIRUSER6)\}.c{$(OBJDIR)}.obj:
-  $(CXX) $(CPPFLAGS) /Fo$@ $<
-
-{$(CPPDIRUSER6)\}.cxx{$(OBJDIR)}.obj:
-  $(CXX) $(CPPFLAGS) /Fo$@ $<
-
-{$(CPPDIRUSER6)\}.cc{$(OBJDIR)}.obj:
-  $(CXX) $(CPPFLAGS) /Fo$@ $<
-
-
-{$(CPPDIRUSER7)\}.cpp{$(OBJDIR)}.obj:
-  $(CXX) $(CPPFLAGS) /Fo$@ $<
-
-{$(CPPDIRUSER7)\}.c{$(OBJDIR)}.obj:
-  $(CXX) $(CPPFLAGS) /Fo$@ $<
-
-{$(CPPDIRUSER7)\}.cxx{$(OBJDIR)}.obj:
-  $(CXX) $(CPPFLAGS) /Fo$@ $<
-
-{$(CPPDIRUSER7)\}.cc{$(OBJDIR)}.obj:
-  $(CXX) $(CPPFLAGS) /Fo$@ $<
-
-
-{$(CPPDIRUSER8)\}.cpp{$(OBJDIR)}.obj:
-  $(CXX) $(CPPFLAGS) /Fo$@ $<
-
-{$(CPPDIRUSER8)\}.c{$(OBJDIR)}.obj:
-  $(CXX) $(CPPFLAGS) /Fo$@ $<
-
-{$(CPPDIRUSER8)\}.cxx{$(OBJDIR)}.obj:
-  $(CXX) $(CPPFLAGS) /Fo$@ $<
-
-{$(CPPDIRUSER8)\}.cc{$(OBJDIR)}.obj:
-  $(CXX) $(CPPFLAGS) /Fo$@ $<
-
-
-{$(CPPDIRUSER9)\}.cpp{$(OBJDIR)}.obj:
-  $(CXX) $(CPPFLAGS) /Fo$@ $<
-
-{$(CPPDIRUSER9)\}.c{$(OBJDIR)}.obj:
-  $(CXX) $(CPPFLAGS) /Fo$@ $<
-
-{$(CPPDIRUSER9)\}.cxx{$(OBJDIR)}.obj:
-  $(CXX) $(CPPFLAGS) /Fo$@ $<
-
-{$(CPPDIRUSER9)\}.cc{$(OBJDIR)}.obj:
-  $(CXX) $(CPPFLAGS) /Fo$@ $<
-
-
-{$(CPPDIRUSER10)\}.cpp{$(OBJDIR)}.obj:
-  $(CXX) $(CPPFLAGS) /Fo$@ $<
-
-{$(CPPDIRUSER10)\}.c{$(OBJDIR)}.obj:
-  $(CXX) $(CPPFLAGS) /Fo$@ $<
-
-{$(CPPDIRUSER10)\}.cxx{$(OBJDIR)}.obj:
-  $(CXX) $(CPPFLAGS) /Fo$@ $<
-
-{$(CPPDIRUSER10)\}.cc{$(OBJDIR)}.obj:
-  $(CXX) $(CPPFLAGS) /Fo$@ $<
-
-
 

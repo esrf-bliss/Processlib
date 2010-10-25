@@ -3,15 +3,7 @@
 
 #define snprintf sprintf_s
 #define NAN NAN_func()
-inline double NAN_func()
-{
-  unsigned long nan[2] = {0xffffffff, 0x7fffffff};
-  return *(double*)nan;
-}
-inline double round(double a) 
-{
-  int returnVal;
-  returnVal = int(a + 0.5);
-  return (double)returnVal;
-}
+double NAN_func();
+double round(double a);
+
 #endif

@@ -20,42 +20,123 @@ LIBUSER= 	$(GNU_LIB)\bin\libgsl.dll
 
 !else
 !message "Using libraries in Release..."
-LIBUSER= 	$(GNU_LIB)\bin\libgsl.dll
+#LIBUSER= 	$(GNU_LIB)\bin\libgsl.dll
 
 !endif
 
 #	 Si vous souhaitez générer une librairie et pas un executable
 #	 decommentez la ligne suivante
 LIBRARY_NAME= processlib.lib
+#PROJECT_TYPE=DYNAMIC
 #
 
 #
 # ------------------Fin des modifications pour le end user -------------------------------------
 #
 
-#  Les définitions communes à tous les DeviceServeurs
 !include processlib.opt
 
 # --------------------------------------
 #   Partie spécifique
 # --------------------------------------
+CPPDIRUSER1=..\core\src
+CPPDIRUSER2=..\tasks\src
+CPPDIRUSER3=..\core\src\WindowSpecific
+
 LISTEOBJ = \
-	..\core\src\GslErrorMgr.obj\
- 	..\core\src\PoolThreadMgr.obj\
- 	..\core\src\TaskEventCallback.obj\
- 	..\core\src\LinkTask.obj\
- 	..\core\src\SinkTask.obj\
- 	..\core\src\TaskMgr.obj\
- 	..\core\src\HeaderContainer.obj\
- 	..\tasks\src\BackgroundSubstraction.obj\
- 	..\tasks\src\FlatfieldCorrection.obj\
- 	..\tasks\src\RoiCounter.obj\
- 	..\tasks\src\Binning.obj\
- 	..\tasks\src\Flip.obj\
- 	..\tasks\src\SoftRoi.obj\
- 	..\tasks\src\Bpm.obj\
- 	..\tasks\src\Mask.obj
+	pthread_cancelling.obj \
+	pthread_cond.obj \
+	pthread_key.obj \
+	pthread_mutex.obj \
+	pthread_rwlock.obj \
+	pthread_thread.obj \
+	stdio_compat.obj \
+	time_compat.obj \
+	GslErrorMgr.obj\
+ 	PoolThreadMgr.obj\
+ 	TaskEventCallback.obj\
+ 	LinkTask.obj\
+ 	SinkTask.obj\
+ 	TaskMgr.obj\
+ 	HeaderContainer.obj\
+ 	BackgroundSubstraction.obj\
+ 	FlatfieldCorrection.obj\
+ 	RoiCounter.obj\
+ 	Binning.obj\
+ 	Flip.obj\
+ 	SoftRoi.obj\
+ 	Bpm.obj\
+ 	Mask.obj
 
 # --------------------------------------
 !include common_target.opt
 
+pthread_cancelling.obj:	$(CPPDIRUSER3)\pthread_cancelling.cpp
+	$(CXX) $(CPPFLAGS) /c $(CPPDIRUSER3)\pthread_cancelling.cpp
+
+pthread_cond.obj:$(CPPDIRUSER3)\pthread_cond.cpp
+	$(CXX) $(CPPFLAGS) /c $(CPPDIRUSER3)\pthread_cond.cpp
+
+pthread_key.obj:$(CPPDIRUSER3)\pthread_key.cpp
+	$(CXX) $(CPPFLAGS) /c $(CPPDIRUSER3)\pthread_key.cpp
+
+pthread_mutex.obj:$(CPPDIRUSER3)\pthread_mutex.cpp
+	$(CXX) $(CPPFLAGS) /c $(CPPDIRUSER3)\pthread_mutex.cpp
+
+pthread_rwlock.obj:$(CPPDIRUSER3)\pthread_rwlock.cpp
+	$(CXX) $(CPPFLAGS) /c $(CPPDIRUSER3)\pthread_rwlock.cpp
+
+pthread_thread.obj:$(CPPDIRUSER3)\pthread_thread.cpp
+	$(CXX) $(CPPFLAGS) /c $(CPPDIRUSER3)\pthread_thread.cpp
+
+stdio_compat.obj:$(CPPDIRUSER3)\stdio_compat.cpp
+	$(CXX) $(CPPFLAGS) /c $(CPPDIRUSER3)\stdio_compat.cpp
+
+time_compat.obj:$(CPPDIRUSER3)\time_compat.cpp
+	$(CXX) $(CPPFLAGS) /c $(CPPDIRUSER3)\time_compat.cpp
+
+GslErrorMgr.obj:$(CPPDIRUSER1)\GslErrorMgr.cpp
+	$(CXX) $(CPPFLAGS) /c $(CPPDIRUSER1)\GslErrorMgr.cpp
+
+PoolThreadMgr.obj:$(CPPDIRUSER1)\PoolThreadMgr.cpp
+	$(CXX) $(CPPFLAGS) /c $(CPPDIRUSER1)\PoolThreadMgr.cpp
+
+TaskEventCallback.obj:$(CPPDIRUSER1)\TaskEventCallback.cpp
+	$(CXX) $(CPPFLAGS) /c $(CPPDIRUSER1)\TaskEventCallback.cpp
+
+LinkTask.obj:$(CPPDIRUSER1)\LinkTask.cpp
+	$(CXX) $(CPPFLAGS) /c $(CPPDIRUSER1)\LinkTask.cpp
+
+SinkTask.obj:$(CPPDIRUSER1)\SinkTask.cpp
+	$(CXX) $(CPPFLAGS) /c $(CPPDIRUSER1)\SinkTask.cpp
+
+TaskMgr.obj:$(CPPDIRUSER1)\TaskMgr.cpp
+	$(CXX) $(CPPFLAGS) /c $(CPPDIRUSER1)\TaskMgr.cpp
+
+HeaderContainer.obj:$(CPPDIRUSER1)\HeaderContainer.cpp
+	$(CXX) $(CPPFLAGS) /c $(CPPDIRUSER1)\HeaderContainer.cpp
+
+
+BackgroundSubstraction.obj:$(CPPDIRUSER2)\BackgroundSubstraction.cpp
+	$(CXX) $(CPPFLAGS) /c $(CPPDIRUSER2)\BackgroundSubstraction.cpp
+ 
+FlatfieldCorrection.obj:$(CPPDIRUSER2)\FlatfieldCorrection.cpp
+	$(CXX) $(CPPFLAGS) /c $(CPPDIRUSER2)\FlatfieldCorrection.cpp
+
+RoiCounter.obj:$(CPPDIRUSER2)\RoiCounter.cpp
+	$(CXX) $(CPPFLAGS) /c $(CPPDIRUSER2)\RoiCounter.cpp
+
+Binning.obj:$(CPPDIRUSER2)\Binning.cpp
+	$(CXX) $(CPPFLAGS) /c $(CPPDIRUSER2)\Binning.cpp
+
+Flip.obj:$(CPPDIRUSER2)\Flip.cpp
+	$(CXX) $(CPPFLAGS) /c $(CPPDIRUSER2)\Flip.cpp
+
+SoftRoi.obj:$(CPPDIRUSER2)\SoftRoi.cpp
+	$(CXX) $(CPPFLAGS) /c $(CPPDIRUSER2)\SoftRoi.cpp
+
+Bpm.obj:$(CPPDIRUSER2)\Bpm.cpp
+	$(CXX) $(CPPFLAGS) /c $(CPPDIRUSER2)\Bpm.cpp
+
+Mask.obj:$(CPPDIRUSER2)\Mask.cpp
+	$(CXX) $(CPPFLAGS) /c $(CPPDIRUSER2)\Mask.cpp
