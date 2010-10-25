@@ -1,3 +1,4 @@
+#include <cstring>
 #ifdef __unix
 #include <stdint.h>
 #endif
