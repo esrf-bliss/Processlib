@@ -1,3 +1,5 @@
+#include <cstring>
+
 #include <gsl/gsl_fft_complex.h>
 #include <gsl/gsl_linalg.h>
 #include <gsl/gsl_multifit.h>
