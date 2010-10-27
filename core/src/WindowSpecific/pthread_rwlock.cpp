@@ -1,8 +1,6 @@
-#include <pthread_rwlock.h>
-#include <pthread_mutex.h>
+#include <pthread.h>
 #include <errno.h>
 
-extern void pthread_testcancel(void);
 extern unsigned long long _pthread_time_in_ms_from_timespec(const struct timespec *ts);
 
 int pthread_rwlock_init(pthread_rwlock_t *l, pthread_rwlockattr_t *a)

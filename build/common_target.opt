@@ -2,11 +2,11 @@
 #    Génération d'une librairie
 #
 !ifdef LIBRARY_NAME
-ALL: $(SPECIFIC_TARGET) repertoire $(LIBRARY_NAME)
+ALL: $(SPECIFIC_TARGET) $(LIBRARY_NAME)
 #
 #    Ou d'un executable
 !else
-ALL: repertoire $(exe_device_server)
+ALL: $(exe_device_server)
 !endif
 
 
@@ -66,10 +66,6 @@ RELEASE :
 
 # Pseudotarget par defaut
 TOUT: ALL
-
-repertoire:
-	@echo Création des répertoires de compilation...
-	@if not exist $(OBJDIR) mkdir $(OBJDIR)
 
 #   - Gestion d'un répertoire source contenant plusieurs sous répertoire -
 #   ces lignes permettent la création dans OBJDIR d'une arborescence similaire à celle

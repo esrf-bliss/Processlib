@@ -16,18 +16,20 @@ INCUSER=/I$(GNU_LIB)\include
 
 !ifdef DEBUG
 !message "Using libraries in Debug..."
-LIBUSER= 	$(GNU_LIB)\bin\libgsl.dll
+LIBUSER= 	$(GNU_LIB)\lib\libgsl.a \
+	$(GNU_LIB)\lib\libgslcblas.a
 
 !else
 !message "Using libraries in Release..."
-#LIBUSER= 	$(GNU_LIB)\bin\libgsl.dll
+LIBUSER= 	$(GNU_LIB)\lib\libgsl.a \
+	$(GNU_LIB)\lib\libgslcblas.a
 
 !endif
 
 #	 Si vous souhaitez générer une librairie et pas un executable
 #	 decommentez la ligne suivante
-LIBRARY_NAME= processlib.lib
-#PROJECT_TYPE=DYNAMIC
+LIBRARY_NAME= processlib.dll
+PROJECT_TYPE=DYNAMIC
 #
 
 #
