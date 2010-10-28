@@ -1,0 +1,34 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+	<parent>
+        <groupId>fr.soleil.lib.Lima.Third-party</groupId>
+		<artifactId>Processlib</artifactId>
+		<version>0.0.1-SNAPSHOT</version>
+    </parent>
+
+    <groupId>fr.soleil.lib.Lima.Third-party.Processlib</groupId>
+    <artifactId>Tasks-${aol}-shared-${mode}</artifactId>
+
+    <packaging>nar</packaging>
+    <name>Tasks</name>    <!-- use for the name of executable -->
+    <description>This is the Tasks of the Processlib</description>
+
+	<dependencies>
+        <dependency>
+			<groupId>fr.soleil.lib.Lima.Third-party.Processlib</groupId>
+			<artifactId>Core-${aol}-shared-${mode}</artifactId>
+			<version>0.0.1-SNAPSHOT</version>
+		</dependency>
+    </dependencies>
+	
+    <build>
+        <plugins>
+            <plugin>
+                <groupId>org.freehep</groupId>
+                <artifactId>freehep-nar-plugin</artifactId>
+            </plugin>
+        </plugins>
+    </build>
+
+</project>
