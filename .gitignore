@@ -10,4 +10,5 @@ sip*.cpp
 *.lib.manifest
 *.dll
 *.dll.manifest
-
+*.pyd
+*.pyd.manifest
