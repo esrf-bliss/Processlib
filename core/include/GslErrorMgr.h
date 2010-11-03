@@ -2,6 +2,7 @@
 #include <map>
 #include <string>
 
+#include "Compatibility.h"
 
 /** @brief this class manage error message in thread safe maner
  */
