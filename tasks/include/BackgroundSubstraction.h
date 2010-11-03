@@ -3,7 +3,7 @@
 #include "LinkTask.h"
 namespace Tasks
 {
-  class BackgroundSubstraction : public LinkTask
+  class DLL_EXPORT BackgroundSubstraction : public LinkTask
   {
   public:
     BackgroundSubstraction();

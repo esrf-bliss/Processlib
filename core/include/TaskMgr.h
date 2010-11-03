@@ -3,11 +3,12 @@
 
 #include <deque>
 #include "Data.h"
+#include "Compatibility.h"
 
 class LinkTask;
 class SinkTaskBase;
 
-class TaskMgr
+class DLL_EXPORT TaskMgr
 {
   struct Task
   {

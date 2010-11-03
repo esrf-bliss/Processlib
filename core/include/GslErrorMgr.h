@@ -5,7 +5,7 @@
 
 /** @brief this class manage error message in thread safe maner
  */
-class GslErrorMgr
+class DLL_EXPORT GslErrorMgr
 {
   typedef std::map<pthread_t,std::string> ErrorMessageType;
   typedef std::map<pthread_t,int>	  ErrnoType;

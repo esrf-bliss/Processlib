@@ -2,7 +2,7 @@
 
 namespace Tasks
 {
-  class Mask : public LinkTask
+  class DLL_EXPORT Mask : public LinkTask
   {
   public:
     Mask();

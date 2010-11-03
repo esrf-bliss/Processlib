@@ -1,7 +1,7 @@
 #include "LinkTask.h"
 namespace Tasks
 {
-  class SoftRoi : public LinkTask
+  class DLL_EXPORT SoftRoi : public LinkTask
   {
   public:
     SoftRoi();

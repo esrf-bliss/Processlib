@@ -5,7 +5,7 @@
 #ifndef __LINKTASK_H
 #define __LINKTASK_H
 
-class LinkTask
+class DLL_EXPORT LinkTask
 {
 public:
   LinkTask();

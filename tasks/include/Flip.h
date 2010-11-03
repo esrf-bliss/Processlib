@@ -1,7 +1,7 @@
 #include "LinkTask.h"
 namespace Tasks
 {
-  class Flip : public LinkTask
+  class DLL_EXPORT Flip : public LinkTask
   {
   public:
     enum FLIP_MODE {

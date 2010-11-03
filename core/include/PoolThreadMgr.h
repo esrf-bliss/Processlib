@@ -6,6 +6,9 @@
 #include <list>
 #include <vector>
 #include <pthread.h>
+
+#include "Compatibility.h"
+
 class TaskMgr;
 struct Data;
 
@@ -21,15 +24,19 @@ extern "C"
 #endif
 
 #ifdef __cplusplus
-class PoolThreadMgr
+class DLL_EXPORT PoolThreadMgr
 {
   friend START_PROCESS_ERROR startNewProcess(long,int,int,int,const char*);
 public:
   PoolThreadMgr();
   ~PoolThreadMgr();
+#ifdef WIN32
+  static PoolThreadMgr& get() throw();
+#else
   static inline PoolThreadMgr& get() throw() 
   {return PoolThreadMgr::_processMgr;}
-  
+#endif
+
   void addProcess(TaskMgr *aProcess,bool lock = true);
   void removeProcess(TaskMgr *aProcess,bool lock = true);
   void setNumberOfThread(int);
@@ -82,7 +89,6 @@ private:
   static void* _run(void*);
   void _createProcessThread(int aNumber);
 };
-
 #endif
 
 #endif

@@ -4,7 +4,7 @@
 #ifndef __TASKEVENTCALLBACK_H
 #define __TASKEVENTCALLBACK_H
 
-class TaskEventCallback
+class DLL_EXPORT TaskEventCallback
 {
  public:
   TaskEventCallback();

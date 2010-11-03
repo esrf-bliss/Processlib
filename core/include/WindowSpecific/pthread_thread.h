@@ -30,7 +30,7 @@ struct _pthread_v
   jmp_buf jb;
 };
 
-typedef DLL_EXPORT struct _pthread_v *pthread_t;
+typedef struct _pthread_v *pthread_t;
 
 typedef struct pthread_attr_t pthread_attr_t;
 struct pthread_attr_t

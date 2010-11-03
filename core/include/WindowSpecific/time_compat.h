@@ -5,6 +5,8 @@
 #include <Windows.h>
 #include <time.h>
 
+#include "Compatibility.h"
+
 #if defined(_MSC_VER) || defined(_MSC_EXTENSIONS)
   #define DELTA_EPOCH_IN_MICROSECS  11644473600000000Ui64
 #else
@@ -23,7 +25,7 @@ struct timezone
 extern "C"{
 #endif
 
-  int gettimeofday(struct timeval *tv, struct timezone *tz);
+  DLL_EXPORT int gettimeofday(struct timeval *tv, struct timezone *tz);
   
 #ifdef __cplusplus
 }       //  Assume C declarations for C++

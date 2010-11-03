@@ -6,7 +6,7 @@
 #include <sstream>
 #include <string>
 
-class Stat
+class DLL_EXPORT Stat
 {
 public:
   Stat(const Data &data,const std::string &info) : _data(data),_info(info) 

@@ -1,7 +1,7 @@
 #include "LinkTask.h"
 namespace Tasks
 {
-  class FlatfieldCorrection : public LinkTask
+  class DLL_EXPORT FlatfieldCorrection : public LinkTask
   {
   public:
     FlatfieldCorrection();

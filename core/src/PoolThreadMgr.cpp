@@ -228,6 +228,12 @@ void PoolThreadMgr::_createProcessThread(int aNumber)
 	_threadID.push_back(threadID);
     }
 }
+#ifdef WIN32
+PoolThreadMgr& PoolThreadMgr::get() throw()
+{
+  return PoolThreadMgr::_processMgr;
+}
+#endif
 /** @brief this function is the entry point of the processing library.
  *
  * This function is usually called by an external acquisition library.

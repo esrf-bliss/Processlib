@@ -5,7 +5,7 @@
 #ifndef __SINKTASK_H
 #define __SINKTASK_H
 
-class SinkTaskBase
+class DLL_EXPORT SinkTaskBase
 {
 public:
   SinkTaskBase();

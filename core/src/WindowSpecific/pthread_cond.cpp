@@ -108,7 +108,7 @@ int pthread_cond_timedwait(pthread_cond_t *c, pthread_mutex_t *m, struct timespe
 	if(state == WAIT_TIMEOUT)
 	  {
 	    EnterCriticalSection(&c->mutex);
-	    if(c->count_waiting) // As is not atomic, count_waiting could 
+	    if(c->count_waiting) // As is not atomic, need to be tested
 	      --(c->count_waiting);
 	    LeaveCriticalSection(&c->mutex);
 	    returnState = ETIMEDOUT;

@@ -4,9 +4,11 @@
 #include <map>
 #include <string>
 
+#include "Compatibility.h"
+
 #ifndef __DATA_H
 #define __DATA_H
-struct Buffer
+struct DLL_EXPORT Buffer
 {
   enum Ownership {MAPPED,SHARED};
   ~Buffer()
@@ -52,9 +54,9 @@ struct Buffer
   void			*data;
   pthread_mutex_t	_lock;
 };
-struct Data
+struct DLL_EXPORT Data
 {
-  class HeaderContainer
+  class DLL_EXPORT HeaderContainer
   {
   public:
     typedef std::map<std::string,std::string> Header;
@@ -196,8 +198,8 @@ struct Data
   mutable Buffer *buffer;
 };
 
-std::ostream& operator<<(std::ostream &os,
-			 const Data::HeaderContainer &aHeader);
+DLL_EXPORT std::ostream& operator<<(std::ostream &os,
+				    const Data::HeaderContainer &aHeader);
 
 inline std::ostream& operator<<(std::ostream &os,const Buffer &aBuffer)
 {

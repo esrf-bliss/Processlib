@@ -10,7 +10,7 @@ namespace Tasks
   
   typedef SinkTaskMgr<RoiCounterResult> RoiCounterManager;
 
-  struct RoiCounterResult
+  struct DLL_EXPORT RoiCounterResult
   {
     RoiCounterResult() : 
       sum(0.),average(0.),std(0.),
@@ -38,7 +38,7 @@ namespace Tasks
       return os;
     }
 
-  class RoiCounterTask : public SinkTask<RoiCounterResult>
+  class DLL_EXPORT RoiCounterTask : public SinkTask<RoiCounterResult>
   {
   public:
     RoiCounterTask(RoiCounterManager&);

@@ -1,7 +1,7 @@
 #include "LinkTask.h"
 namespace Tasks
 {
-  class Binning : public LinkTask
+  class DLL_EXPORT Binning : public LinkTask
   {
   public:
     Binning();
