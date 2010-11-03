@@ -23,12 +23,11 @@ LIBUSER= 	$(GNU_LIB)\lib\libgsl.a \
 !message "Using libraries in Release..."
 LIBUSER= 	$(GNU_LIB)\lib\libgsl.a \
 	$(GNU_LIB)\lib\libgslcblas.a
-
 !endif
 
 #	 Si vous souhaitez générer une librairie et pas un executable
 #	 decommentez la ligne suivante
-LIBRARY_NAME= processlib.dll
+LIBRARY_NAME= libprocesslib.dll
 PROJECT_TYPE=DYNAMIC
 #
 

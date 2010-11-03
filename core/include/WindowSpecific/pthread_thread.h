@@ -2,6 +2,7 @@
 #define __PTHREAD_THREAD_H__
 #include <Windows.h>
 #include <setjmp.h>
+#include "Compatibility.h"
 
 #define PTHREAD_ONCE_INIT 0
 
@@ -29,7 +30,7 @@ struct _pthread_v
   jmp_buf jb;
 };
 
-typedef struct _pthread_v *pthread_t;
+typedef DLL_EXPORT struct _pthread_v *pthread_t;
 
 typedef struct pthread_attr_t pthread_attr_t;
 struct pthread_attr_t
@@ -69,45 +70,45 @@ extern "C"{
 
   void _pthread_cleanup_dest(pthread_t t);
 
-  pthread_t pthread_self(void);
+  DLL_EXPORT pthread_t pthread_self(void);
 
-  int pthread_get_concurrency(int *val);
+  DLL_EXPORT int pthread_get_concurrency(int *val);
 
-  int pthread_set_concurrency(int val);
+  DLL_EXPORT int pthread_set_concurrency(int val);
 
 #define pthread_getschedparam(T, P, S) ENOTSUP
 #define pthread_setschedparam(T, P, S) ENOTSUP
 #define pthread_getcpuclockid(T, C) ENOTSUP
 
-  int pthread_exit(void *res);
+  DLL_EXPORT int pthread_exit(void *res);
 
   unsigned _pthread_get_state(pthread_attr_t *attr, unsigned flag);
 
   int _pthread_set_state(pthread_attr_t *attr, unsigned flag, unsigned val);
 
-  int pthread_attr_init(pthread_attr_t *attr);
+  DLL_EXPORT int pthread_attr_init(pthread_attr_t *attr);
 
-  int pthread_attr_destroy(pthread_attr_t *attr);
+  DLL_EXPORT int pthread_attr_destroy(pthread_attr_t *attr);
 
-  int pthread_attr_setdetachstate(pthread_attr_t *a, int flag);
+  DLL_EXPORT int pthread_attr_setdetachstate(pthread_attr_t *a, int flag);
 
-  int pthread_attr_getdetachstate(pthread_attr_t *a, int *flag);
+  DLL_EXPORT int pthread_attr_getdetachstate(pthread_attr_t *a, int *flag);
 
-  int pthread_attr_setinheritsched(pthread_attr_t *a, int flag);
+  DLL_EXPORT int pthread_attr_setinheritsched(pthread_attr_t *a, int flag);
 
-  int pthread_attr_getinheritsched(pthread_attr_t *a, int *flag);
+  DLL_EXPORT int pthread_attr_getinheritsched(pthread_attr_t *a, int *flag);
 
-  int pthread_attr_setscope(pthread_attr_t *a, int flag);
+  DLL_EXPORT int pthread_attr_setscope(pthread_attr_t *a, int flag);
 
-  int pthread_attr_getscope(pthread_attr_t *a, int *flag);
+  DLL_EXPORT int pthread_attr_getscope(pthread_attr_t *a, int *flag);
 
-  int pthread_attr_getstackaddr(pthread_attr_t *attr, void **stack);
+  DLL_EXPORT int pthread_attr_getstackaddr(pthread_attr_t *attr, void **stack);
 
-  int pthread_attr_setstackaddr(pthread_attr_t *attr, void *stack);
+  DLL_EXPORT int pthread_attr_setstackaddr(pthread_attr_t *attr, void *stack);
 
-  int pthread_attr_getstacksize(pthread_attr_t *attr, size_t *size);
+  DLL_EXPORT int pthread_attr_getstacksize(pthread_attr_t *attr, size_t *size);
 
-  int pthread_attr_setstacksize(pthread_attr_t *attr, size_t size);
+  DLL_EXPORT int pthread_attr_setstacksize(pthread_attr_t *attr, size_t size);
 
 #define pthread_attr_getguardsize(A, S) ENOTSUP
 #define pthread_attr_setgaurdsize(A, S) ENOTSUP
@@ -117,17 +118,17 @@ extern "C"{
 #define pthread_attr_setschedpolicy(A, S) ENOTSUP
 
 
-  int pthread_setcancelstate(int state, int *oldstate);
+  DLL_EXPORT int pthread_setcancelstate(int state, int *oldstate);
 
-  int pthread_setcanceltype(int type, int *oldtype);
+  DLL_EXPORT int pthread_setcanceltype(int type, int *oldtype);
 
-  unsigned int pthread_create_wrapper(void *args);
+  DLL_EXPORT unsigned int pthread_create_wrapper(void *args);
 
-  int pthread_create(pthread_t *th, pthread_attr_t *attr, void *(* func)(void *), void *arg);
+  DLL_EXPORT int pthread_create(pthread_t *th, pthread_attr_t *attr, void *(* func)(void *), void *arg);
 
-  int pthread_join(pthread_t t, void **res);
+  DLL_EXPORT int pthread_join(pthread_t t, void **res);
 
-  int pthread_detach(pthread_t t);
+  DLL_EXPORT int pthread_detach(pthread_t t);
 
 #ifdef __cplusplus
 } //  Assume C declarations for C++

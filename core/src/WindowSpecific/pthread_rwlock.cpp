@@ -1,42 +1,87 @@
 #include <pthread.h>
 #include <errno.h>
 
+#ifndef MAX_INT
+#define MAX_INT 0x7fffffff
+#endif
+
 extern unsigned long long _pthread_time_in_ms_from_timespec(const struct timespec *ts);
 
 int pthread_rwlock_init(pthread_rwlock_t *l, pthread_rwlockattr_t *a)
 {
   (void) a;
+#if (_WIN32_WINNT >= _WIN32_WINNT_LONGHORN)	
   InitializeSRWLock(l);
-	
+#else
+  l->sema_read = CreateSemaphore(NULL,0,MAX_INT,NULL);
+  l->sema_write = CreateSemaphore(NULL,0,MAX_INT,NULL);
+  InitializeCriticalSection(&l->mutex);
+  l->reader_count = 0;
+  l->nb_waiting_reader = 0;
+  l->nb_waiting_writer = 0;
+#endif
   return 0;
 }
 
 int pthread_rwlock_destroy(pthread_rwlock_t *l)
 {
+#if (_WIN32_WINNT >= _WIN32_WINNT_LONGHORN)	
   (void) *l;
+#else
+  DeleteCriticalSection(&l->mutex);
+#endif
   return 0;
 }
 
 int pthread_rwlock_rdlock(pthread_rwlock_t *l)
 {
   pthread_testcancel();
+#if (_WIN32_WINNT >= _WIN32_WINNT_LONGHORN)	
   AcquireSRWLockShared(l);
-	
+#else
+  EnterCriticalSection(&l->mutex);
+  ++(l->nb_waiting_reader);
+  while(l->reader_count < 0)
+    {
+      DWORD state = SignalObjectAndWait(&l->mutex,
+					l->sema_read,
+					INFINITE,
+					FALSE);
+      EnterCriticalSection(&l->mutex);
+    }
+  ++(l->reader_count);
+  --(l->nb_waiting_reader);
+  LeaveCriticalSection(&l->mutex);
+#endif	
   return 0;
 }
 
 int pthread_rwlock_wrlock(pthread_rwlock_t *l)
 {
   pthread_testcancel();
+#if (_WIN32_WINNT >= _WIN32_WINNT_LONGHORN)
   AcquireSRWLockExclusive(l);
-	
+#else
+  EnterCriticalSection(&l->mutex);
+  ++(l->nb_waiting_writer);
+  while(l->reader_count != 0)
+    {
+      DWORD state = SignalObjectAndWait(&l->mutex,
+					l->sema_write,
+					INFINITE,
+					FALSE);
+      EnterCriticalSection(&l->mutex);
+    }
+  l->reader_count = -1;		// writer take exclusive lock
+  --(l->nb_waiting_writer);
+  LeaveCriticalSection(&l->mutex);
+#endif
   return 0;
 }
 
-#define PTHREAD_RWLOCK_INITIALIZER {0}
-
 int pthread_rwlock_tryrdlock(pthread_rwlock_t *l)
 {
+#if (_WIN32_WINNT >= _WIN32_WINNT_LONGHORN)
   /* Get the current state of the lock */
   void *state = *(void **) l;
 	
@@ -56,18 +101,36 @@ int pthread_rwlock_tryrdlock(pthread_rwlock_t *l)
   if (InterlockedCompareExchangePointer((PVOID *) l, (void *) ((uintptr_t)state + 16), state) == state) return 0;
 	
   return EBUSY;
+#else
+  int returnState = EBUSY;
+  EnterCriticalSection(&l->mutex);
+  if(l->reader_count >= 0)
+    returnState = 0,++(l->reader_count);
+  LeaveCriticalSection(&l->mutex);
+  return returnState;
+#endif
 }
 
 int pthread_rwlock_trywrlock(pthread_rwlock_t *l)
 {
+#if (_WIN32_WINNT >= _WIN32_WINNT_LONGHORN)
   /* Try to grab lock if it has no users */
   if (!InterlockedCompareExchangePointer((PVOID *) l, (void *)1, NULL)) return 0;
 	
   return EBUSY;
+#else
+  int returnState = EBUSY;
+  EnterCriticalSection(&l->mutex);
+  if(l->reader_count == 0)
+    returnState = 0,l->reader_count = -1;
+  LeaveCriticalSection(&l->mutex);
+  return returnState;
+#endif
 }
 
 int pthread_rwlock_unlock(pthread_rwlock_t *l)
 {
+#if (_WIN32_WINNT >= _WIN32_WINNT_LONGHORN)
   void *state = *(void **)l;
 	
   if (state == (void *) 1)
@@ -80,7 +143,20 @@ int pthread_rwlock_unlock(pthread_rwlock_t *l)
       /* A shared unlock will work */
       ReleaseSRWLockShared(l);
     }
-	
+#else
+  EnterCriticalSection(&l->mutex);
+  if(l->reader_count < 0)	// Known to be an exclusive lock 
+    {
+      l->reader_count = 0;
+      if(l->nb_waiting_writer)	// writter have the priority
+	ReleaseSemaphore(l->sema_write,1,NULL);	// Wakeup one writer
+      else if(l->nb_waiting_reader)
+	ReleaseSemaphore(l->sema_read,l->nb_waiting_reader,NULL); // Wake up all readers
+    }
+  else if(!--(l->reader_count) && l->nb_waiting_writer)	// maybe wake up one writer
+    ReleaseSemaphore(l->sema_write,1,NULL);
+  LeaveCriticalSection(&l->mutex);
+#endif
   return 0;
 }
 
@@ -90,7 +166,6 @@ int pthread_rwlock_timedrdlock(pthread_rwlock_t *l, const struct timespec *ts)
   unsigned long long t = _pthread_time_in_ms_from_timespec(ts);
 
   pthread_testcancel();
-	
   /* Use a busy-loop */
   while (1)
     {

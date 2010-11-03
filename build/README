@@ -1,0 +1,10 @@
+Compilation:
+
+linux :
+	-> just run make
+window:
+	-> If you plan to run this library on WinXp
+		- first: set CXXFLAGS_USR="/D_WIN32_WINNT=0x0502"
+		- then make: nmake /E /f Makefile_window.vc
+        -> If you plan to run this library only on Vista or above:
+		nmake /f Makefile_window.vc
