@@ -2,13 +2,5 @@
 *.P
 *.d
 *.so
-sip*.cpp
 *~
 \#*\#
-*.obj
-*.lib
-*.lib.manifest
-*.dll
-*.dll.manifest
-*.pyd
-*.pyd.manifest

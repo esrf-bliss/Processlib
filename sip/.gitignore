@@ -4,3 +4,9 @@ processlib.sbf
 processlib_tmp.sip
 processlibconfig.py
 sipAPIprocesslib.h
+sip*.cpp
+*.obj
+*.lib
+*.dll
+*.pyd
+*.pyd.manifest
