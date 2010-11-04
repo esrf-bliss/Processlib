@@ -15,7 +15,7 @@ int pthread_rwlock_init(pthread_rwlock_t *l, pthread_rwlockattr_t *a)
 #else
   l->sema_read = CreateSemaphore(NULL,0,MAX_INT,NULL);
   l->sema_write = CreateSemaphore(NULL,0,MAX_INT,NULL);
-  InitializeCriticalSection(&l->mutex);
+  l->mutex = CreateMutex(NULL,FALSE,NULL);
   l->reader_count = 0;
   l->nb_waiting_reader = 0;
   l->nb_waiting_writer = 0;
@@ -28,7 +28,9 @@ int pthread_rwlock_destroy(pthread_rwlock_t *l)
 #if (_WIN32_WINNT >= _WIN32_WINNT_LONGHORN)	
   (void) *l;
 #else
-  DeleteCriticalSection(&l->mutex);
+  CloseHandle(l->mutex);
+  CloseHandle(l->sema_write);
+  CloseHandle(l->sema_read);
 #endif
   return 0;
 }
@@ -39,19 +41,19 @@ int pthread_rwlock_rdlock(pthread_rwlock_t *l)
 #if (_WIN32_WINNT >= _WIN32_WINNT_LONGHORN)	
   AcquireSRWLockShared(l);
 #else
-  EnterCriticalSection(&l->mutex);
+  WaitForSingleObject(l->mutex,INFINITE);
   ++(l->nb_waiting_reader);
   while(l->reader_count < 0)
     {
-      DWORD state = SignalObjectAndWait(&l->mutex,
+      DWORD state = SignalObjectAndWait(l->mutex,
 					l->sema_read,
 					INFINITE,
 					FALSE);
-      EnterCriticalSection(&l->mutex);
+      WaitForSingleObject(l->mutex,INFINITE);
     }
   ++(l->reader_count);
   --(l->nb_waiting_reader);
-  LeaveCriticalSection(&l->mutex);
+  ReleaseMutex(l->mutex);
 #endif	
   return 0;
 }
@@ -62,19 +64,19 @@ int pthread_rwlock_wrlock(pthread_rwlock_t *l)
 #if (_WIN32_WINNT >= _WIN32_WINNT_LONGHORN)
   AcquireSRWLockExclusive(l);
 #else
-  EnterCriticalSection(&l->mutex);
+  WaitForSingleObject(l->mutex,INFINITE);
   ++(l->nb_waiting_writer);
   while(l->reader_count != 0)
     {
-      DWORD state = SignalObjectAndWait(&l->mutex,
+      DWORD state = SignalObjectAndWait(l->mutex,
 					l->sema_write,
 					INFINITE,
 					FALSE);
-      EnterCriticalSection(&l->mutex);
+      WaitForSingleObject(l->mutex,INFINITE);
     }
   l->reader_count = -1;		// writer take exclusive lock
   --(l->nb_waiting_writer);
-  LeaveCriticalSection(&l->mutex);
+  ReleaseMutex(l->mutex);
 #endif
   return 0;
 }
@@ -103,10 +105,10 @@ int pthread_rwlock_tryrdlock(pthread_rwlock_t *l)
   return EBUSY;
 #else
   int returnState = EBUSY;
-  EnterCriticalSection(&l->mutex);
+  WaitForSingleObject(l->mutex,INFINITE);
   if(l->reader_count >= 0)
     returnState = 0,++(l->reader_count);
-  LeaveCriticalSection(&l->mutex);
+  ReleaseMutex(l->mutex);
   return returnState;
 #endif
 }
@@ -120,10 +122,10 @@ int pthread_rwlock_trywrlock(pthread_rwlock_t *l)
   return EBUSY;
 #else
   int returnState = EBUSY;
-  EnterCriticalSection(&l->mutex);
+  WaitForSingleObject(l->mutex,INFINITE);
   if(l->reader_count == 0)
     returnState = 0,l->reader_count = -1;
-  LeaveCriticalSection(&l->mutex);
+  ReleaseMutex(l->mutex);
   return returnState;
 #endif
 }
@@ -144,7 +146,7 @@ int pthread_rwlock_unlock(pthread_rwlock_t *l)
       ReleaseSRWLockShared(l);
     }
 #else
-  EnterCriticalSection(&l->mutex);
+  WaitForSingleObject(l->mutex,INFINITE);
   if(l->reader_count < 0)	// Known to be an exclusive lock 
     {
       l->reader_count = 0;
@@ -155,7 +157,7 @@ int pthread_rwlock_unlock(pthread_rwlock_t *l)
     }
   else if(!--(l->reader_count) && l->nb_waiting_writer)	// maybe wake up one writer
     ReleaseSemaphore(l->sema_write,1,NULL);
-  LeaveCriticalSection(&l->mutex);
+  ReleaseMutex(l->mutex);
 #endif
   return 0;
 }

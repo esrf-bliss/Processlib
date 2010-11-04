@@ -8,12 +8,12 @@ typedef SRWLOCK pthread_rwlock_t;
 #else
 struct pthread_rwlock_t
 {
-  CRITICAL_SECTION 	mutex;
-  HANDLE 		sema_read;
-  HANDLE		sema_write;
-  int 			reader_count;
-  int			nb_waiting_reader;
-  int			nb_waiting_writer;
+  HANDLE	mutex;
+  HANDLE 	sema_read;
+  HANDLE	sema_write;
+  int 		reader_count;
+  int		nb_waiting_reader;
+  int		nb_waiting_writer;
 };
 #endif
 

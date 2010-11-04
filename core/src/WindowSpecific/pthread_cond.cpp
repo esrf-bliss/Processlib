@@ -11,7 +11,7 @@ DLL_EXPORT int pthread_cond_init(pthread_cond_t *c, pthread_condattr_t *a)
 	InitializeConditionVariable(c);
 #else
 	c->sema = CreateSemaphore(NULL,0,MAX_INT,NULL);
-	InitializeCriticalSection(&c->mutex);
+	c->mutex = CreateMutex(NULL,FALSE,NULL);
 	c->count_waiting = 0;
 #endif
 	return 0;
@@ -23,13 +23,13 @@ int pthread_cond_signal(pthread_cond_t *c)
 	WakeConditionVariable(c);
 #else
 	bool signalFlag = false;
-	EnterCriticalSection(&c->mutex);
+	WaitForSingleObject(c->mutex,INFINITE);
 	if(c->count_waiting)
 	  signalFlag = true,--(c->count_waiting);
 
 	if(signalFlag)
 	  ReleaseSemaphore(c->sema,1,NULL);
-	LeaveCriticalSection(&c->mutex);
+	ReleaseMutex(c->mutex);
 
 #endif
 	return 0;
@@ -40,12 +40,12 @@ int pthread_cond_broadcast(pthread_cond_t *c)
 #if (_WIN32_WINNT >= _WIN32_WINNT_LONGHORN)
 	WakeAllConditionVariable(c);
 #else
-	EnterCriticalSection(&c->mutex);
+	WaitForSingleObject(c->mutex,INFINITE);
 	int count = c->count_waiting;
 	c->count_waiting = 0;
 	if(count)
 	  ReleaseSemaphore(c->sema,count,NULL);
-	LeaveCriticalSection(&c->mutex);
+	ReleaseMutex(c->mutex);
 
 #endif
 	return 0;
@@ -59,10 +59,10 @@ int pthread_cond_wait(pthread_cond_t *c, pthread_mutex_t *m)
 #else
 	LeaveCriticalSection(m);
 
-	EnterCriticalSection(&c->mutex);
+	WaitForSingleObject(c->mutex,INFINITE);
 	++(c->count_waiting);
 
-	DWORD state = SignalObjectAndWait(&c->mutex,
+	DWORD state = SignalObjectAndWait(c->mutex,
 					  c->sema,
 					  INFINITE,
 					  FALSE);
@@ -77,7 +77,8 @@ int pthread_cond_destroy(pthread_cond_t *c)
 #if (_WIN32_WINNT >= _WIN32_WINNT_LONGHORN)
 	(void) c;
 #else
-	DeleteCriticalSection(&c->mutex);
+	CloseHandle(c->mutex);
+	CloseHandle(c->sema);
 #endif
 	return 0;
 }
@@ -93,12 +94,12 @@ int pthread_cond_timedwait(pthread_cond_t *c, pthread_mutex_t *m, struct timespe
 #else
 	LeaveCriticalSection(m);
 	
-	EnterCriticalSection(&c->mutex);
+	WaitForSingleObject(c->mutex,INFINITE);
 	++(c->count_waiting);
 	
-	DWORD state = SignalObjectAndWait(&c->mutex,
+	DWORD state = SignalObjectAndWait(c->mutex,
 					  c->sema,
-					  tm,
+					  (DWORD)tm,
 					  FALSE);
 	/** with window, this state can't be managed properly
 	    because SignalObjectAndWait relase the mutex but don't retake it atomicly
@@ -107,10 +108,10 @@ int pthread_cond_timedwait(pthread_cond_t *c, pthread_mutex_t *m, struct timespe
 	*/
 	if(state == WAIT_TIMEOUT)
 	  {
-	    EnterCriticalSection(&c->mutex);
+	    WaitForSingleObject(c->mutex,INFINITE);
 	    if(c->count_waiting) // As is not atomic, need to be tested
 	      --(c->count_waiting);
-	    LeaveCriticalSection(&c->mutex);
+	    ReleaseMutex(c->mutex);
 	    returnState = ETIMEDOUT;
 	  }
 

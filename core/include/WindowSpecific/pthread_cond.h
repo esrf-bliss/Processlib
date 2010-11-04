@@ -9,9 +9,9 @@ typedef CONDITION_VARIABLE pthread_cond_t;
 #else
 struct pthread_cond_t
 {
-  CRITICAL_SECTION 	mutex;
-  HANDLE 		sema;
-  int 			count_waiting;
+  HANDLE	mutex;
+  HANDLE 	sema;
+  int 		count_waiting;
 };
 #endif
 
