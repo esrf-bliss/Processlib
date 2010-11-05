@@ -57,10 +57,10 @@ int pthread_cond_wait(pthread_cond_t *c, pthread_mutex_t *m)
 #if (_WIN32_WINNT >= _WIN32_WINNT_LONGHORN)
 	SleepConditionVariableCS(c, m, INFINITE);
 #else
-	LeaveCriticalSection(m);
-
 	WaitForSingleObject(c->mutex,INFINITE);
 	++(c->count_waiting);
+
+	LeaveCriticalSection(m);
 
 	DWORD state = SignalObjectAndWait(c->mutex,
 					  c->sema,
