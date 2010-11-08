@@ -16,38 +16,37 @@ DLL_EXPORT int pthread_cond_init(pthread_cond_t *c, pthread_condattr_t *a)
 #endif
 	return 0;
 }
-/** @brief pthread_cond_signal nearly equivalent as posix.
- *  pthread_cond_signal send always a signal despite no body is waiting
- *  we can do an atomic call
- */
+
 int pthread_cond_signal(pthread_cond_t *c)
 {
 #if (_WIN32_WINNT >= _WIN32_WINNT_LONGHORN)
 	WakeConditionVariable(c);
 #else
+	bool signalFlag = false;
 	WaitForSingleObject(c->mutex,INFINITE);
 	if(c->count_waiting)
-	  --(c->count_waiting);
-	ReleaseSemaphore(c->sema,1,NULL);
+	  signalFlag = true,--(c->count_waiting);
+
+	if(signalFlag)
+	  ReleaseSemaphore(c->sema,1,NULL);
 	ReleaseMutex(c->mutex);
+
 #endif
 	return 0;
 }
 
-/** @brief pthread_cond_broadcast nearly equivalent as posix.
- *  pthread_cond_broadcast send a least a signal event if no body wait because we can do 
- *  an atomic call
-*/
 int pthread_cond_broadcast(pthread_cond_t *c)
 {
 #if (_WIN32_WINNT >= _WIN32_WINNT_LONGHORN)
 	WakeAllConditionVariable(c);
 #else
 	WaitForSingleObject(c->mutex,INFINITE);
-	int count = c->count_waiting ? c->count_waiting : 1;
+	int count = c->count_waiting;
 	c->count_waiting = 0;
-	ReleaseSemaphore(c->sema,count,NULL);
+	if(count)
+	  ReleaseSemaphore(c->sema,count,NULL);
 	ReleaseMutex(c->mutex);
+
 #endif
 	return 0;
 }
