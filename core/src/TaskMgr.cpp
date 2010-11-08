@@ -210,8 +210,12 @@ void TaskMgr::_endSinkTask(SinkTaskBase*)
 //@brief Processing Stage finished, going to next stage
 void TaskMgr::_goToNextStage()
 {
-  _currentData = _nextData;	// swap
-  _nextData.releaseBuffer();
+  if(!_nextData.empty())
+    {
+      _currentData = _nextData;	// swap
+      _nextData.releaseBuffer();
+    }
+
   if(_Tasks.empty())	// Process is finished
     delete this;		// suicide
   else
