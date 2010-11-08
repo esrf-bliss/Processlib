@@ -92,11 +92,11 @@ int pthread_cond_timedwait(pthread_cond_t *c, pthread_mutex_t *m, struct timespe
 #if (_WIN32_WINNT >= _WIN32_WINNT_LONGHORN)
 	if (!SleepConditionVariableCS(c, m, DWORD(tm))) return ETIMEDOUT;
 #else
-	LeaveCriticalSection(m);
-	
 	WaitForSingleObject(c->mutex,INFINITE);
 	++(c->count_waiting);
 	
+	LeaveCriticalSection(m);
+
 	DWORD state = SignalObjectAndWait(c->mutex,
 					  c->sema,
 					  (DWORD)tm,
