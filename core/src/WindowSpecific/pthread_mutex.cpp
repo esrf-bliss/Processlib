@@ -125,7 +125,7 @@ int pthread_mutexattr_destroy(pthread_mutexattr_t *a)
 	return 0;
 }
 
-int pthread_mutexattr_gettype(pthread_mutexattr_t *a, int *type)
+int pthread_mutexattr_gettype(const pthread_mutexattr_t *a, int *type)
 {
 	*type = *a & 3;
 

@@ -13,7 +13,8 @@
   #define DELTA_EPOCH_IN_MICROSECS  11644473600000000ULL
 #endif
 
-
+#define ctime_r(rTime,buffer) ctime_s(buffer,sizeof(buffer),rTime)
+#define localtime_r(timep,result) localtime_s(result,timep)
 
 struct timezone 
 {

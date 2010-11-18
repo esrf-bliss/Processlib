@@ -56,7 +56,7 @@ struct timespec
 
   DLL_EXPORT int pthread_mutexattr_destroy(pthread_mutexattr_t *a);
 
-  DLL_EXPORT int pthread_mutexattr_gettype(pthread_mutexattr_t *a, int *type);
+  DLL_EXPORT int pthread_mutexattr_gettype(const pthread_mutexattr_t *a, int *type);
 
   DLL_EXPORT int pthread_mutexattr_settype(pthread_mutexattr_t *a, int type);
 
