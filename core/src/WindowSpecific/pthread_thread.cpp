@@ -297,7 +297,12 @@ unsigned int pthread_create_wrapper(void *args)
     }
 	
   /* Make sure we free ourselves if we are detached */
-  if (!tv->h) free(tv);
+  if (!tv->h)
+    {
+      if(tv->keyval)
+	free(tv->keyval);
+      free(tv);
+    }
 	
   return 0;
 }
@@ -357,7 +362,9 @@ int pthread_join(pthread_t t, void **res)
 	
   /* Obtain return value */
   if (res) *res = tv->ret_arg;
-	
+
+  if(tv->keyval)
+    free(tv->keyval);
   free(tv);
 
   return 0;
