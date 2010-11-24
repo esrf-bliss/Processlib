@@ -3,13 +3,13 @@
 #include <malloc.h>
 #include <errno.h>
 
-void (**_pthread_key_dest)(void *);
+void (**_pthread_key_dest)(void *) = NULL;
 
 #define PTHREAD_KEYS_MAX (1<<20)
 
 pthread_rwlock_t _pthread_key_lock;
-long _pthread_key_max;
-long _pthread_key_sch;
+long _pthread_key_max = 0;
+long _pthread_key_sch = 0;
 
 int pthread_key_create(pthread_key_t *key, void (* dest)(void *))
 {
@@ -59,15 +59,17 @@ int pthread_key_create(pthread_key_t *key, void (* dest)(void *))
 		}
 	}
 	
-	if (!_pthread_key_max) _pthread_key_max = 1;
 	if (_pthread_key_max == PTHREAD_KEYS_MAX)
 	{
 		pthread_rwlock_unlock(&_pthread_key_lock);
 		
 		return ENOMEM;
 	}
-	
-	nmax = _pthread_key_max * 2;
+	if(_pthread_key_max)
+	  nmax = _pthread_key_max * 2;
+	else			// Init
+	  nmax = 2;
+
 	if (nmax > PTHREAD_KEYS_MAX) nmax = PTHREAD_KEYS_MAX;
 	
 	/* No spare room anywhere */
@@ -116,4 +118,29 @@ int pthread_key_delete(pthread_key_t key)
 	pthread_rwlock_unlock(&_pthread_key_lock);
 	
 	return 0;
+}
+
+void* pthread_getspecific(pthread_key_t key)
+{
+  void *aReturnValuePt = NULL;
+  pthread_t t = pthread_self();
+  if(t->keymax > key)
+    aReturnValuePt = t->keyval[key];
+  return aReturnValuePt;
+}
+
+int pthread_setspecific(pthread_key_t key,
+			const void *pointer)
+{
+  pthread_t t = pthread_self();
+  if(t->keymax < key)
+    {
+      int newSize = key + 1;
+      void **d = (void**)realloc(t->keyval,newSize * sizeof(void*));
+      memset(&d[t->keymax], 0, (newSize - t->keymax)*sizeof(void *));
+      t->keymax = newSize;
+      t->keyval = d;
+    }
+  t->keyval[key] = (void*)pointer;
+  return 0;
 }

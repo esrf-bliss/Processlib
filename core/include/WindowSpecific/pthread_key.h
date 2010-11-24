@@ -13,6 +13,9 @@ extern "C"{
 
   DLL_EXPORT int pthread_key_delete(pthread_key_t key);
 
+  DLL_EXPORT void* pthread_getspecific(pthread_key_t key);
+  DLL_EXPORT int pthread_setspecific(pthread_key_t key,
+				     const void *pointer);
 #ifdef __cplusplus
 } //  Assume C declarations for C++
 #endif

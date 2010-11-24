@@ -3,3 +3,4 @@
 *.dll.manifest
 *.lib
 *.exp
+*.pdb
