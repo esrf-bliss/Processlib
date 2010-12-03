@@ -120,6 +120,7 @@ struct DLL_EXPORT Data
     type = UNDEF,width = -1,height = -1,frameNumber = -1;
   }
   inline void * data() {return buffer ? buffer->data : NULL;}
+  inline const void * data() const {return buffer ? buffer->data : NULL;}
   inline int size() const 
   {
     return depth() * width * height;
