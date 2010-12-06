@@ -179,6 +179,24 @@ struct DLL_EXPORT Data
     aReturnData.buffer = new Buffer(aReturnData.size());
     return aReturnData;
   }
+  inline Data copy() const
+  {
+    Data aReturnData;
+    aReturnData.type = type;
+    aReturnData.width = width;
+    aReturnData.height = height;
+    aReturnData.frameNumber = frameNumber;
+    aReturnData.timestamp = timestamp;
+    aReturnData.header = header;
+    if(buffer)
+      {
+	aReturnData.buffer = new Buffer(size());
+	memcpy(aReturnData.data(),data(),size());
+      }
+    else
+      aReturnData.buffer = NULL;
+    return aReturnData;
+  }
   inline Data& operator=(const Data &aData)
   {
     type = aData.type;
