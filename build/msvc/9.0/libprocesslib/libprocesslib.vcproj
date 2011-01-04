@@ -41,7 +41,7 @@
 			<Tool
 				Name="VCCLCompilerTool"
 				Optimization="0"
-				AdditionalIncludeDirectories="&quot;C:\Program Files\GnuWin32\include&quot;;&quot;C:\Documents and Settings\petitdem\Desktop\Lima\third-party\Processlib\tasks\include&quot;;&quot;C:\Documents and Settings\petitdem\Desktop\Lima\third-party\Processlib\core\include&quot;;&quot;C:\Documents and Settings\petitdem\Desktop\Lima\third-party\Processlib\core\include\WindowSpecific&quot;"
+				AdditionalIncludeDirectories="&quot;C:\Program Files\GnuWin32\include&quot;;..\..\..\..\tasks\include;..\..\..\..\core\include;..\..\..\..\core\include\WindowSpecific"
 				PreprocessorDefinitions="WIN32;_DEBUG;_WINDOWS;_USRDLL;LIBPROCESSLIB_EXPORTS;_WIN32_WINNT=0x0502"
 				MinimalRebuild="true"
 				BasicRuntimeChecks="3"
