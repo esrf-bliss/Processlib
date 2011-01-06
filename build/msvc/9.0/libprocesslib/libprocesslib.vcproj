@@ -44,7 +44,7 @@
 				AdditionalIncludeDirectories="&quot;C:\Program Files\GnuWin32\include&quot;;..\..\..\..\tasks\include;..\..\..\..\core\include;..\..\..\..\core\include\WindowSpecific"
 				PreprocessorDefinitions="WIN32;_DEBUG;_WINDOWS;_USRDLL;LIBPROCESSLIB_EXPORTS;_WIN32_WINNT=0x0502"
 				MinimalRebuild="true"
-				BasicRuntimeChecks="3"
+				BasicRuntimeChecks="0"
 				RuntimeLibrary="3"
 				UsePrecompiledHeader="0"
 				WarningLevel="3"
