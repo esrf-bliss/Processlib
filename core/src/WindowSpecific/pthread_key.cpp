@@ -133,7 +133,7 @@ int pthread_setspecific(pthread_key_t key,
 			const void *pointer)
 {
   pthread_t t = pthread_self();
-  if(t->keymax < key)
+  if(t->keymax <= key)
     {
       int newSize = key + 1;
       void **d = (void**)realloc(t->keyval,newSize * sizeof(void*));
