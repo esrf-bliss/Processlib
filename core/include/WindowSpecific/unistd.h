@@ -19,5 +19,5 @@
 #define ftruncate _chsize
 
 #define ssize_t int
-#define usleep(val) Sleep(val/1000)
+#define usleep(val) ::Sleep(val/1000)
 #endif /* unistd.h  */

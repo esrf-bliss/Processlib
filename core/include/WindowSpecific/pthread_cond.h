@@ -11,6 +11,7 @@ struct pthread_cond_t
 {
   HANDLE	mutex;
   HANDLE 	sema;
+  HANDLE 	sema_signal;
   int 		count_waiting;
 };
 #endif

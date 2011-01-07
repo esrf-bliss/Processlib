@@ -11,6 +11,7 @@ DLL_EXPORT int pthread_cond_init(pthread_cond_t *c, pthread_condattr_t *a)
 	InitializeConditionVariable(c);
 #else
 	c->sema = CreateSemaphore(NULL,0,MAX_INT,NULL);
+	c->sema_signal = CreateSemaphore(NULL,0,MAX_INT,NULL);
 	c->mutex = CreateMutex(NULL,FALSE,NULL);
 	c->count_waiting = 0;
 #endif
@@ -30,7 +31,8 @@ int pthread_cond_signal(pthread_cond_t *c)
 	if(signalFlag)
 	  ReleaseSemaphore(c->sema,1,NULL);
 	ReleaseMutex(c->mutex);
-
+	if(signalFlag)
+	  WaitForSingleObject(c->sema_signal,INFINITE);
 #endif
 	return 0;
 }
@@ -46,7 +48,8 @@ int pthread_cond_broadcast(pthread_cond_t *c)
 	if(count)
 	  ReleaseSemaphore(c->sema,count,NULL);
 	ReleaseMutex(c->mutex);
-
+	while(count--)
+	  WaitForSingleObject(c->sema_signal,INFINITE);
 #endif
 	return 0;
 }
@@ -67,6 +70,8 @@ int pthread_cond_wait(pthread_cond_t *c, pthread_mutex_t *m)
 					  INFINITE,
 					  FALSE);
 
+	ReleaseSemaphore(c->sema_signal,1,NULL);
+
 	EnterCriticalSection(m);
 #endif
 	return 0;
@@ -79,6 +84,7 @@ int pthread_cond_destroy(pthread_cond_t *c)
 #else
 	CloseHandle(c->mutex);
 	CloseHandle(c->sema);
+	CloseHandle(c->sema_signal);
 #endif
 	return 0;
 }
@@ -111,9 +117,13 @@ int pthread_cond_timedwait(pthread_cond_t *c, pthread_mutex_t *m, struct timespe
 	    WaitForSingleObject(c->mutex,INFINITE);
 	    if(c->count_waiting) // As is not atomic, need to be tested
 	      --(c->count_waiting);
+	    else
+	      ReleaseSemaphore(c->sema_signal,1,NULL);
 	    ReleaseMutex(c->mutex);
 	    returnState = ETIMEDOUT;
 	  }
+	else
+	  ReleaseSemaphore(c->sema_signal,1,NULL);
 
 	EnterCriticalSection(m);
 #endif	
