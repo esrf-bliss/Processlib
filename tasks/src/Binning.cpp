@@ -92,11 +92,11 @@ Data Binning::process(Data &aData)
       Stat aStat(aNewData,info.str());
       if(mYFactor > 0 && mXFactor > 0)
 	{
-	  if(mXFactor == 2 && mYFactor == 2 ||
-	     mXFactor == 4 && mYFactor == 4 ||
-	     mXFactor == 8 && mYFactor == 8 ||
-	     mXFactor == 16 && mYFactor == 16 ||
-	     mXFactor == 32 && mYFactor == 32) // Factor 2 (Most used)
+	  if((mXFactor == 2 && mYFactor == 2) ||
+	     (mXFactor == 4 && mYFactor == 4) ||
+	     (mXFactor == 8 && mYFactor == 8) ||
+	     (mXFactor == 16 && mYFactor == 16) ||
+	     (mXFactor == 32 && mYFactor == 32)) // Factor 2 (Most used)
 	    {
 	      if(!_processingInPlaceFlag)
 		{

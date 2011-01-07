@@ -3,6 +3,7 @@
 #include <pthread.h>
 #include <map>
 #include <string>
+#include <cstring>
 
 #include "Compatibility.h"
 
