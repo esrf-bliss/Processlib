@@ -9,7 +9,6 @@
 
     <groupId>fr.soleil.lib.Lima.Third-party.Processlib</groupId>
     <artifactId>Tasks-${aol}-shared-${mode}</artifactId>
-
     <packaging>nar</packaging>
     <name>Tasks</name>    <!-- use for the name of executable -->
     <description>This is the Tasks of the Processlib</description>
