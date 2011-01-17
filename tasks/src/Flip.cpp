@@ -186,8 +186,8 @@ static void _flip_all(Data &aSrcData,Data &aDestData)
 
 Data Flip::process(Data &aData)
 {
-  if(aData.nstrip != 1 || aData.dimensions.size() != 2)
-    std::cerr << "Flip : Only manage 1 strip 2D data " << std::endl;
+  if(aData.dimensions.size() != 2)
+    std::cerr << "Flip : Only manage 2D data " << std::endl;
   else if(_processingInPlaceFlag)
     {
       switch(_mode)

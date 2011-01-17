@@ -35,8 +35,7 @@ static void _mask(INPUT *src,INPUT *dst,int aSize,MASK *mask)
 Data Mask::process(Data &aData)
 {
   const char *errorMsgPt = NULL;
-  if(aData.nstrip == _MaskImage.nstrip &&
-     aData.dimensions == _MaskImage.dimensions)
+  if(aData.dimensions == _MaskImage.dimensions)
     {
       if(_processingInPlaceFlag)
 	{

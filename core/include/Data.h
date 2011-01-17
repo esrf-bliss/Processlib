@@ -90,7 +90,7 @@ struct DLL_EXPORT Data
     HeaderHolder *_header;
   };
   enum TYPE {UNDEF,UINT8,INT8,UINT16,INT16,UINT32,INT32,UINT64,INT64,FLOAT,DOUBLE};
-  Data() : type(UNDEF),nstrip(1),frameNumber(-1),timestamp(0.),buffer(NULL) {}
+  Data() : type(UNDEF),frameNumber(-1),timestamp(0.),buffer(NULL) {}
   Data(const Data &aData) : buffer(NULL)
   {
     *this = aData;
@@ -106,7 +106,6 @@ struct DLL_EXPORT Data
     if(aData.buffer) aData.buffer->ref();
     buffer = aData.buffer;
     type = aData.type;
-    nstrip = aData.nstrip;
     dimensions = aData.dimensions;
   }
   void setBuffer(Buffer *aBuffer)
@@ -126,7 +125,7 @@ struct DLL_EXPORT Data
   inline const void * data() const {return buffer ? buffer->data : NULL;}
   inline int size() const 
   {
-    int returnSize = depth() * nstrip;
+    int returnSize = depth();
     for(std::vector<int>::const_iterator i = dimensions.begin();
 	i != dimensions.end();++i)
       returnSize *= *i;
@@ -178,7 +177,6 @@ struct DLL_EXPORT Data
   {
     Data aReturnData;
     aReturnData.type = aType;
-    aReturnData.nstrip = nstrip;
     aReturnData.dimensions = dimensions;
     aReturnData.frameNumber = frameNumber;
     aReturnData.timestamp = timestamp;
@@ -190,7 +188,6 @@ struct DLL_EXPORT Data
   {
     Data aReturnData;
     aReturnData.type = type;
-    aReturnData.nstrip = nstrip;
     aReturnData.dimensions = dimensions;
     aReturnData.frameNumber = frameNumber;
     aReturnData.timestamp = timestamp;
@@ -207,7 +204,6 @@ struct DLL_EXPORT Data
   inline Data& operator=(const Data &aData)
   {
     type = aData.type;
-    nstrip = aData.nstrip;
     dimensions = aData.dimensions;
     frameNumber = aData.frameNumber;
     timestamp = aData.timestamp;
@@ -216,7 +212,6 @@ struct DLL_EXPORT Data
     return *this;
   }
   TYPE      			type;
-  int	    			nstrip;
   std::vector<int> 		dimensions;
   int       			frameNumber;
   double    			timestamp;
@@ -242,8 +237,7 @@ inline std::ostream& operator<<(std::ostream &os,const Buffer &aBuffer)
 inline std::ostream& operator<<(std::ostream &os,const Data &aData)
 {
   os << "<"
-     << "type=" << aData.type << ", "
-     << "nb strip=" << aData.nstrip << ", ";
+     << "type=" << aData.type << ", ";
 
   int dimNb = 0;
   for(std::vector<int>::const_iterator i = aData.dimensions.begin();

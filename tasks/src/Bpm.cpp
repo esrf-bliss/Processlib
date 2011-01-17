@@ -559,9 +559,9 @@ if(mFwhmTunning) \
 void BpmTask::process(Data &aInputSrc)
 {
   Data aSrc;
-  if(aInputSrc.nstrip != 1 || aInputSrc.dimensions.size() != 2)
+  if(aInputSrc.dimensions.size() != 2)
     {
-      std::cerr << "BpmTask : Only manage 1 strip 2D data " << std::endl;
+      std::cerr << "BpmTask : Only manage 2D data " << std::endl;
       return;
     }
   else if(!(_RoiX1 < 0 && _RoiX2 < 0 &&

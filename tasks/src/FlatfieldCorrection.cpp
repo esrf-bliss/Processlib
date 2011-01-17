@@ -83,7 +83,6 @@ void FlatfieldCorrection::_calcFlatFieldImage(const std::vector<int>&,Data::TYPE
 Data FlatfieldCorrection::process(Data &aData)
 {
   if(aData.type == _flatFieldImage.type &&
-     aData.nstrip == _flatFieldImage.nstrip &&
      aData.dimensions == _flatFieldImage.dimensions)
     {
       switch(aData.type)

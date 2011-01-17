@@ -34,8 +34,8 @@ static inline int min(int a,int b) {return a < b ? a : b;}
 
 Data SoftRoi::process(Data &aData)
 {
-  if(aData.nstrip != 1 || aData.dimensions.size() != 2)
-    std::cerr << "SoftRoi : Only manage 1 strip 2D data " << std::endl;
+  if(aData.dimensions.size() != 2)
+    std::cerr << "SoftRoi : Only manage 2D data " << std::endl;
   else if(_x1 >= 0 && _y1 >= 0 &&
 	  _x2 >=0 && _y2 >= 0)
     {

@@ -85,8 +85,8 @@ Binning::Binning(const Binning &anOther) :
 Data Binning::process(Data &aData)
 {
   Data aNewData = aData;
-  if(aData.nstrip != 1 || aData.dimensions.size() != 2)
-    std::cerr << "Binning : Only manage 1 strip 2D data " << std::endl;
+  if(aData.dimensions.size() != 2)
+    std::cerr << "Binning : Only manage 2D data " << std::endl;
   else if(!aData.empty())
     {
       std::stringstream info;
