@@ -271,8 +271,8 @@ START_PROCESS_ERROR startNewProcess(long frameNumber,
       //Init new Data
       Data aNewData = Data();
       aNewData.frameNumber = frameNumber;
-      aNewData.width = width;
-      aNewData.height = height;
+      aNewData.dimensions.push_back(width);
+      aNewData.dimensions.push_back(height);
       switch(depth)
 	{
 	case 1: aNewData.type = Data::UINT8;break;

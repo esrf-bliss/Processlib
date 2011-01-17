@@ -2,6 +2,7 @@
 #include <iostream>
 #include <pthread.h>
 #include <map>
+#include <vector>
 #include <string>
 #include <cstring>
 
@@ -89,7 +90,7 @@ struct DLL_EXPORT Data
     HeaderHolder *_header;
   };
   enum TYPE {UNDEF,UINT8,INT8,UINT16,INT16,UINT32,INT32,UINT64,INT64,FLOAT,DOUBLE};
-  Data() : type(UNDEF),width(-1),height(-1),frameNumber(-1),timestamp(0.),buffer(NULL) {}
+  Data() : type(UNDEF),nstrip(1),frameNumber(-1),timestamp(0.),buffer(NULL) {}
   Data(const Data &aData) : buffer(NULL)
   {
     *this = aData;
@@ -105,8 +106,8 @@ struct DLL_EXPORT Data
     if(aData.buffer) aData.buffer->ref();
     buffer = aData.buffer;
     type = aData.type;
-    width = aData.width;
-    height = aData.height;
+    nstrip = aData.nstrip;
+    dimensions = aData.dimensions;
   }
   void setBuffer(Buffer *aBuffer)
   {
@@ -118,13 +119,18 @@ struct DLL_EXPORT Data
   {
     if(buffer) buffer->unref();
     buffer = NULL;
-    type = UNDEF,width = -1,height = -1,frameNumber = -1;
+    type = UNDEF,frameNumber = -1;
+    dimensions.clear();
   }
   inline void * data() {return buffer ? buffer->data : NULL;}
   inline const void * data() const {return buffer ? buffer->data : NULL;}
   inline int size() const 
   {
-    return depth() * width * height;
+    int returnSize = depth() * nstrip;
+    for(std::vector<int>::const_iterator i = dimensions.begin();
+	i != dimensions.end();++i)
+      returnSize *= *i;
+    return returnSize;
   }
   inline int depth() const
   {
@@ -172,8 +178,8 @@ struct DLL_EXPORT Data
   {
     Data aReturnData;
     aReturnData.type = aType;
-    aReturnData.width = width;
-    aReturnData.height = height;
+    aReturnData.nstrip = nstrip;
+    aReturnData.dimensions = dimensions;
     aReturnData.frameNumber = frameNumber;
     aReturnData.timestamp = timestamp;
     aReturnData.header = header;
@@ -184,8 +190,8 @@ struct DLL_EXPORT Data
   {
     Data aReturnData;
     aReturnData.type = type;
-    aReturnData.width = width;
-    aReturnData.height = height;
+    aReturnData.nstrip = nstrip;
+    aReturnData.dimensions = dimensions;
     aReturnData.frameNumber = frameNumber;
     aReturnData.timestamp = timestamp;
     aReturnData.header = header;
@@ -201,21 +207,21 @@ struct DLL_EXPORT Data
   inline Data& operator=(const Data &aData)
   {
     type = aData.type;
-    width = aData.width;
-    height = aData.height;
+    nstrip = aData.nstrip;
+    dimensions = aData.dimensions;
     frameNumber = aData.frameNumber;
     timestamp = aData.timestamp;
     header    = aData.header;
     setBuffer(aData.buffer);
     return *this;
   }
-  TYPE      type;
-  int       width;
-  int       height;
-  int       frameNumber;
-  double    timestamp;
-  mutable HeaderContainer header;
-  mutable Buffer *buffer;
+  TYPE      			type;
+  int	    			nstrip;
+  std::vector<int> 		dimensions;
+  int       			frameNumber;
+  double    			timestamp;
+  mutable HeaderContainer 	header;
+  mutable Buffer *		buffer;
 };
 
 DLL_EXPORT std::ostream& operator<<(std::ostream &os,
@@ -232,13 +238,19 @@ inline std::ostream& operator<<(std::ostream &os,const Buffer &aBuffer)
      << ">";
   return os;
 }
+
 inline std::ostream& operator<<(std::ostream &os,const Data &aData)
 {
   os << "<"
      << "type=" << aData.type << ", "
-     << "width=" << aData.width << ", "
-     << "height=" << aData.height << ", "
-     << "frameNumber=" << aData.frameNumber << ", "
+     << "nb strip=" << aData.nstrip << ", ";
+
+  int dimNb = 0;
+  for(std::vector<int>::const_iterator i = aData.dimensions.begin();
+      i != aData.dimensions.end();++i)
+    os << "dimension_" << dimNb++ << "=" << *i << ", ";
+
+  os << "frameNumber=" << aData.frameNumber << ", "
      << "timestamp=" << aData.timestamp << ", "
      << "header=" << aData.header << ", ";
   if(aData.buffer)

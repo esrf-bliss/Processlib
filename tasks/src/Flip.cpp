@@ -14,13 +14,13 @@ Flip::Flip(const Flip &aFlip) :
 
 static void _flip_y_inplace(Data &aSrcData)
 {
-  int lineSize = aSrcData.width * aSrcData.depth();
+  int lineSize = aSrcData.dimensions[0] * aSrcData.depth();
   char *aSrcPt = (char*)aSrcData.data();
   char *aDestPt = (char*)aSrcData.data();
   aDestPt += aSrcData.size() - lineSize;
 
   Buffer *aTmpLineBuffer = new Buffer(lineSize);
-  for(int aNbLine = aSrcData.height / 2;aNbLine;
+  for(int aNbLine = aSrcData.dimensions[1] / 2;aNbLine;
       --aNbLine,aDestPt -= lineSize,aSrcPt += lineSize)
     {
       memcpy(aTmpLineBuffer->data,aDestPt,lineSize);
@@ -32,12 +32,12 @@ static void _flip_y_inplace(Data &aSrcData)
 
 static void _flip_y(Data &aSrcData,Data &aDestData)
 {
-  int lineSize = aSrcData.width * aSrcData.depth();
+  int lineSize = aSrcData.dimensions[0] * aSrcData.depth();
   char *aSrcPt = (char*)aSrcData.data();
   char *aDestPt = (char*)aDestData.data();
   aDestPt += aSrcData.size() - lineSize;
   
-  for(int aNbLine = aSrcData.height;aNbLine;
+  for(int aNbLine = aSrcData.dimensions[1];aNbLine;
       --aNbLine,aDestPt -= lineSize,aSrcPt += lineSize)
     memcpy(aDestPt,aSrcPt,lineSize);
 }
@@ -70,19 +70,19 @@ static void _flip_x_inplace(Data &aSrcData)
     {
     case 1:
       _flip_x_inplace_template((uint8_t*)aSrcData.data(),
-			       aSrcData.width,aSrcData.height);
+			       aSrcData.dimensions[0],aSrcData.dimensions[1]);
       break;
     case 2:
       _flip_x_inplace_template((uint16_t*)aSrcData.data(),
-		       aSrcData.width,aSrcData.height);
+		       aSrcData.dimensions[0],aSrcData.dimensions[1]);
       break;
     case 4:
       _flip_x_inplace_template((uint32_t*)aSrcData.data(),
-			       aSrcData.width,aSrcData.height);
+			       aSrcData.dimensions[0],aSrcData.dimensions[1]);
       break;
     case 8:
       _flip_x_inplace_template((uint64_t*)aSrcData.data(),
-			       aSrcData.width,aSrcData.height);
+			       aSrcData.dimensions[0],aSrcData.dimensions[1]);
       break;
     }
 }
@@ -101,19 +101,19 @@ static void _flip_x(Data &aSrcData,Data &aDestData)
     {
     case 1:
       _flip_x_template((const uint8_t*)aSrcData.data(),(uint8_t*)aDestData.data(),
-		       aSrcData.width,aSrcData.height);
+		       aSrcData.dimensions[0],aSrcData.dimensions[1]);
       break;
     case 2:
       _flip_x_template((const uint16_t*)aSrcData.data(),(uint16_t*)aDestData.data(),
-		       aSrcData.width,aSrcData.height);
+		       aSrcData.dimensions[0],aSrcData.dimensions[1]);
       break;
     case 4:
       _flip_x_template((const uint32_t*)aSrcData.data(),(uint32_t*)aDestData.data(),
-		       aSrcData.width,aSrcData.height);
+		       aSrcData.dimensions[0],aSrcData.dimensions[1]);
       break;
     case 8:
       _flip_x_template((const uint64_t*)aSrcData.data(),(uint64_t*)aDestData.data(),
-		       aSrcData.width,aSrcData.height);
+		       aSrcData.dimensions[0],aSrcData.dimensions[1]);
       break;
     }
 }
@@ -137,19 +137,19 @@ static void _flip_all_inplace(Data &aSrcData)
     {
     case 1:
       _flip_all_inplace_template((uint8_t*)aSrcData.data(),
-				 aSrcData.width,aSrcData.height);
+				 aSrcData.dimensions[0],aSrcData.dimensions[1]);
       break;
     case 2:
       _flip_all_inplace_template((uint16_t*)aSrcData.data(),
-				 aSrcData.width,aSrcData.height);
+				 aSrcData.dimensions[0],aSrcData.dimensions[1]);
       break;
     case 4:
       _flip_all_inplace_template((uint32_t*)aSrcData.data(),
-				 aSrcData.width,aSrcData.height);
+				 aSrcData.dimensions[0],aSrcData.dimensions[1]);
       break;
     case 8:
       _flip_all_inplace_template((uint64_t*)aSrcData.data(),
-				 aSrcData.width,aSrcData.height);
+				 aSrcData.dimensions[0],aSrcData.dimensions[1]);
       break;
     }
 }
@@ -167,27 +167,28 @@ static void _flip_all(Data &aSrcData,Data &aDestData)
     {
     case 1:
       _flip_all_template((const uint8_t*)aSrcData.data(),(uint8_t*)aDestData.data(),
-			 aSrcData.width,aSrcData.height);
+			 aSrcData.dimensions[0],aSrcData.dimensions[1]);
       break;
     case 2:
       _flip_all_template((const uint16_t*)aSrcData.data(),(uint16_t*)aDestData.data(),
-			 aSrcData.width,aSrcData.height);
+			 aSrcData.dimensions[0],aSrcData.dimensions[1]);
       break;
     case 4:
       _flip_all_template((const uint32_t*)aSrcData.data(),(uint32_t*)aDestData.data(),
-			 aSrcData.width,aSrcData.height);
+			 aSrcData.dimensions[0],aSrcData.dimensions[1]);
       break;
     case 8:
       _flip_all_template((const uint64_t*)aSrcData.data(),(uint64_t*)aDestData.data(),
-			 aSrcData.width,aSrcData.height);
+			 aSrcData.dimensions[0],aSrcData.dimensions[1]);
       break;
     }
 }
 
 Data Flip::process(Data &aData)
 {
-
-  if(_processingInPlaceFlag)
+  if(aData.nstrip != 1 || aData.dimensions.size() != 2)
+    std::cerr << "Flip : Only manage 1 strip 2D data " << std::endl;
+  else if(_processingInPlaceFlag)
     {
       switch(_mode)
 	{

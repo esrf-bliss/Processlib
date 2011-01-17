@@ -157,8 +157,8 @@ void RoiCounterTask::process(Data &aData)
 	  break;				// error
 	}
     }
-  else if(_mask.width == aData.width &&
-	  _mask.height == aData.height)
+  else if(_mask.nstrip == aData.nstrip &&
+	  _mask.dimensions == aData.dimensions)
     {
       switch(aData.type)
 	{

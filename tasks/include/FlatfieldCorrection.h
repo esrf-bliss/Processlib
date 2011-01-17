@@ -19,7 +19,7 @@ namespace Tasks
     double	_lambda;
     double	_distance;
     bool	_flatFieldCorrectionDirty;
-    void	_calcFlatFieldImage(int xSize,int ySize,
+    void	_calcFlatFieldImage(const std::vector<int> &,
 				    Data::TYPE aType);
   };
 }

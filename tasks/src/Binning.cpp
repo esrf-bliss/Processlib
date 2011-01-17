@@ -21,16 +21,16 @@ inline void _default_binning(Data &aSrcData,Data &aDstData,
   INPUT MAX_VALUE = max_value(*aSrcPt);
   int *lineOffset = new int[yFactor];
   int aTmpOffSet = 0;
-  for(int linId = 0;linId < yFactor;++linId,aTmpOffSet += aSrcData.width)
+  for(int linId = 0;linId < yFactor;++linId,aTmpOffSet += aSrcData.dimensions[0])
     lineOffset[linId] = aTmpOffSet;
 
   INPUT *aLineSrcPt = aSrcPt;
   INPUT *aLineDstPt = aDstPt;
-  for(int lineId = 0;lineId <= (aSrcData.height - yFactor);
-      lineId += yFactor,aLineSrcPt += aSrcData.width,aLineDstPt += aDstData.width)
+  for(int lineId = 0;lineId <= (aSrcData.dimensions[1] - yFactor);
+      lineId += yFactor,aLineSrcPt += aSrcData.dimensions[0],aLineDstPt += aDstData.dimensions[0])
     {
       int aDstColumnId = 0;
-      for(int columnId = 0;columnId <= (aSrcData.width - xFactor);
+      for(int columnId = 0;columnId <= (aSrcData.dimensions[0] - xFactor);
 	  columnId += xFactor,++aDstColumnId)
 	{
 	  unsigned long long result = 0;
@@ -54,12 +54,12 @@ static void _binning2x2(Data &aSrcData,Data &aDstData,int Factor)
 {
 
   INPUT *aSrcFirstLinePt = (INPUT*)aSrcData.data();
-  INPUT *aSrcSecondLinePt = aSrcFirstLinePt + aSrcData.width;
+  INPUT *aSrcSecondLinePt = aSrcFirstLinePt + aSrcData.dimensions[0];
   INPUT *aDstPt = (INPUT*)aDstData.data();
   INPUT MAX_VALUE = max_value(*aDstPt);
-  for(int lineId = 0;lineId < aSrcData.height;lineId += 2)
+  for(int lineId = 0;lineId < aSrcData.dimensions[1];lineId += 2)
     {
-      for(int columnId = 0;columnId < aSrcData.width;columnId += 2,
+      for(int columnId = 0;columnId < aSrcData.dimensions[0];columnId += 2,
 	    ++aDstPt,aSrcFirstLinePt += 2,aSrcSecondLinePt += 2)
 	{
 	  unsigned long long result = *aSrcFirstLinePt + *(aSrcFirstLinePt + 1) +
@@ -70,7 +70,7 @@ static void _binning2x2(Data &aSrcData,Data &aDstData,int Factor)
 	    *aDstPt = INPUT(result);
 	}
       aSrcFirstLinePt = aSrcSecondLinePt;
-      aSrcSecondLinePt = aSrcFirstLinePt + aSrcData.width;
+      aSrcSecondLinePt = aSrcFirstLinePt + aSrcData.dimensions[0];
     }
   if(Factor > 2)
     _binning2x2<INPUT>(aDstData,aDstData,Factor >> 1);
@@ -85,7 +85,9 @@ Binning::Binning(const Binning &anOther) :
 Data Binning::process(Data &aData)
 {
   Data aNewData = aData;
-  if(!aData.empty())
+  if(aData.nstrip != 1 || aData.dimensions.size() != 2)
+    std::cerr << "Binning : Only manage 1 strip 2D data " << std::endl;
+  else if(!aData.empty())
     {
       std::stringstream info;
       info << "Binning " << mXFactor << " by " << mYFactor;
