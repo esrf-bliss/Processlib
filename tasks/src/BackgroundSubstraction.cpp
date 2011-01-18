@@ -23,7 +23,7 @@ static void _substract_on_itself(void *src,int aSize,void *background)
 }
 #ifdef __SSE2__
 template<>
-static void _substract_on_itself<unsigned short>(void *source,int aSize,void *background)
+void _substract_on_itself<unsigned short>(void *source,int aSize,void *background)
 {
   unsigned short *srcShort,*backgroundShort;
   srcShort = (unsigned short*)source;
@@ -69,7 +69,7 @@ static void _substract(void *src,void *dst,int aSize,void *background)
 
 #ifdef __SSE2__
 template<>
-static void _substract<unsigned short>(void *source,void *dst,int aSize,void *background)
+void _substract<unsigned short>(void *source,void *dst,int aSize,void *background)
 {
   unsigned short *srcShort,*backgroundShort,*destshort;
   srcShort = (unsigned short*)source;
