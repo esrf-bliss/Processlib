@@ -210,10 +210,6 @@
 				>
 			</File>
 			<File
-				RelativePath="..\..\..\..\tasks\src\Roi2Spectrum.cpp"
-				>
-			</File>
-			<File
 				RelativePath="..\..\..\..\core\src\PoolThreadMgr.cpp"
 				>
 			</File>
@@ -239,6 +235,10 @@
 			</File>
 			<File
 				RelativePath="..\..\..\..\core\src\WindowSpecific\pthread_thread.cpp"
+				>
+			</File>
+			<File
+				RelativePath="..\..\..\..\tasks\src\Roi2Spectrum.cpp"
 				>
 			</File>
 			<File
@@ -316,10 +316,6 @@
 				>
 			</File>
 			<File
-				RelativePath="..\..\..\..\tasks\include\Roi2Spectrum.h"
-				>
-			</File>
-			<File
 				RelativePath="..\..\..\..\core\include\PoolThreadMgr.h"
 				>
 			</File>
@@ -349,6 +345,10 @@
 			</File>
 			<File
 				RelativePath="..\..\..\..\core\include\WindowSpecific\pthread_thread.h"
+				>
+			</File>
+			<File
+				RelativePath="..\..\..\..\tasks\include\Roi2Spectrum.h"
 				>
 			</File>
 			<File
