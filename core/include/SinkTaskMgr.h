@@ -42,7 +42,7 @@ class SinkTaskMgr
 {
   typedef std::vector<Result> FrameResultList;
 public:
-  enum ErrorCode {OK,NO_MORE_AVAILABLE,TIMEDOUT};
+  enum ErrorCode {OK,NOT_MANAGED,NO_MORE_AVAILABLE,TIMEDOUT};
   enum RUN_MODE {Counter,Monitor};
 
   explicit SinkTaskMgr(int historySize = 4);

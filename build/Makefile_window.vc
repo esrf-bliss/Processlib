@@ -67,7 +67,8 @@ LISTEOBJ = \
  	Flip.obj\
  	SoftRoi.obj\
  	Bpm.obj\
- 	Mask.obj
+ 	Mask.obj\
+	Roi2Spectrum.obj
 
 # --------------------------------------
 !include common_target.opt
@@ -141,3 +142,6 @@ Bpm.obj:$(CPPDIRUSER2)\Bpm.cpp
 
 Mask.obj:$(CPPDIRUSER2)\Mask.cpp
 	$(CXX) $(CPPFLAGS) /c $(CPPDIRUSER2)\Mask.cpp
+
+Roi2Spectrum.obj:$(CPPDIRUSER2)\Roi2Spectrum.cpp
+	$(CXX) $(CPPFLAGS) /c $(CPPDIRUSER2)\Roi2Spectrum.cpp

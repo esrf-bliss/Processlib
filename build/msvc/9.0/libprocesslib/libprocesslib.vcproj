@@ -210,6 +210,10 @@
 				>
 			</File>
 			<File
+				RelativePath="..\..\..\..\tasks\src\Roi2Spectrum.cpp"
+				>
+			</File>
+			<File
 				RelativePath="..\..\..\..\core\src\PoolThreadMgr.cpp"
 				>
 			</File>
@@ -309,6 +313,10 @@
 			</File>
 			<File
 				RelativePath="..\..\..\..\tasks\include\Mask.h"
+				>
+			</File>
+			<File
+				RelativePath="..\..\..\..\tasks\include\Roi2Spectrum.h"
 				>
 			</File>
 			<File

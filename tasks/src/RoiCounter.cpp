@@ -39,14 +39,15 @@ RoiCounterTask::RoiCounterTask(const RoiCounterTask &aTask) :
 }
 
 template<class INPUT> static void _get_average_std(const INPUT *aSrcPt,
-						int x,int y,
-						int width,int height,
-						RoiCounterResult &aResult)
+						   int widthStep,
+						   int x,int y,
+						   int width,int height,
+						   RoiCounterResult &aResult)
 {
   double aSum = 0.;
   for(int lineId = y;lineId < y + height;++lineId)
     {
-      const INPUT *aLinePt = aSrcPt + lineId * width + x;
+      const INPUT *aLinePt = aSrcPt + lineId * widthStep + x;
       for(int i = 0;i < width;++i,++aLinePt)
 	aSum += double(*aLinePt);
     }
@@ -58,7 +59,7 @@ template<class INPUT> static void _get_average_std(const INPUT *aSrcPt,
   aSum = 0.;
   for(int lineId = y;lineId < y + height;++lineId)
     {
-      const INPUT *aLinePt = aSrcPt + lineId * width + x;
+      const INPUT *aLinePt = aSrcPt + lineId * widthStep + x;
       for(int i = 0;i < width;++i,++aLinePt)
 	{
 	  double diff = *aLinePt - aResult.average;
@@ -71,16 +72,17 @@ template<class INPUT> static void _get_average_std(const INPUT *aSrcPt,
 }
 
 template<class INPUT> static void _get_average_std_with_mask(const INPUT *aSrcPt,
-							  const char *aMaskPt,
-							  int x,int y,
-							  int width,int height,
-							  RoiCounterResult &aResult)
+							     int widthStep,
+							     const char *aMaskPt,
+							     int x,int y,
+							     int width,int height,
+							     RoiCounterResult &aResult)
 {
   double aSum = 0.;
   int usedSize = width * height;
   for(int lineId = y;lineId < y + height;++lineId)
     {
-      int offset = lineId * width + x;
+      int offset = lineId * widthStep + x;
       const INPUT *aLinePt = aSrcPt + offset;
       const char *aMaskLinePt = aMaskPt + offset;
       for(int i = 0;i < width;++i,++aLinePt,++aMaskLinePt)
@@ -102,7 +104,7 @@ template<class INPUT> static void _get_average_std_with_mask(const INPUT *aSrcPt
   aSum = 0.;
   for(int lineId = y;lineId < y + height;++lineId)
     {
-      int offset = lineId * width + x;
+      int offset = lineId * widthStep + x;
       const INPUT *aLinePt = aSrcPt + offset;
       const char *aMaskLinePt = aMaskPt + offset;
       for(int i = 0;i < width;++i,++aLinePt,++aMaskLinePt)
@@ -135,44 +137,54 @@ void RoiCounterTask::process(Data &aData)
 	{
 	case Data::UINT8: 
 	  _get_average_std((unsigned char*)aData.data(),
+			   aData.width,
 			   _x,_y,_width,_height,aResult);
 	  break;
 	case Data::INT8:
 	  _get_average_std((char*)aData.data(),
+			   aData.width,
 			   _x,_y,_width,_height,aResult);
 	  break;
 
 	case Data::UINT16:
 	  _get_average_std((unsigned short*)aData.data(),
+			   aData.width,
 			   _x,_y,_width,_height,aResult);
 	  break;
 	case Data::INT16:
 	  _get_average_std((short*)aData.data(),
+			   aData.width,
 			   _x,_y,_width,_height,aResult);
 	  break;
 	case Data::UINT32:
 	  _get_average_std((unsigned int*)aData.data(),
+			   aData.width,
 			   _x,_y,_width,_height,aResult);
 	  break;
 	case Data::INT32:
 	  _get_average_std((int*)aData.data(),
+			   aData.width,
 			   _x,_y,_width,_height,aResult);
 	  break;
 	case Data::UINT64:
 	  _get_average_std((unsigned long long*)aData.data(),
+			   aData.width,
 			   _x,_y,_width,_height,aResult);
 	  break;
 	case Data::INT64:
 	  _get_average_std((long long*)aData.data(),
+			   aData.width,
 			   _x,_y,_width,_height,aResult);
 	  break;
 
 	case Data::FLOAT:
 	  _get_average_std((float*)aData.data(),
+			   aData.width,
 			   _x,_y,_width,_height,aResult);
 	  break;
 	case Data::DOUBLE:
 	  _get_average_std((double*)aData.data(),
+			   aData.width,
 			   _x,_y,_width,_height,aResult);
 	  break;
 	default: 
@@ -186,53 +198,63 @@ void RoiCounterTask::process(Data &aData)
 	{
 	case Data::UINT8: 
 	  _get_average_std_with_mask((unsigned char*)aData.data(),
+				     aData.width,
 				     (char*)_mask.data(),
 				     _x,_y,_width,_height,aResult);
 	  break;
 	case Data::INT8:
 	  _get_average_std_with_mask((char*)aData.data(),
+				     aData.width,
 				     (char*)_mask.data(),
 				     _x,_y,_width,_height,aResult);
 	  break;
 
 	case Data::UINT16:
 	  _get_average_std_with_mask((unsigned short*)aData.data(),
+				     aData.width,
 				     (char*)_mask.data(),
 				     _x,_y,_width,_height,aResult);
 	  break;
 	case Data::INT16:
 	  _get_average_std_with_mask((short*)aData.data(),
+				     aData.width,
 				     (char*)_mask.data(),
 				     _x,_y,_width,_height,aResult);
 	  break;
 	case Data::UINT32:
 	  _get_average_std_with_mask((unsigned int*)aData.data(),
+				     aData.width,
 				     (char*)_mask.data(),
 				     _x,_y,_width,_height,aResult);
 	  break;
 	case Data::INT32:
 	  _get_average_std_with_mask((int*)aData.data(),
+				     aData.width,
 				     (char*)_mask.data(),
 				     _x,_y,_width,_height,aResult);
 	  break;
 	case Data::UINT64:
 	  _get_average_std_with_mask((unsigned long long*)aData.data(),
+				     aData.width,
 				     (char*)_mask.data(),
 				     _x,_y,_width,_height,aResult);
 	  break;
 	case Data::INT64:
 	  _get_average_std_with_mask((long long*)aData.data(),
+				     aData.width,
 				     (char*)_mask.data(),
 				     _x,_y,_width,_height,aResult);
 	  break;
 
 	case Data::FLOAT:
 	  _get_average_std_with_mask((float*)aData.data(),
+				     aData.width,
 				     (char*)_mask.data(),
 				     _x,_y,_width,_height,aResult);
 	  break;
 	case Data::DOUBLE:
 	  _get_average_std_with_mask((double*)aData.data(),
+				     aData.width,
 				     (char*)_mask.data(),
 				     _x,_y,_width,_height,aResult);
 	  break;
@@ -246,8 +268,4 @@ void RoiCounterTask::process(Data &aData)
   _mgr.setResult(aResult);
 }
 
-void RoiCounterTask::setRoi(int x,int y,int width,int height)
-{
-  _x = x,_y = y;
-  _width = width,_height = height;
-}
+
