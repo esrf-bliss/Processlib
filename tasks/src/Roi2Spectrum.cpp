@@ -101,7 +101,8 @@ void Roi2SpectrumTask::process(Data &aData)
       Buffer *aBufferPt = new Buffer(aSize);
       memset(aBufferPt->data,0,aSize);
       aResult.spectrum.setBuffer(aBufferPt);
-      
+      aBufferPt->unref();
+
       switch(aData.type)
 	{
 	case Data::UINT8:

@@ -65,6 +65,7 @@ namespace Tasks
     virtual void process(Data&);
 
     void setMode(Mode aMode) {_mode = aMode;}
+    Mode getMode() const {return _mode;}
 
     void setRoi(int x,int y,int width,int height)
     {
