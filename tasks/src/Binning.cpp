@@ -94,6 +94,8 @@ static void _binning2x2(Data &aSrcData,Data &aDstData,int Factor)
       aSrcFirstLinePt = aSrcSecondLinePt;
       aSrcSecondLinePt = aSrcFirstLinePt + aSrcData.width;
     }
+  aDstData.width >>= 1;
+  aDstData.height >>= 1;
   if(Factor > 2)
     _binning2x2<INPUT>(aDstData,aDstData,Factor >> 1);
 }
@@ -162,6 +164,8 @@ Data Binning::process(Data &aData)
 		  std::cerr << "Binning : Data type not managed" << std::endl;
 		  break;
 		}
+	       aNewData.width /= mXFactor;
+	       aNewData.height /= mYFactor;
 	    }
 	}
       else
