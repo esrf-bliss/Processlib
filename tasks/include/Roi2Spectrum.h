@@ -20,54 +20,52 @@
 // You should have received a copy of the GNU General Public License
 // along with this program; if not, see <http://www.gnu.org/licenses/>.
 //###########################################################################
-#ifndef __ROICOUNTER_H__
-#define __ROICOUNTER_H__
+#ifndef __ROI2SPECTRUM_H
+#define __ROI2SPECTRUM_H
 
-#include <sstream>
 #include "SinkTask.h"
 
 namespace Tasks
 {
-  struct RoiCounterResult;
+  struct Roi2SpectrumResult;
   
-  typedef SinkTaskMgr<RoiCounterResult> RoiCounterManager;
+  typedef SinkTaskMgr<Roi2SpectrumResult> Roi2SpectrumManager;
 
-  struct DLL_EXPORT RoiCounterResult
+  struct DLL_EXPORT Roi2SpectrumResult
   {
-    RoiCounterResult() : 
-      sum(0.),average(0.),std(0.),
+    Roi2SpectrumResult() :
       frameNumber(-1),
-      errorCode(RoiCounterManager::OK)
+      errorCode(Roi2SpectrumManager::OK)
     {}
-    explicit RoiCounterResult(RoiCounterManager::ErrorCode code) : 
+    explicit Roi2SpectrumResult(Roi2SpectrumManager::ErrorCode code) :
       errorCode(code) {}
-
-    double                       sum;
-    double                       average;
-    double                       std;
-    int                          frameNumber;
-    RoiCounterManager::ErrorCode errorCode;
+    
+    Data 				spectrum;
+    int 				frameNumber;
+    Roi2SpectrumManager::ErrorCode 	errorCode;
   };
 
-  inline std::ostream& operator<<(std::ostream &os,const RoiCounterResult &aRoiResult)
-  {
-    os << "<"
-       << "frameNumber=" << aRoiResult.frameNumber << ", "
-       << "sum=" << aRoiResult.sum << ", "
-       << "average=" << aRoiResult.average << ", "
-       << "std=" << aRoiResult.std;
-    os << ">";
-    return os;
-  }
+  inline std::ostream& operator<<(std::ostream &os,
+				  const Roi2SpectrumResult &aResult)
+    {
+      os << "<"
+	 << "frameNumber=" << aResult.frameNumber << ", "
+	 << "spectrum=" << aResult.spectrum;
+      os << ">";
+      return os;
+    }
 
-  class DLL_EXPORT RoiCounterTask : public SinkTask<RoiCounterResult>
+  class DLL_EXPORT Roi2SpectrumTask : public SinkTask<Roi2SpectrumResult>
   {
   public:
-    RoiCounterTask(RoiCounterManager&);
-    RoiCounterTask(const RoiCounterTask&);
+    enum Mode {LINES_SUM,COLUMN_SUM};
+
+    Roi2SpectrumTask(Roi2SpectrumManager&);
+    Roi2SpectrumTask(const Roi2SpectrumTask&);
     virtual void process(Data&);
-    
-    void setMask(Data &aMask) {_mask = aMask;}
+
+    void setMode(Mode aMode) {_mode = aMode;}
+    Mode getMode() const {return _mode;}
 
     void setRoi(int x,int y,int width,int height)
     {
@@ -81,7 +79,7 @@ namespace Tasks
   private:
     int _x,_y;
     int _width,_height;
-    Data _mask;
+    Mode _mode;
   };
 }
 #endif

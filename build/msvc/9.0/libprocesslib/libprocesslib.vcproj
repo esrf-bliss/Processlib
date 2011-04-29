@@ -117,10 +117,11 @@
 				Name="VCCLCompilerTool"
 				Optimization="2"
 				EnableIntrinsicFunctions="true"
-				PreprocessorDefinitions="WIN32;NDEBUG;_WINDOWS;_USRDLL;LIBPROCESSLIB_EXPORTS"
+				AdditionalIncludeDirectories="&quot;C:\Program Files\GnuWin32\include&quot;;..\..\..\..\tasks\include;..\..\..\..\core\include;..\..\..\..\core\include\WindowSpecific"
+				PreprocessorDefinitions="WIN32;NDEBUG;_WINDOWS;_USRDLL;LIBPROCESSLIB_EXPORTS;_WIN32_WINNT=0x0502"
 				RuntimeLibrary="2"
 				EnableFunctionLevelLinking="true"
-				UsePrecompiledHeader="2"
+				UsePrecompiledHeader="0"
 				WarningLevel="3"
 				DebugInformationFormat="3"
 			/>
@@ -135,7 +136,9 @@
 			/>
 			<Tool
 				Name="VCLinkerTool"
+				AdditionalDependencies="libgsl.a libgslcblas.a"
 				LinkIncremental="1"
+				AdditionalLibraryDirectories="&quot;C:\Program Files\GnuWin32\lib&quot;"
 				GenerateDebugInformation="true"
 				SubSystem="2"
 				OptimizeReferences="2"
@@ -235,6 +238,10 @@
 			</File>
 			<File
 				RelativePath="..\..\..\..\core\src\WindowSpecific\pthread_thread.cpp"
+				>
+			</File>
+			<File
+				RelativePath="..\..\..\..\tasks\src\Roi2Spectrum.cpp"
 				>
 			</File>
 			<File
@@ -341,6 +348,10 @@
 			</File>
 			<File
 				RelativePath="..\..\..\..\core\include\WindowSpecific\pthread_thread.h"
+				>
+			</File>
+			<File
+				RelativePath="..\..\..\..\tasks\include\Roi2Spectrum.h"
 				>
 			</File>
 			<File

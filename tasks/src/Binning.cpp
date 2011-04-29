@@ -1,3 +1,25 @@
+//###########################################################################
+// This file is part of ProcessLib, a submodule of LImA project the
+// Library for Image Acquisition
+//
+// Copyright (C) : 2009-2011
+// European Synchrotron Radiation Facility
+// BP 220, Grenoble 38043
+// FRANCE
+//
+// This is free software; you can redistribute it and/or modify
+// it under the terms of the GNU General Public License as published by
+// the Free Software Foundation; either version 3 of the License, or
+// (at your option) any later version.
+//
+// This software is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+// GNU General Public License for more details.
+//
+// You should have received a copy of the GNU General Public License
+// along with this program; if not, see <http://www.gnu.org/licenses/>.
+//###########################################################################
 #include "Binning.h"
 #include "Stat.h"
 #include <iostream>
@@ -72,6 +94,8 @@ static void _binning2x2(Data &aSrcData,Data &aDstData,int Factor)
       aSrcFirstLinePt = aSrcSecondLinePt;
       aSrcSecondLinePt = aSrcFirstLinePt + aSrcData.dimensions[0];
     }
+  aDstData.width >>= 1;
+  aDstData.height >>= 1;
   if(Factor > 2)
     _binning2x2<INPUT>(aDstData,aDstData,Factor >> 1);
 }
@@ -142,6 +166,8 @@ Data Binning::process(Data &aData)
 		  std::cerr << "Binning : Data type not managed" << std::endl;
 		  break;
 		}
+	       aNewData.width /= mXFactor;
+	       aNewData.height /= mYFactor;
 	    }
 	}
       else

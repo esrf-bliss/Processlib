@@ -22,56 +22,64 @@
 //###########################################################################
 namespace Tasks
 {
-  class RoiCounterManager
-   {
+  class Roi2SpectrumManager
+  {
 %TypeHeaderCode
-#include <RoiCounter.h>
+#include <Roi2Spectrum.h>
 %End
-    public:
+
+  public:
     enum ErrorCode {OK,NOT_MANAGED,NO_MORE_AVAILABLE,TIMEDOUT};
     enum RUN_MODE {Counter,Monitor};
-    RoiCounterManager(int = 4);
-    ~RoiCounterManager();
 
-    Tasks::RoiCounterResult	getResult(double = 0.,int = -1) const;
-    void	resizeHistory(int aSize);
-    void  resetHistory();
-    int	  historySize() const;
-    int   lastFrameNumber() const;
-   };
+    explicit Roi2SpectrumManager(int = 4);
+    virtual ~Roi2SpectrumManager();
+  
+    void	setMode(Tasks::Roi2SpectrumManager::RUN_MODE);
 
+    Tasks::Roi2SpectrumResult getResult(double timeout = 0.,
+					int frameNumber = -1) const;
 
-  struct RoiCounterResult
+    void resizeHistory(int aSize);
+    void resetHistory();
+    int	historySize() const;
+    //@brief return the last available frame with no hole before
+    int lastFrameNumber() const;
+  };
+
+  struct Roi2SpectrumResult
   {
 %TypeHeaderCode
-#include <RoiCounter.h>
+#include <Roi2Spectrum.h>
 %End
-    double                       sum;
-    double                       average;
-    double                       std;
-    int                          frameNumber;
-    Tasks::RoiCounterManager::ErrorCode errorCode;
-
-const char* __repr__();
+    Data 				spectrum;
+    int 				frameNumber;
+    Tasks::Roi2SpectrumManager::ErrorCode 	errorCode;
+    
+    const char* __repr__();
 %MethodCode
-std::stringstream str;
-str << *sipCpp;
-sipRes = str.str().c_str();
+    std::stringstream str;
+    str << *sipCpp;
+    sipRes = str.str().c_str();
 %End
   };
-  
-  class RoiCounterTask : SinkTaskBase
+
+  class Roi2SpectrumTask : SinkTaskBase
   {
 %TypeHeaderCode
-#include <RoiCounter.h>
+#include <Roi2Spectrum.h>
 %End
   public:
-    RoiCounterTask(Tasks::RoiCounterManager&);
-    RoiCounterTask(const Tasks::RoiCounterTask&);
+    enum Mode {LINES_SUM,COLUMN_SUM};
+
+    Roi2SpectrumTask(Tasks::Roi2SpectrumManager&);
+    Roi2SpectrumTask(const Tasks::Roi2SpectrumTask&);
     virtual void process(Data&);
 
-    void setRoi(int,int,int,int);
-    void getRoi(int &x /Out/,int &y /Out/,
-		int &width /Out/,int &height /Out/);
-   };
+    void setMode(Mode aMode);
+    Mode getMode() const;
+
+    void setRoi(int x,int y,int width,int height);
+    void getRoi(int &x /Out/,int &y /Out/,int &width /Out/,int &height /Out/);
+  };
 };
