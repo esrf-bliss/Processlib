@@ -240,7 +240,8 @@ if(!sipCpp->buffer || !sipCpp->buffer->data)
   int ndims = sipCpp->dimensions.size();
   npy_intp *dims = new npy_intp[ndims];
   std::vector<int>::const_reverse_iterator i = sipCpp->dimensions.rbegin();
-  for(int k = 0;i != sipCpp->dimensions.rend();++i,++k)
+  std::vector<int>::const_reverse_iterator end = sipCpp->dimensions.rend();
+  for(int k = 0;i != end;++i,++k)
     dims[k] = *i;
 
 switch(sipCpp->type)
