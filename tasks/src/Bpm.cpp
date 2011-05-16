@@ -61,8 +61,8 @@ void BpmTask::_treat_image(const Data &aSrc,
   unsigned long long *aProjectionY = (unsigned long long*)projection_y.data;
   Buffer *aBufferPt = aSrc.buffer;
   INPUT *aSrcPt = (INPUT*)aBufferPt->data;
-  for(int y = 0;y < aSrc.height;++y)
-    for(int x = 0;x < aSrc.width;++x)
+  for(int y = 0;y < aSrc.dimensions[1];++y)
+    for(int x = 0;x < aSrc.dimensions[0];++x)
       {
 	if(*aSrcPt > mThreshold)
 	  {
@@ -82,10 +82,10 @@ void BpmTask::_tune_projection(const Data &aSrc,
 			       const BpmResult &aResult)
 {
   unsigned long long *aProjectionX = (unsigned long long*)projection_x.data;
-  memset(aProjectionX,0,aSrc.width * sizeof(unsigned long long));
+  memset(aProjectionX,0,aSrc.dimensions[0] * sizeof(unsigned long long));
   
   unsigned long long *aProjectionY = (unsigned long long*)projection_y.data;
-  memset(aProjectionY,0,aSrc.height * sizeof(unsigned long long));
+  memset(aProjectionY,0,aSrc.dimensions[1] * sizeof(unsigned long long));
 
   Buffer *aBufferPt = aSrc.buffer;
   INPUT *aSrcPt = (INPUT*)aBufferPt->data;
@@ -94,11 +94,11 @@ void BpmTask::_tune_projection(const Data &aSrc,
   int tuning_margin = (int)round((aResult.beam_fwhm_y * (mFwhmTunningExtension - 1)) / 2.);
   int fwhm_min = max(mBorderExclusion,aResult.beam_fwhm_min_y_index - tuning_margin);
   int fwhm_max = min(aResult.beam_fwhm_max_y_index + tuning_margin,
-		     aSrc.height - 1 - mBorderExclusion);
+		     aSrc.dimensions[1] - 1 - mBorderExclusion);
   for(int y = fwhm_min;y < (fwhm_max + 1);++y)
     {
-      INPUT *aBufferPt = aSrcPt + (y * aSrc.width) + mBorderExclusion;
-      for(int x = mBorderExclusion;x < (aSrc.width - mBorderExclusion);++x,++aBufferPt)
+      INPUT *aBufferPt = aSrcPt + (y * aSrc.dimensions[0]) + mBorderExclusion;
+      for(int x = mBorderExclusion;x < (aSrc.dimensions[0] - mBorderExclusion);++x,++aBufferPt)
 	aProjectionX[x] += *aBufferPt;
     }
 
@@ -106,11 +106,11 @@ void BpmTask::_tune_projection(const Data &aSrc,
   tuning_margin = (int)round((aResult.beam_fwhm_x * (mFwhmTunningExtension - 1)) / 2.);
   fwhm_min = max(mBorderExclusion,aResult.beam_fwhm_min_x_index - tuning_margin);
   fwhm_max = min(aResult.beam_fwhm_max_x_index + tuning_margin,
-		 aSrc.width - 1 - mBorderExclusion);
+		 aSrc.dimensions[0] - 1 - mBorderExclusion);
   
-  for(int y = mBorderExclusion;y < (aSrc.height - mBorderExclusion);++y)
+  for(int y = mBorderExclusion;y < (aSrc.dimensions[1] - mBorderExclusion);++y)
     {
-      INPUT *aBufferPt = aSrcPt + (y * aSrc.width) + fwhm_min;
+      INPUT *aBufferPt = aSrcPt + (y * aSrc.dimensions[0]) + fwhm_min;
       for(int x = fwhm_min;x < (fwhm_max + 1);++x,++aBufferPt)
 	aProjectionY[y] += *aBufferPt;
     }
@@ -145,16 +145,16 @@ static void _max_intensity(const Data &aSrc,
   Buffer *aBufferPt = aSrc.buffer;
   INPUT *aSrcPt = (INPUT*)aBufferPt->data;
   
-  int yMaxPos = _max_intensity_position(projection_y,aSrc.height);
-  int xMaxPos = _max_intensity_position(projection_x,aSrc.width);
+  int yMaxPos = _max_intensity_position(projection_y,aSrc.dimensions[1]);
+  int xMaxPos = _max_intensity_position(projection_x,aSrc.dimensions[0]);
   // get the five pixel values around x_max_pos and y_max_pos
-  if(xMaxPos > 0 && xMaxPos < (aSrc.width - 1) &&
-     yMaxPos > 0 && yMaxPos < (aSrc.height - 1))
+  if(xMaxPos > 0 && xMaxPos < (aSrc.dimensions[0] - 1) &&
+     yMaxPos > 0 && yMaxPos < (aSrc.dimensions[1] - 1))
     {
       aResult.beam_center_x = (double)xMaxPos;
       aResult.beam_center_y = (double)yMaxPos;
       // Center left Pixel
-      aSrcPt += yMaxPos * aSrc.width + xMaxPos - 1;
+      aSrcPt += yMaxPos * aSrc.dimensions[0] + xMaxPos - 1;
       unsigned long long aBeamSum = *aSrcPt;
       // Center Pixel
       ++aSrcPt;
@@ -163,10 +163,10 @@ static void _max_intensity(const Data &aSrc,
       ++aSrcPt;
       aBeamSum += *aSrcPt;
       // Top Pixel
-      aSrcPt -= aSrc.width + 1;
+      aSrcPt -= aSrc.dimensions[0] + 1;
       aBeamSum += *aSrcPt;
       // Bottom Pixel
-      aSrcPt += aSrc.width << 1;
+      aSrcPt += aSrc.dimensions[0] << 1;
       aBeamSum += *aSrcPt;
       aResult.beam_intensity = (double)(aBeamSum) / 5.;
     }
@@ -564,16 +564,16 @@ BpmTask::BpmTask(const BpmTask &aTask) :
   _treat_image<TYPE>(aSrc,*projection_x,*projection_y,aResult);  \
   _max_intensity<TYPE>(aSrc,*projection_x,*projection_y,aResult); \
 if(mEnableX || mFwhmTunning) \
-  COMPUTE_BEAM_POSITION(x,aSrc.width); \
+  COMPUTE_BEAM_POSITION(x,aSrc.dimensions[0]); \
 if(mEnableY || mFwhmTunning) \
-  COMPUTE_BEAM_POSITION(y,aSrc.height); \
+  COMPUTE_BEAM_POSITION(y,aSrc.dimensions[1]); \
 if(mFwhmTunning) \
   { \
     if(aResult.beam_fwhm_x > 0. && aResult.beam_fwhm_y > 0.) \
       { \
 	_tune_projection<TYPE>(aSrc,*projection_x,*projection_y,aResult); \
-	TUNE_FWHM(x,aSrc.width); \
-	TUNE_FWHM(y,aSrc.height); \
+	TUNE_FWHM(x,aSrc.dimensions[0]); \
+	TUNE_FWHM(y,aSrc.dimensions[1]); \
       } \
   } \
 }
@@ -581,7 +581,12 @@ if(mFwhmTunning) \
 void BpmTask::process(Data &aInputSrc)
 {
   Data aSrc;
-  if(!(_RoiX1 < 0 && _RoiX2 < 0 &&
+  if(aInputSrc.dimensions.size() != 2)
+    {
+      std::cerr << "BpmTask : Only manage 2D data " << std::endl;
+      return;
+    }
+  else if(!(_RoiX1 < 0 && _RoiX2 < 0 &&
        _RoiY1 < 0 && _RoiY2 < 0))
     {
       SoftRoi *roiTaskPt = new SoftRoi();
@@ -603,11 +608,11 @@ void BpmTask::process(Data &aInputSrc)
       aResult.mBackgroundLevelTuney = aLastResult.mBackgroundLevelTuney;
     }
   aResult.frameNumber = aSrc.frameNumber;
-  int aSize = sizeof(unsigned long long) * aSrc.width;
+  int aSize = sizeof(unsigned long long) * aSrc.dimensions[0];
   Buffer *projection_x = new Buffer(aSize);
   memset (projection_x->data, 0,aSize);
   
-  aSize = sizeof(unsigned long long) * aSrc.height;
+  aSize = sizeof(unsigned long long) * aSrc.dimensions[1];
   Buffer *projection_y = new Buffer(aSize);
   memset (projection_y->data, 0,aSize);
   switch(aSrc.depth())

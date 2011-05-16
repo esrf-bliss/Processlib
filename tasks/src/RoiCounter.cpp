@@ -129,6 +129,12 @@ template<class INPUT> static void _get_average_std_with_mask(const INPUT *aSrcPt
 void RoiCounterTask::process(Data &aData)
 {
   //_check_roi(_x,_y,_width,_height,aData);
+  if(aData.dimensions.size() != 2)
+    {
+      std::cerr << "RoiCounterTask : Only manage 2D data " << std::endl;
+      return;
+    }
+
   RoiCounterResult aResult;
   aResult.frameNumber = aData.frameNumber;
   if(_mask.empty())
@@ -137,124 +143,123 @@ void RoiCounterTask::process(Data &aData)
 	{
 	case Data::UINT8: 
 	  _get_average_std((unsigned char*)aData.data(),
-			   aData.width,
+			   aData.dimensions[0],
 			   _x,_y,_width,_height,aResult);
 	  break;
 	case Data::INT8:
 	  _get_average_std((char*)aData.data(),
-			   aData.width,
+			   aData.dimensions[0],
 			   _x,_y,_width,_height,aResult);
 	  break;
 
 	case Data::UINT16:
 	  _get_average_std((unsigned short*)aData.data(),
-			   aData.width,
+			   aData.dimensions[0],
 			   _x,_y,_width,_height,aResult);
 	  break;
 	case Data::INT16:
 	  _get_average_std((short*)aData.data(),
-			   aData.width,
+			   aData.dimensions[0],
 			   _x,_y,_width,_height,aResult);
 	  break;
 	case Data::UINT32:
 	  _get_average_std((unsigned int*)aData.data(),
-			   aData.width,
+			   aData.dimensions[0],
 			   _x,_y,_width,_height,aResult);
 	  break;
 	case Data::INT32:
 	  _get_average_std((int*)aData.data(),
-			   aData.width,
+			   aData.dimensions[0],
 			   _x,_y,_width,_height,aResult);
 	  break;
 	case Data::UINT64:
 	  _get_average_std((unsigned long long*)aData.data(),
-			   aData.width,
+			   aData.dimensions[0],
 			   _x,_y,_width,_height,aResult);
 	  break;
 	case Data::INT64:
 	  _get_average_std((long long*)aData.data(),
-			   aData.width,
+			   aData.dimensions[0],
 			   _x,_y,_width,_height,aResult);
 	  break;
 
 	case Data::FLOAT:
 	  _get_average_std((float*)aData.data(),
-			   aData.width,
+			   aData.dimensions[0],
 			   _x,_y,_width,_height,aResult);
 	  break;
 	case Data::DOUBLE:
 	  _get_average_std((double*)aData.data(),
-			   aData.width,
+			   aData.dimensions[0],
 			   _x,_y,_width,_height,aResult);
 	  break;
 	default: 
 	  break;				// error
 	}
     }
-  else if(_mask.width == aData.width &&
-	  _mask.height == aData.height)
+  else if(_mask.dimensions == aData.dimensions)
     {
       switch(aData.type)
 	{
 	case Data::UINT8: 
 	  _get_average_std_with_mask((unsigned char*)aData.data(),
-				     aData.width,
+				     aData.dimensions[0],
 				     (char*)_mask.data(),
 				     _x,_y,_width,_height,aResult);
 	  break;
 	case Data::INT8:
 	  _get_average_std_with_mask((char*)aData.data(),
-				     aData.width,
+				     aData.dimensions[0],
 				     (char*)_mask.data(),
 				     _x,_y,_width,_height,aResult);
 	  break;
 
 	case Data::UINT16:
 	  _get_average_std_with_mask((unsigned short*)aData.data(),
-				     aData.width,
+				     aData.dimensions[0],
 				     (char*)_mask.data(),
 				     _x,_y,_width,_height,aResult);
 	  break;
 	case Data::INT16:
 	  _get_average_std_with_mask((short*)aData.data(),
-				     aData.width,
+				     aData.dimensions[0],
 				     (char*)_mask.data(),
 				     _x,_y,_width,_height,aResult);
 	  break;
 	case Data::UINT32:
 	  _get_average_std_with_mask((unsigned int*)aData.data(),
-				     aData.width,
+				     aData.dimensions[0],
 				     (char*)_mask.data(),
 				     _x,_y,_width,_height,aResult);
 	  break;
 	case Data::INT32:
 	  _get_average_std_with_mask((int*)aData.data(),
-				     aData.width,
+				     aData.dimensions[0],
 				     (char*)_mask.data(),
 				     _x,_y,_width,_height,aResult);
 	  break;
 	case Data::UINT64:
 	  _get_average_std_with_mask((unsigned long long*)aData.data(),
-				     aData.width,
+				     aData.dimensions[0],
 				     (char*)_mask.data(),
 				     _x,_y,_width,_height,aResult);
 	  break;
 	case Data::INT64:
 	  _get_average_std_with_mask((long long*)aData.data(),
-				     aData.width,
+				     aData.dimensions[0],
 				     (char*)_mask.data(),
 				     _x,_y,_width,_height,aResult);
 	  break;
 
 	case Data::FLOAT:
 	  _get_average_std_with_mask((float*)aData.data(),
-				     aData.width,
+				     aData.dimensions[0],
 				     (char*)_mask.data(),
 				     _x,_y,_width,_height,aResult);
 	  break;
 	case Data::DOUBLE:
 	  _get_average_std_with_mask((double*)aData.data(),
-				     aData.width,
+				     aData.dimensions[0],
 				     (char*)_mask.data(),
 				     _x,_y,_width,_height,aResult);
 	  break;

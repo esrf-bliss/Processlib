@@ -92,7 +92,7 @@ void FlatfieldCorrection::setDetectorDistance(double aDistance)
 }
 /** @brief calc the flatfield correction array
  */
-void FlatfieldCorrection::_calcFlatFieldImage(int,int,Data::TYPE)
+void FlatfieldCorrection::_calcFlatFieldImage(const std::vector<int>&,Data::TYPE)
 {
   _flatFieldCorrectionDirty = false;
 				// TODO calc correction array
@@ -105,8 +105,7 @@ void FlatfieldCorrection::_calcFlatFieldImage(int,int,Data::TYPE)
 Data FlatfieldCorrection::process(Data &aData)
 {
   if(aData.type == _flatFieldImage.type &&
-     aData.height == _flatFieldImage.height &&
-     aData.width == _flatFieldImage.width)
+     aData.dimensions == _flatFieldImage.dimensions)
     {
       switch(aData.type)
 	{
@@ -126,7 +125,7 @@ Data FlatfieldCorrection::process(Data &aData)
     {
       if(_flatFieldCorrectionDirty)
 	{
-	  _calcFlatFieldImage(aData.width,aData.height,aData.type);
+	  _calcFlatFieldImage(aData.dimensions,aData.type);
 	  return process(aData);
 	}
       else
