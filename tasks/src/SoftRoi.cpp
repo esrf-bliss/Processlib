@@ -85,8 +85,8 @@ Data SoftRoi::process(Data &aData)
 	  for(int lineId = startLineId;lineId < endLineId;
 	      ++lineId,aSrcPt += lineSize,aDst += cropSize)
 	    memmove(aDst,aSrcPt,cropSize);
-	  aData.dimensions.push_back(endColumnId - startColumnId);
-	  aData.dimensions.push_back(endLineId - startLineId);
+	  aData.dimensions[0] = (endColumnId - startColumnId);
+	  aData.dimensions[1] = (endLineId - startLineId);
 	  return aData;
 	}
       else
