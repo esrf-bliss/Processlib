@@ -1,39 +1,39 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
     <modelVersion>4.0.0</modelVersion>
-	<parent>
+    <parent>
         <groupId>fr.soleil.lib.Lima.Third-party</groupId>
-		<artifactId>Processlib</artifactId>
-		<version>1.0.3-SNAPSHOT</version>
+        <artifactId>Processlib</artifactId>
+        <version>1.0.4-SNAPSHOT</version>
     </parent>
 
     <groupId>fr.soleil.lib.Lima.Third-party.Processlib</groupId>
-    <artifactId>Core-${aol}-shared-${mode}</artifactId>
+    <artifactId>LimaCore-${aol}-shared-${mode}</artifactId>
     <packaging>nar</packaging>
-    <name>Core</name>    <!-- use for the name of executable -->
+    <name>LimaCore</name>    <!-- use for the name of executable -->
     <description>This is the core of the Processlib</description>
 
-	<dependencies>
+    <dependencies>
         <dependency>
             <groupId>org.gnu</groupId>
             <artifactId>GSL-${aol}-${library}-release</artifactId>
-		</dependency>
+        </dependency>
     </dependencies>
-	
-	<build>
+
+    <build>
         <plugins>
             <plugin>
                 <groupId>org.freehep</groupId>
                 <artifactId>freehep-nar-plugin</artifactId>
                 <configuration>
-					<os>Linux</os>
-					<cpp>
-					<!-- XXX VH/FL : Out of maven convention (multiple source directories)-->
+                    <os>Linux</os>
+                    <cpp>
+                    <!-- XXX VH/FL : Out of maven convention (multiple source directories)-->
                         <sourceDirectory>${project.basedir}</sourceDirectory>
-						<excludes>
-						  <exclude>**/WindowSpecific/*</exclude>
-						</excludes>
-                    </cpp>   
+                        <excludes>
+                          <exclude>**/WindowSpecific/*</exclude>
+                        </excludes>
+                    </cpp>
                 </configuration>
             </plugin>
         </plugins>

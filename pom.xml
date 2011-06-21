@@ -3,15 +3,14 @@
     <modelVersion>4.0.0</modelVersion>
     <parent>
         <groupId>fr.soleil.lib.Lima</groupId>
-		<artifactId>Third-party</artifactId>
-		<version>1.0.3-SNAPSHOT</version>
+        <artifactId>Third-party</artifactId>
+        <version>1.0.4-SNAPSHOT</version>
     </parent>
 
     <groupId>fr.soleil.lib.Lima.Third-party</groupId>
     <artifactId>Processlib</artifactId>
-
     <packaging>pom</packaging>
-    <name>Processlib</name>
+    <name>[Processlib]</name>
     <description>Processlib : binning,roi,flip, ...</description>
 
     <modules>
