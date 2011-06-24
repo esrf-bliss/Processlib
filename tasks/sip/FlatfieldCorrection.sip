@@ -29,11 +29,7 @@ namespace Tasks
 #include <FlatfieldCorrection.h>
 %End
   public:
-    void setFlatFieldImageData(Data &aData);
-    void setXCenter(double);
-    void setYCenter(double);
-    void setLambda(double);
-    void setDetectorDistance(double);
+    void setFlatFieldImageData(Data &aData,bool normalize = true);
     virtual Data process(Data&);
   };
 };

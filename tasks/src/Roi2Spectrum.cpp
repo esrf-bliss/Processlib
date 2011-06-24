@@ -72,6 +72,12 @@ void Roi2SpectrumTask::process(Data &aData)
 {
   Roi2SpectrumResult aResult;
   aResult.frameNumber = aData.frameNumber;
+  if(aData.dimensions.size() != 2)
+    {
+      std::cerr << "Roi2SpectrumResult : Only manage 2D data " << std::endl;
+      return;
+    }
+
   if(_width > 0 && _height > 0)
     {
 
@@ -95,8 +101,7 @@ void Roi2SpectrumTask::process(Data &aData)
 	  goto end;
 	}
 
-      aResult.spectrum.height = 1;
-      aResult.spectrum.width = (_mode == LINES_SUM) ? _width : _height;
+      aResult.spectrum.dimensions.push_back((_mode == LINES_SUM) ? _width : _height);
       int aSize = aResult.spectrum.size();
       Buffer *aBufferPt = new Buffer(aSize);
       memset(aBufferPt->data,0,aSize);
@@ -107,50 +112,50 @@ void Roi2SpectrumTask::process(Data &aData)
 	{
 	case Data::UINT8:
 	  _sum((unsigned char*)aData.data(),
-	       aData.width,
+	       aData.dimensions[0],
 	       _x,_y,_width,_height,
 	       (int*)aResult.spectrum.data(),_mode);
 	  break;
 	case Data::INT8:
 	  _sum((char*)aData.data(),
-	       aData.width,
+	       aData.dimensions[0],
 	       _x,_y,_width,_height,
 	       (int*)aResult.spectrum.data(),_mode);
 	  break;
 	case Data::UINT16:
 	  _sum((unsigned short*)aData.data(),
-	       aData.width,
+	       aData.dimensions[0],
 	       _x,_y,_width,_height,
 	       (int*)aResult.spectrum.data(),_mode);
 	  break;
 	case Data::INT16:
 	  _sum((short*)aData.data(),
-	       aData.width,
+	       aData.dimensions[0],
 	       _x,_y,_width,_height,
 	       (int*)aResult.spectrum.data(),_mode);
 	  break;
 	case Data::UINT32:
 	  _sum((unsigned int*)aData.data(),
-	       aData.width,
+	       aData.dimensions[0],
 	       _x,_y,_width,_height,
 	       (int*)aResult.spectrum.data(),_mode);
 	  break;
 	case Data::INT32:
 	  _sum((int*)aData.data(),
-	       aData.width,
+	       aData.dimensions[0],
 	       _x,_y,_width,_height,
 	       (int*)aResult.spectrum.data(),_mode);
 	  break;
 	case Data::FLOAT:
 	  _sum((float*)aData.data(),
-	       aData.width,
+	       aData.dimensions[0],
 	       _x,_y,_width,_height,
 	       (double*)aResult.spectrum.data(),_mode);
 	  break;
 
 	case Data::DOUBLE:
 	  _sum((float*)aData.data(),
-	       aData.width,
+	       aData.dimensions[0],
 	       _x,_y,_width,_height,
 	       (double*)aResult.spectrum.data(),_mode);
 	  break;

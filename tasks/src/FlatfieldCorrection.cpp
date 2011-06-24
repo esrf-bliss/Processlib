@@ -28,85 +28,101 @@ using namespace Tasks;
 template<class INPUT>
 void _div(void *src,int aSize,void *flatfield)
 {
-  INPUT *aSrcPt,*aFFieldPt;
+  INPUT *aSrcPt;
+  float *aFFieldPt;
   aSrcPt = (INPUT*)src;
-  aFFieldPt = (INPUT*)flatfield;
+  aFFieldPt = (float*)flatfield;
   for(int i = aSize / sizeof(INPUT);i;--i,++aSrcPt,++aFFieldPt)
-    *aSrcPt /= *aFFieldPt;
+    {
+      if(*aFFieldPt > 1e-6)
+	*aSrcPt = INPUT((float(*aSrcPt) / *aFFieldPt));
+      else
+	*aSrcPt = INPUT(0);	// @todo check what we should do
+    }
+}
+
+template<class INPUT>
+Data _norm(Data &src)
+{
+  double sum = 0.;
+  int nbItems = 1;
+  for(std::vector<int>::const_iterator i = src.dimensions.begin();
+      i != src.dimensions.end();++i)
+    nbItems *= *i;
+
+  int i = nbItems;
+  for(INPUT *aPt = (INPUT*)src.data();i;--i,++aPt)
+    sum += *aPt;
+  
+  double mean = sum / nbItems;
+
+  Data aReturnFF;
+  if(src.type == Data::FLOAT && fabs(mean - 1.) < 1e-6)	// FF already normed
+    aReturnFF = src;
+  else if(mean > 0.)
+    {
+      aReturnFF = src.copyHeader(Data::FLOAT);
+      i = nbItems;
+      float *aFFPt = (float*)aReturnFF.data();
+      for(INPUT *aPt = (INPUT*)src.data();i;--i,++aPt,++aFFPt)
+	*aFFPt = float(*aPt) / mean;
+    }
+  else
+    std::cerr << "FlatfieldCorrection : Flatfield data mean is 0. !!!" << std::endl;
+  return aReturnFF;
+}
+
+static Data _normalize(Data &src)
+{
+  Data aReturnData;
+  switch(src.type)
+    {
+    case Data::UINT8: 	aReturnData = _norm<unsigned char>(src);break;
+    case Data::INT8:	aReturnData = _norm<char>(src);break;
+    case Data::UINT16: 	aReturnData = _norm<unsigned short>(src);break;
+    case Data::INT16: 	aReturnData = _norm<short>(src);break;
+    case Data::UINT32: 	aReturnData = _norm<unsigned int>(src);break;
+    case Data::INT32: 	aReturnData = _norm<int>(src);break;
+    case Data::UINT64: 	aReturnData = _norm<unsigned long long>(src);break;
+    case Data::INT64: 	aReturnData = _norm<long long>(src);break;
+    case Data::FLOAT: 	aReturnData = _norm<float>(src);break;
+    default:
+      std::cerr << "FlatfieldCorrection : flatfield array type not managed" << std::endl;
+      break;
+    }
+  return aReturnData;
 }
 
 FlatfieldCorrection::FlatfieldCorrection() : 
-LinkTask(),
-_xcenter(NAN),_ycenter(NAN),
-_lambda(NAN),_distance(NAN),
-_flatFieldCorrectionDirty(false) {}
+LinkTask()
+{}
 
 FlatfieldCorrection::FlatfieldCorrection(const FlatfieldCorrection &aFlatField) :
   LinkTask(aFlatField),
-  _flatFieldImage(aFlatField._flatFieldImage),
-  _xcenter(aFlatField._xcenter),_ycenter(aFlatField._ycenter),
-  _lambda(aFlatField._lambda),_distance(aFlatField._distance),
-  _flatFieldCorrectionDirty(aFlatField._flatFieldCorrectionDirty)
+  _flatFieldImage(aFlatField._flatFieldImage)
 {
 }
 /** @brief set en external flafield correction array.
- *  You can use this function to set all the parameters or
- *  use setXCenter,setYCenter,setLambda,setDetectorDistance
  *  @param aData the flatfield array
+ *  @param normalize if true normalize the flatfield if it's not
  */
-void FlatfieldCorrection::setFlatFieldImageData(Data &aData)
+void FlatfieldCorrection::setFlatFieldImageData(Data &aData,bool normalize)
 {
-  _flatFieldImage.setData(aData);
-  _flatFieldCorrectionDirty = false;
-  _xcenter = NAN,_ycenter = NAN;
-  _lambda = NAN,_distance= NAN;
+  Data FF;
+  if(!aData.empty())
+    {
+      if(normalize)
+	FF = _normalize(aData);
+      else
+	FF = aData;
+    }
+
+  _flatFieldImage.setData(FF);
 }
 
-/** @brief set the x center of the beam
- */
-void FlatfieldCorrection::setXCenter(double aXCenter)
-{
-  _xcenter = aXCenter;
-  _flatFieldCorrectionDirty = true;
-}
-/** @brief set the y center of the beam
- */
-void FlatfieldCorrection::setYCenter(double aYcenter)
-{
-  _ycenter = aYcenter;
-  _flatFieldCorrectionDirty = true;
-}
-/** @brief set beam's lambda
- */
-void FlatfieldCorrection::setLambda(double aLambda)
-{
-  _lambda = aLambda;
-  _flatFieldCorrectionDirty = true;
-}
-/** @brief set detector distance
- */
-void FlatfieldCorrection::setDetectorDistance(double aDistance)
-{
-  _distance = aDistance;
-  _flatFieldCorrectionDirty = true;
-}
-/** @brief calc the flatfield correction array
- */
-void FlatfieldCorrection::_calcFlatFieldImage(int,int,Data::TYPE)
-{
-  _flatFieldCorrectionDirty = false;
-				// TODO calc correction array
-#ifdef __unix
-#warning "_calcFlatFieldImage is not yet done -> can't use setDetectorDistance,setLambda,setYCenter,setXCenter"
-#else
-#pragma message ( "_calcFlatFieldImage is not yet done -> can't use setDetectorDistance,setLambda,setYCenter,setXCenter" )
-#endif
-}
 Data FlatfieldCorrection::process(Data &aData)
 {
-  if(aData.type == _flatFieldImage.type &&
-     aData.height == _flatFieldImage.height &&
-     aData.width == _flatFieldImage.width)
+  if(aData.dimensions == _flatFieldImage.dimensions)
     {
       switch(aData.type)
 	{
@@ -119,18 +135,15 @@ Data FlatfieldCorrection::process(Data &aData)
 	case Data::UINT32:
 	  _div<unsigned int>(aData.data(),aData.size(),
 			     _flatFieldImage.data());break;
-	default: break;
+	case Data::INT32:
+	  _div<int>(aData.data(),aData.size(),
+		    _flatFieldImage.data());break;
+	default:
+	  std::cerr << "FlatfieldCorrection : data type not yet managed" << std::endl;
+	  break;
 	}
     }
   else
-    {
-      if(_flatFieldCorrectionDirty)
-	{
-	  _calcFlatFieldImage(aData.width,aData.height,aData.type);
-	  return process(aData);
-	}
-      else
-	std::cerr << "FlatfieldCorrection : Source image differ from flatfield array" << std::endl;
-    }
+    std::cerr << "FlatfieldCorrection : Source image differ from flatfield array" << std::endl;
   return aData;
 }

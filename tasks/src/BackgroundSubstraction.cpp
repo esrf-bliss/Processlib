@@ -137,8 +137,7 @@ void BackgroundSubstraction::setBackgroundImageData(Data &aData)
 Data BackgroundSubstraction::process(Data &aData) 
 {
   if(aData.type == _backgroundImageData.type &&
-     aData.height == _backgroundImageData.height &&
-     aData.width == _backgroundImageData.width)
+     aData.dimensions == _backgroundImageData.dimensions)
     {
       Stat aStat(aData,"Background substraction");
       if(_processingInPlaceFlag)
