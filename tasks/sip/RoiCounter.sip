@@ -31,13 +31,20 @@ namespace Tasks
     enum ErrorCode {OK,NOT_MANAGED,NO_MORE_AVAILABLE,TIMEDOUT};
     enum RUN_MODE {Counter,Monitor};
     RoiCounterManager(int = 4);
-    ~RoiCounterManager();
 
     Tasks::RoiCounterResult	getResult(double = 0.,int = -1) const;
     void	resizeHistory(int aSize);
     void  resetHistory();
     int	  historySize() const;
     int   lastFrameNumber() const;
+    protected:
+    virtual ~RoiCounterManager();
+%MethodCode
+ Py_BEGIN_ALLOW_THREADS;
+ sipCpp->unref();
+ sipCppV = NULL;
+ Py_END_ALLOW_THREADS;
+%End
    };
 
 

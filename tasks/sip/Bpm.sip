@@ -31,13 +31,20 @@ namespace Tasks
     enum ErrorCode {OK,NO_MORE_AVAILABLE,TIMEDOUT};
     enum RUN_MODE {Counter,Monitor};
     BpmManager(int = 4);
-    ~BpmManager();
 
     Tasks::BpmResult	getResult(double = 0.,int = -1) const;
     void	resizeHistory(int aSize);
     void  resetHistory();
     int	  historySize() const;
     int lastFrameNumber() const;
+    protected:
+    virtual ~BpmManager();
+%MethodCode
+ Py_BEGIN_ALLOW_THREADS;
+ sipCpp->unref();
+ sipCppV = NULL;
+ Py_END_ALLOW_THREADS;
+%End
   };
 
   class BpmResult

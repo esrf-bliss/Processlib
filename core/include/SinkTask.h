@@ -59,8 +59,12 @@ template<class T>
 class SinkTask : public SinkTaskBase
 {
 public:
-  SinkTask(SinkTaskMgr<T> &aMgr) : _mgr(aMgr) {};
-  SinkTask(const SinkTask &aTask) : SinkTaskBase(aTask),_mgr(aTask._mgr) {}
+  SinkTask(SinkTaskMgr<T> &aMgr) : _mgr(aMgr) {aMgr.ref();};
+  SinkTask(const SinkTask &aTask) : SinkTaskBase(aTask),_mgr(aTask._mgr) 
+    {
+      _mgr.ref();
+    }
+  virtual ~SinkTask() {_mgr.unref();}
 protected:
   SinkTaskMgr<T>	&_mgr;
 };

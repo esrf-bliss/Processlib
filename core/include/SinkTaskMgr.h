@@ -46,7 +46,6 @@ public:
   enum RUN_MODE {Counter,Monitor};
 
   explicit SinkTaskMgr(int historySize = 4);
-  virtual ~SinkTaskMgr();
   
   void	setMode(RUN_MODE);
 
@@ -61,6 +60,12 @@ public:
   //@brief methode called by the voidtask
   void setResult(const Result&);
 
+  void ref();
+  void unref();
+
+protected:
+  virtual ~SinkTaskMgr();
+
 private:
   bool _isFrameAvailable(int frameNumber) const;
 
@@ -69,6 +74,7 @@ private:
   mutable pthread_cond_t	_cond;
   FrameResultList		_historyResult;
   RUN_MODE			_mode;
+  int				_refCounter;
 };
 
 template<class Result>
@@ -79,7 +85,8 @@ inline bool _history_sort(const Result &A,const Result &B)
 template <class Result>
 SinkTaskMgr<Result>::SinkTaskMgr(int historySize) :
   _currentFrameNumber(0),
-  _mode(SinkTaskMgr::Counter)
+  _mode(SinkTaskMgr::Counter),
+  _refCounter(1)
 {
   pthread_mutex_init(&_lock,NULL);
   pthread_cond_init(&_cond,NULL);
@@ -247,6 +254,24 @@ bool SinkTaskMgr<Result>::_isFrameAvailable(int aFrameNumber) const
     {
       int aResultPos = aFrameNumber % _historyResult.size();
       return _historyResult[aResultPos].frameNumber == aFrameNumber;
+    }
+}
+
+template<class Result>
+void SinkTaskMgr<Result>::ref()
+{
+  PoolThreadMgr::Lock aLock(&_lock);
+  ++_refCounter;
+}
+
+template<class Result>
+void SinkTaskMgr<Result>::unref()
+{
+  PoolThreadMgr::Lock aLock(&_lock);
+  if(!(--_refCounter))
+    {
+      aLock.unLock();
+      delete this;
     }
 }
 #endif

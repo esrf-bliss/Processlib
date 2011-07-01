@@ -33,7 +33,6 @@ namespace Tasks
     enum RUN_MODE {Counter,Monitor};
 
     explicit Roi2SpectrumManager(int = 4);
-    virtual ~Roi2SpectrumManager();
   
     void	setMode(Tasks::Roi2SpectrumManager::RUN_MODE);
 
@@ -45,6 +44,15 @@ namespace Tasks
     int	historySize() const;
     //@brief return the last available frame with no hole before
     int lastFrameNumber() const;
+  protected:
+    virtual ~Roi2SpectrumManager();
+%MethodCode
+ Py_BEGIN_ALLOW_THREADS;
+ sipCpp->unref();
+ sipCppV = NULL;
+ Py_END_ALLOW_THREADS;
+%End
+
   };
 
   struct Roi2SpectrumResult
