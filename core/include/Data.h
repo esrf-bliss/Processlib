@@ -258,8 +258,23 @@ inline std::ostream& operator<<(std::ostream &os,const Buffer &aBuffer)
 
 inline std::ostream& operator<<(std::ostream &os,const Data &aData)
 {
+  const char* aHumanTypePt;
+  switch(aData.type)
+    {
+    case Data::UINT8: 	aHumanTypePt = "UINT8";break;
+    case Data::INT8: 	aHumanTypePt = "INT8";break;
+    case Data::UINT16: 	aHumanTypePt = "UINT16";break;
+    case Data::INT16: 	aHumanTypePt = "INT16";break;
+    case Data::UINT32: 	aHumanTypePt = "UINT32";break;
+    case Data::INT32: 	aHumanTypePt = "INT32";break;
+    case Data::UINT64: 	aHumanTypePt = "UINT64";break;
+    case Data::INT64: 	aHumanTypePt = "INT64";break;
+    case Data::FLOAT: 	aHumanTypePt = "FLOAT";break;
+    case Data::DOUBLE: 	aHumanTypePt = "DOUBLE";break;
+    default: aHumanTypePt = "UNKNOWN"; break;
+    }
   os << "<"
-     << "type=" << aData.type << ", ";
+     << "type=" << aData.type << " (" << aHumanTypePt << "), ";
 
   int dimNb = 0;
   for(std::vector<int>::const_iterator i = aData.dimensions.begin();
