@@ -26,7 +26,7 @@ processlib-objs := ../core/src/GslErrorMgr.o ../core/src/PoolThreadMgr.o ../core
 SRCS = $(processlib-objs:.o=.cpp)
 
 INCLUDES=-I../core/include -I../tasks/include
-CXXFLAGS += $(INCLUDES) -fPIC -Wall -pthread
+CXXFLAGS += $(INCLUDES) -fPIC -Wall -pthread -O3
 
 
 all: libprocesslib.so

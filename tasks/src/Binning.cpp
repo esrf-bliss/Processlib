@@ -41,32 +41,24 @@ inline void _default_binning(Data &aSrcData,Data &aDstData,
   INPUT *aSrcPt = (INPUT*)aSrcData.data();
   INPUT *aDstPt = (INPUT*)aDstData.data();
   INPUT MAX_VALUE = max_value(*aSrcPt);
-  int *lineOffset = new int[yFactor];
-  int aTmpOffSet = 0;
-  for(int linId = 0;linId < yFactor;++linId,aTmpOffSet += aSrcData.dimensions[0])
-    lineOffset[linId] = aTmpOffSet;
+  
+  int maxLine = aSrcData.dimensions[1] / yFactor * yFactor;
+  int maxColumn = aSrcData.dimensions[0] / xFactor * xFactor;
 
-  INPUT *aLineSrcPt = aSrcPt;
-  INPUT *aLineDstPt = aDstPt;
-  for(int lineId = 0;lineId <= (aSrcData.dimensions[1] - yFactor);
-      lineId += yFactor,aLineSrcPt += aSrcData.dimensions[0],aLineDstPt += aDstData.dimensions[0])
+  for(int lineId = 0;lineId < maxLine;++lineId)
     {
-      int aDstColumnId = 0;
-      for(int columnId = 0;columnId <= (aSrcData.dimensions[0] - xFactor);
-	  columnId += xFactor,++aDstColumnId)
+      INPUT *aLineSrcPt = aSrcPt + aSrcData.dimensions[0] * lineId;
+      INPUT *aLineDstPt = aDstPt + aDstData.dimensions[0] * (lineId / yFactor);
+      for(int columnId = 0;columnId < maxColumn;++columnId)
 	{
-	  unsigned long long result = 0;
-	  for(int aPixelLine = 0;aPixelLine < yFactor;++aPixelLine)
-	    for(int aPixelColumn = columnId;aPixelColumn < columnId + xFactor;++aPixelColumn)
-	      result += *(aLineSrcPt + lineOffset[aPixelLine] + aPixelColumn);
-
-	  if(result > MAX_VALUE)
-	    aLineDstPt[aDstColumnId] = MAX_VALUE;
+	  unsigned long long result = aLineDstPt[columnId / xFactor];
+	  result += aLineSrcPt[columnId];
+	  if(result  > MAX_VALUE)
+	    aLineDstPt[columnId / xFactor] = MAX_VALUE;
 	  else
-	    aLineDstPt[aDstColumnId] = INPUT(result);
+	    aLineDstPt[columnId / xFactor] = result;
 	}
     }
-  delete lineOffset;
 }
 
 /** @brief binning 2 x 2
@@ -118,15 +110,18 @@ Data Binning::process(Data &aData)
       Stat aStat(aNewData,info.str());
       if(mYFactor > 0 && mXFactor > 0)
 	{
-	  if((mXFactor == 2 && mYFactor == 2) ||
-	     (mXFactor == 4 && mYFactor == 4) ||
-	     (mXFactor == 8 && mYFactor == 8) ||
-	     (mXFactor == 16 && mYFactor == 16) ||
-	     (mXFactor == 32 && mYFactor == 32)) // Factor 2 (Most used)
+	  if(((mXFactor == 2 && mYFactor == 2) ||
+	      (mXFactor == 4 && mYFactor == 4) ||
+	      (mXFactor == 8 && mYFactor == 8) ||
+	      (mXFactor == 16 && mYFactor == 16) ||
+	      (mXFactor == 32 && mYFactor == 32)) && // Factor 2 (Most used)
+	     !(aData.dimensions[0] % mXFactor) &&
+	     !(aData.dimensions[1] % mYFactor))
 	    {
 	      if(!_processingInPlaceFlag)
 		{
-		  Buffer *aNewBuffer = new Buffer(aData.size() >> 2);
+		  int aNewSize = aData.size() / (mYFactor * mXFactor);
+		  Buffer *aNewBuffer = new Buffer(aNewSize);
 		  aNewData.setBuffer(aNewBuffer);
 		  aNewBuffer->unref();
 		}
@@ -146,13 +141,15 @@ Data Binning::process(Data &aData)
 	    }
 	  else			// DEFAULT case is not optimized
 	    {
-	      if(!_processingInPlaceFlag)
-		{
-		  
-		  Buffer *aNewBuffer = new Buffer(aData.size() >> 2);
-		  aNewData.setBuffer(aNewBuffer);
-		  aNewBuffer->unref();
-		}
+	      int newWidth = aNewData.dimensions[0] / mXFactor;
+		int newHeight = aNewData.dimensions[1] / mYFactor;
+	      int aNewSize = aData.depth() * newWidth * newHeight;
+	      Buffer *aNewBuffer = new Buffer(aNewSize);
+	      aNewData.setBuffer(aNewBuffer);
+	      aNewBuffer->unref();
+	      memset(aNewData.data(),0,aNewSize);
+	      aNewData.dimensions[0] /= mXFactor;
+	      aNewData.dimensions[1] /= mYFactor;
 
 	      switch(aData.type)
 		{
@@ -166,8 +163,8 @@ Data Binning::process(Data &aData)
 		  std::cerr << "Binning : Data type not managed" << std::endl;
 		  break;
 		}
-	       aNewData.dimensions[0] /= mXFactor;
-	       aNewData.dimensions[1] /= mYFactor;
+	       if(_processingInPlaceFlag)
+		 memcpy(aData.data(),aNewData.data(),aNewData.size());
 	    }
 	}
       else
