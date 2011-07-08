@@ -21,7 +21,7 @@
 # along with this program; if not, see <http://www.gnu.org/licenses/>.
 ############################################################################
 
-processlib-objs := ../core/src/GslErrorMgr.o ../core/src/PoolThreadMgr.o ../core/src/TaskEventCallback.o ../core/src/LinkTask.o ../core/src/SinkTask.o ../core/src/TaskMgr.o ../core/src/HeaderContainer.o ../tasks/src/BackgroundSubstraction.o ../tasks/src/FlatfieldCorrection.o ../tasks/src/RoiCounter.o ../tasks/src/Binning.o ../tasks/src/Flip.o ../tasks/src/SoftRoi.o ../tasks/src/Bpm.o ../tasks/src/Mask.o ../tasks/src/Roi2Spectrum.o
+processlib-objs := ../core/src/GslErrorMgr.o ../core/src/PoolThreadMgr.o ../core/src/TaskEventCallback.o ../core/src/LinkTask.o ../core/src/SinkTask.o ../core/src/TaskMgr.o ../core/src/HeaderContainer.o ../tasks/src/BackgroundSubstraction.o ../tasks/src/FlatfieldCorrection.o ../tasks/src/RoiCounter.o ../tasks/src/Binning.o ../tasks/src/Flip.o ../tasks/src/SoftRoi.o ../tasks/src/Bpm.o ../tasks/src/Mask.o ../tasks/src/Roi2Spectrum.o ../tasks/src/Rotation.o
 
 SRCS = $(processlib-objs:.o=.cpp)
 

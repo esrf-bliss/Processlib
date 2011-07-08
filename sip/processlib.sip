@@ -290,6 +290,7 @@ else
 if(!sipErr)
 {
   int nbDim = PyArray_NDIM(tmpObject);
+  sipCpp->dimensions.clear();
   for(int i = nbDim - 1;i >= 0;--i)
     sipCpp->dimensions.push_back(PyArray_DIM(tmpObject,i));
  int aSize = sipCpp->size();
