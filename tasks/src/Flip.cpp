@@ -208,6 +208,7 @@ static void _flip_all(Data &aSrcData,Data &aDestData)
 
 Data Flip::process(Data &aData)
 {
+  Data aNewData;
   if(aData.dimensions.size() != 2)
     std::cerr << "Flip : Only manage 2D data " << std::endl;
   else if(_processingInPlaceFlag)
@@ -235,11 +236,11 @@ Data Flip::process(Data &aData)
 	default:
 	  break;
 	}
-      return aData;
+      aNewData = aData;
     }
   else
     {
-      Data aNewData = aData.copyHeader(aData.type);
+      aNewData = aData.copyHeader(aData.type);
       switch(_mode)
 	{
 	case FLIP_X:
@@ -264,8 +265,8 @@ Data Flip::process(Data &aData)
 	  memcpy(aNewData.data(),aData.data(),aData.size());
 	  break;
 	}
-      return aNewData;
     }
+  return aNewData;
 }
 
 void Flip::setFlip(FLIP_MODE aMode)
