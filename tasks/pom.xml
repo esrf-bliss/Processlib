@@ -8,15 +8,15 @@
     </parent>
 
     <groupId>fr.soleil.lib.Lima.Third-party.Processlib</groupId>
-    <artifactId>LimaTasks-${aol}-shared-${mode}</artifactId>
+    <artifactId>LimaProcesslibTasks-${aol}-shared-${mode}</artifactId>
     <packaging>nar</packaging>
-    <name>LimaTasks</name>    <!-- use for the name of executable -->
+    <name>LimaProcesslibTasks</name>    <!-- use for the name of executable -->
     <description>This is the Tasks of the Processlib</description>
 
     <dependencies>
         <dependency>
             <groupId>fr.soleil.lib.Lima.Third-party.Processlib</groupId>
-            <artifactId>LimaCore-${aol}-shared-${mode}</artifactId>
+            <artifactId>LimaProcesslibCore-${aol}-shared-${mode}</artifactId>
             <version>1.0.4-SNAPSHOT</version>
         </dependency>
     </dependencies>

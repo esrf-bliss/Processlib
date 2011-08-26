@@ -8,9 +8,9 @@
     </parent>
 
     <groupId>fr.soleil.lib.Lima.Third-party.Processlib</groupId>
-    <artifactId>LimaCore-${aol}-shared-${mode}</artifactId>
+    <artifactId>LimaProcesslibCore-${aol}-shared-${mode}</artifactId>
     <packaging>nar</packaging>
-    <name>LimaCore</name>    <!-- use for the name of executable -->
+    <name>LimaProcesslibCore</name>    <!-- use for the name of executable -->
     <description>This is the core of the Processlib</description>
 
     <dependencies>
