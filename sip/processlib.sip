@@ -322,6 +322,8 @@ extern "C"
   Py_END_ALLOW_THREADS
 %End
 
+  Data mask() const;
+
   const char* __repr__();
 %MethodCode
 	std::ostringstream str;

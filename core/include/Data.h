@@ -223,6 +223,43 @@ struct DLL_EXPORT Data
       aReturnData.buffer = NULL;
     return aReturnData;
   }
+  inline Data mask() const
+  {
+    Data aReturnData;
+    aReturnData.dimensions = dimensions;
+    aReturnData.frameNumber = frameNumber;
+    aReturnData.timestamp = timestamp;
+    aReturnData.header = header;
+    if(depth() != 1)
+      {
+	aReturnData.type = INT8;
+	aReturnData.buffer = new Buffer(aReturnData.size());
+	switch(type)
+	  {
+	  case UINT16:
+	    _make_mask<unsigned short>(*this,aReturnData);break;
+	  case INT16:
+	    _make_mask<short>(*this,aReturnData);break;
+	  case UINT32:
+	    _make_mask<unsigned int>(*this,aReturnData);break;
+	  case INT32:
+	    _make_mask<int>(*this,aReturnData);break;
+	  case UINT64:
+	    _make_mask<unsigned long long>(*this,aReturnData);break;
+	  case INT64:
+	    _make_mask<long long>(*this,aReturnData);break;
+	  default:
+	    return Data();	/* Not managed should not happen */
+	  }
+      }
+    else
+      {
+	aReturnData.type = type;
+	aReturnData.setBuffer(buffer);
+      }
+    return aReturnData;
+  }
+
   inline Data& operator=(const Data &aData)
   {
     type = aData.type;
@@ -233,12 +270,26 @@ struct DLL_EXPORT Data
     setBuffer(aData.buffer);
     return *this;
   }
+
   TYPE      			type;
   std::vector<int> 		dimensions;
   int       			frameNumber;
   double    			timestamp;
   mutable HeaderContainer 	header;
   mutable Buffer *		buffer;
+
+private:
+  template<class INPUT>
+  static void _make_mask(const Data &src,Data &dst)
+  {
+    const INPUT *aSrcPt;
+    aSrcPt = (const INPUT*)src.data();
+    char *aDstPt = (char*)dst.data();
+
+    int pixelnb = src.size() / src.depth();
+    for(int i = 0;i < pixelnb;++i,++aSrcPt,++aDstPt)
+      *aDstPt = char(*aSrcPt);
+  }
 };
 
 DLL_EXPORT std::ostream& operator<<(std::ostream &os,
