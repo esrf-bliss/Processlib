@@ -151,12 +151,15 @@ static void _max_intensity(const Data &aSrc,
   if(xMaxPos > 0 && xMaxPos < (aSrc.dimensions[0] - 1) &&
      yMaxPos > 0 && yMaxPos < (aSrc.dimensions[1] - 1))
     {
+      aResult.max_pixel_x = xMaxPos;
+      aResult.max_pixel_y = yMaxPos;
       aResult.beam_center_x = (double)xMaxPos;
       aResult.beam_center_y = (double)yMaxPos;
       // Center left Pixel
       aSrcPt += yMaxPos * aSrc.dimensions[0] + xMaxPos - 1;
       unsigned long long aBeamSum = *aSrcPt;
-      // Center Pixel
+      aResult.max_pixel_value = (unsigned int)aBeamSum;
+     // Center Pixel
       ++aSrcPt;
       aBeamSum += *aSrcPt;
       // Center right Pixel
@@ -534,7 +537,6 @@ BpmTask::BpmTask(const BpmTask &aTask) :
 	    aProfilePt[i] = double(aSrcProfilePt[i]);			\
 									\
 	  aResult.beam_center_##XorY = _compute_center(aProfilePt,size) + min_index; \
-	  aResult.mProfile_##XorY.setBuffer(profile);			\
 	  profile->unref();	/* free */				\
 	}								\
 	       \
@@ -612,16 +614,23 @@ void BpmTask::process(Data &aInputSrc)
   int aSize = sizeof(unsigned long long) * aSrc.dimensions[0];
   Buffer *projection_x = new Buffer(aSize);
   memset (projection_x->data, 0,aSize);
+  aResult.mProfile_x.dimensions.push_back(aSrc.dimensions[0]);
+  aResult.mProfile_x.type = Data::INT64;
+  aResult.mProfile_x.setBuffer(projection_x);
   
   aSize = sizeof(unsigned long long) * aSrc.dimensions[1];
   Buffer *projection_y = new Buffer(aSize);
   memset (projection_y->data, 0,aSize);
+  aResult.mProfile_y.dimensions.push_back(aSrc.dimensions[1]);
+  aResult.mProfile_y.type = Data::INT64;
+  aResult.mProfile_y.setBuffer(projection_y);
+
   switch(aSrc.depth())
     {
     case 1: PROCESS(unsigned char);break;
     case 2: PROCESS(unsigned short);break;
     case 4: PROCESS(unsigned int);break;
-    default:
+   default:
       // should throw an error
       std::cerr << "BpmManager : Data depth of " << aSrc.depth() << "not implemented " << std::endl;
       goto clean;

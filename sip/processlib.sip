@@ -251,6 +251,8 @@ switch(sipCpp->type)
   case Data::UINT16: sipPy = PyArray_SimpleNewFromData(ndims,dims,NPY_USHORT,sipCpp->buffer->data);break;
   case Data::INT16: sipPy = PyArray_SimpleNewFromData(ndims,dims,NPY_SHORT,sipCpp->buffer->data);break;
   case Data::UINT32: sipPy = PyArray_SimpleNewFromData(ndims,dims,NPY_UINT,sipCpp->buffer->data);break;
+  case Data::UINT64: sipPy = PyArray_SimpleNewFromData(ndims,dims,NPY_UINT64,sipCpp->buffer->data);break;
+  case Data::INT64: sipPy = PyArray_SimpleNewFromData(ndims,dims,NPY_INT64,sipCpp->buffer->data);break;
   case Data::INT32: sipPy = PyArray_SimpleNewFromData(ndims,dims,NPY_INT32,sipCpp->buffer->data);break;
   case Data::FLOAT: sipPy = PyArray_SimpleNewFromData(ndims,dims,NPY_FLOAT32,sipCpp->buffer->data);break;
   case Data::DOUBLE: sipPy = PyArray_SimpleNewFromData(ndims,dims,NPY_DOUBLE,sipCpp->buffer->data);break;
