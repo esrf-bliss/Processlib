@@ -534,6 +534,7 @@ BpmTask::BpmTask(const BpmTask &aTask) :
 	    aProfilePt[i] = double(aSrcProfilePt[i]);			\
 									\
 	  aResult.beam_center_##XorY = _compute_center(aProfilePt,size) + min_index; \
+	  aResult.mProfile_##XorY.setBuffer(profile);			\
 	  profile->unref();	/* free */				\
 	}								\
 	       \

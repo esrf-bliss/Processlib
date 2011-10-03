@@ -88,6 +88,8 @@ namespace Tasks
     double		mBackgroundLevelTunex;
     double		mBackgroundLevelTuney;
 
+    Data		mProfile_x;
+    Data		mProfile_y;
     BpmManager::ErrorCode	errorCode;
   private:
       

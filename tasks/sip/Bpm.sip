@@ -77,6 +77,8 @@ namespace Tasks
       int		AOI_min_y;
       int		AOI_max_y;
       unsigned int	border_exclusion;
+      Data		mProfile_x;
+      Data		mProfile_y;
       Tasks::BpmManager::ErrorCode errorCode;
     };
 
