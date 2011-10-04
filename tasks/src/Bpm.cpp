@@ -614,16 +614,16 @@ void BpmTask::process(Data &aInputSrc)
   int aSize = sizeof(unsigned long long) * aSrc.dimensions[0];
   Buffer *projection_x = new Buffer(aSize);
   memset (projection_x->data, 0,aSize);
-  aResult.mProfile_x.dimensions.push_back(aSrc.dimensions[0]);
-  aResult.mProfile_x.type = Data::INT64;
-  aResult.mProfile_x.setBuffer(projection_x);
+  aResult.profile_x.dimensions.push_back(aSrc.dimensions[0]);
+  aResult.profile_x.type = Data::INT64;
+  aResult.profile_x.setBuffer(projection_x);
   
   aSize = sizeof(unsigned long long) * aSrc.dimensions[1];
   Buffer *projection_y = new Buffer(aSize);
   memset (projection_y->data, 0,aSize);
-  aResult.mProfile_y.dimensions.push_back(aSrc.dimensions[1]);
-  aResult.mProfile_y.type = Data::INT64;
-  aResult.mProfile_y.setBuffer(projection_y);
+  aResult.profile_y.dimensions.push_back(aSrc.dimensions[1]);
+  aResult.profile_y.type = Data::INT64;
+  aResult.profile_y.setBuffer(projection_y);
 
   switch(aSrc.depth())
     {

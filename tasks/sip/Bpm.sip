@@ -67,6 +67,8 @@ namespace Tasks
       unsigned int	max_pixel_value;
       unsigned int	max_pixel_x;
       unsigned int	max_pixel_y;
+      Data		profile_x;
+      Data		profile_y;
 
       int		frameNumber;
       
@@ -77,8 +79,6 @@ namespace Tasks
       int		AOI_min_y;
       int		AOI_max_y;
       unsigned int	border_exclusion;
-      Data		mProfile_x;
-      Data		mProfile_y;
       Tasks::BpmManager::ErrorCode errorCode;
     };
 
