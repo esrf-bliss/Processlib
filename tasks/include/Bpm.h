@@ -131,17 +131,20 @@ namespace Tasks
     int			_RoiX1,_RoiX2;
     int			_RoiY1,_RoiY2;
 
-    template<class IN>
+    template<class IN,class SUMMTYPE>
       void _treat_image(const Data &aSrc,
 	                Buffer &projection_x,
 		        Buffer &projection_y,
 		        BpmResult &aResult);
-    template<class IN> void _tune_projection(const Data &aSrc,
-					     Buffer&,Buffer&,
-					     const BpmResult&);
+    template<class IN,class SUMMTYPE>
+      void _tune_projection(const Data &aSrc,
+			    Buffer&,Buffer&,
+			    const BpmResult&);
+    template<class SUMMTYPE>
     double _calculate_fwhm(const Buffer &projection,int size,
 			   int max_index,double background_level,
 			   int &,int &);
+    template<class SUMMTYPE>
     void _calculate_background(const Buffer &projection,double &background_level,
 			       int min_index,int max_index);
   };
