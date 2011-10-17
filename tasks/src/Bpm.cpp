@@ -52,19 +52,19 @@ template<class INPUT> static inline INPUT min(INPUT a,INPUT b)
 /** @brief Calculate the image projections in X and Y and
  *  the integrated pixel intensity on the image.
  */
-template<class INPUT> 
+template<class INPUT,class SUMMTYPE> 
 void BpmTask::_treat_image(const Data &aSrc,
 			   Buffer &projection_x,Buffer &projection_y,
 			   BpmResult &aResult)
 {
-  unsigned long long *aProjectionX = (unsigned long long*)projection_x.data;
-  unsigned long long *aProjectionY = (unsigned long long*)projection_y.data;
+  SUMMTYPE *aProjectionX = (SUMMTYPE*)projection_x.data;
+  SUMMTYPE *aProjectionY = (SUMMTYPE*)projection_y.data;
   Buffer *aBufferPt = aSrc.buffer;
   INPUT *aSrcPt = (INPUT*)aBufferPt->data;
   for(int y = 0;y < aSrc.dimensions[1];++y)
     for(int x = 0;x < aSrc.dimensions[0];++x)
       {
-	if(*aSrcPt > mThreshold)
+	if(*aSrcPt > INPUT(mThreshold))
 	  {
 	    aProjectionX[x] += *aSrcPt;
 	    aProjectionY[y] += *aSrcPt;
@@ -76,16 +76,16 @@ void BpmTask::_treat_image(const Data &aSrc,
 /** @brief Calculates the projection X on a limitied area of
  *  the image around the maximum.
  */
-template<class INPUT>
+template<class INPUT,class SUMMTYPE>
 void BpmTask::_tune_projection(const Data &aSrc,
 			       Buffer &projection_x,Buffer &projection_y,
 			       const BpmResult &aResult)
 {
-  unsigned long long *aProjectionX = (unsigned long long*)projection_x.data;
-  memset(aProjectionX,0,aSrc.dimensions[0] * sizeof(unsigned long long));
+  SUMMTYPE *aProjectionX = (SUMMTYPE*)projection_x.data;
+  memset(aProjectionX,0,aSrc.dimensions[0] * sizeof(SUMMTYPE));
   
-  unsigned long long *aProjectionY = (unsigned long long*)projection_y.data;
-  memset(aProjectionY,0,aSrc.dimensions[1] * sizeof(unsigned long long));
+  SUMMTYPE *aProjectionY = (SUMMTYPE*)projection_y.data;
+  memset(aProjectionY,0,aSrc.dimensions[1] * sizeof(SUMMTYPE));
 
   Buffer *aBufferPt = aSrc.buffer;
   INPUT *aSrcPt = (INPUT*)aBufferPt->data;
@@ -118,15 +118,16 @@ void BpmTask::_tune_projection(const Data &aSrc,
 /** @brief Find the position where the maximum is.
  *  average over three values and find the maximum in Y
  */
+template<class SUMMTYPE>
 inline int _max_intensity_position(const Buffer &projection,int aSize) 
 {
   int aMaxPos = -1;
-  unsigned long long aMaxValue = 0;
-  const unsigned long long *aProjection = (unsigned long long*)projection.data;
+  SUMMTYPE aMaxValue = 0;
+  const SUMMTYPE *aProjection = (SUMMTYPE*)projection.data;
 
   for(int i = 1;i < (aSize -2);++i)
     {
-      unsigned long long aValue = aProjection[i - 1] + aProjection[i] + aProjection[i + 1];
+      SUMMTYPE aValue = aProjection[i - 1] + aProjection[i] + aProjection[i + 1];
       if(aValue > aMaxValue)
 	aMaxValue = aValue,aMaxPos = i;
     }
@@ -137,7 +138,7 @@ inline int _max_intensity_position(const Buffer &projection,int aSize)
  *  over 5 pixels.
  *  Normally this should be the position of the beam spot.
  */
-template<class INPUT> 
+template<class INPUT,class SUMMTYPE> 
 static void _max_intensity(const Data &aSrc,
 			   const Buffer &projection_x,const Buffer & projection_y,
 			   BpmResult &aResult)
@@ -145,18 +146,21 @@ static void _max_intensity(const Data &aSrc,
   Buffer *aBufferPt = aSrc.buffer;
   INPUT *aSrcPt = (INPUT*)aBufferPt->data;
   
-  int yMaxPos = _max_intensity_position(projection_y,aSrc.dimensions[1]);
-  int xMaxPos = _max_intensity_position(projection_x,aSrc.dimensions[0]);
+  int yMaxPos = _max_intensity_position<SUMMTYPE>(projection_y,aSrc.dimensions[1]);
+  int xMaxPos = _max_intensity_position<SUMMTYPE>(projection_x,aSrc.dimensions[0]);
   // get the five pixel values around x_max_pos and y_max_pos
   if(xMaxPos > 0 && xMaxPos < (aSrc.dimensions[0] - 1) &&
      yMaxPos > 0 && yMaxPos < (aSrc.dimensions[1] - 1))
     {
+      aResult.max_pixel_x = xMaxPos;
+      aResult.max_pixel_y = yMaxPos;
       aResult.beam_center_x = (double)xMaxPos;
       aResult.beam_center_y = (double)yMaxPos;
       // Center left Pixel
       aSrcPt += yMaxPos * aSrc.dimensions[0] + xMaxPos - 1;
       unsigned long long aBeamSum = *aSrcPt;
-      // Center Pixel
+      aResult.max_pixel_value = (unsigned int)aBeamSum;
+     // Center Pixel
       ++aSrcPt;
       aBeamSum += *aSrcPt;
       // Center right Pixel
@@ -171,13 +175,13 @@ static void _max_intensity(const Data &aSrc,
       aResult.beam_intensity = (double)(aBeamSum) / 5.;
     }
 }
-
+template<class SUMMTYPE>
 double BpmTask::_calculate_fwhm(const Buffer &projectionBuffer,int size,
 				int peak_index,double background_level,
 				int &min_index,int &max_index)
 {
-  const unsigned long long *aProjectionPt = (const unsigned long long*)projectionBuffer.data;
-  unsigned long long max_value = aProjectionPt[peak_index];
+  const SUMMTYPE *aProjectionPt = (const SUMMTYPE*)projectionBuffer.data;
+  SUMMTYPE max_value = aProjectionPt[peak_index];
   double usedBackgroundLevel;
   if(mEnableBackgroundSubstration) 
     usedBackgroundLevel = background_level;
@@ -233,13 +237,14 @@ double BpmTask::_calculate_fwhm(const Buffer &projectionBuffer,int size,
 }
 /** @brief Caluclate the background level around the peak
  */
+template<class SUMMTYPE>
 void BpmTask::_calculate_background(const Buffer &projection,double &background_level,
 				    int min_index,int max_index)
 {
 #if DEBUG
   printf("min_index %d, max_index %d\n",min_index,max_index);
 #endif
-  unsigned long long *aProjectionPt = (unsigned long long*)projection.data;
+  SUMMTYPE *aProjectionPt = (SUMMTYPE*)projection.data;
   if(mEnableBackgroundSubstration)
     background_level = (aProjectionPt[min_index] + aProjectionPt[max_index]) / 2.;
   else
@@ -487,13 +492,13 @@ BpmTask::BpmTask(const BpmTask &aTask) :
   
 }
 
-#define COMPUTE_BEAM_POSITION(XorY,WidthorHeight) \
+#define COMPUTE_BEAM_POSITION(XorY,WidthorHeight,SUMMTYPE)	\
 { \
   int min_index,max_index; \
-  aResult.beam_fwhm_##XorY = _calculate_fwhm(*projection_##XorY,WidthorHeight , \
-					     int(aResult.beam_center_##XorY), \
-					     aResult.mBackgroundLevel##XorY,	\
-					     min_index,max_index); \
+  aResult.beam_fwhm_##XorY = _calculate_fwhm<SUMMTYPE>(*projection_##XorY,WidthorHeight , \
+						       int(aResult.beam_center_##XorY), \
+						       aResult.mBackgroundLevel##XorY, \
+						       min_index,max_index); \
   /* check for strange results */ \
   if(max_index <= min_index || max_index <= 0 || aResult.beam_fwhm_##XorY <= 0.) \
     { \
@@ -523,13 +528,13 @@ BpmTask::BpmTask(const BpmTask &aTask) :
 	} \
       if(min_index < max_index)			\
 	{								\
-	  _calculate_background(*projection_##XorY,aResult.mBackgroundLevel##XorY, \
-				min_index,max_index);			\
+	  _calculate_background<SUMMTYPE>(*projection_##XorY,aResult.mBackgroundLevel##XorY, \
+					  min_index,max_index);		\
 	  /* calculate the beam center */				\
 	  int size = max_index - min_index + 1;				\
 	  Buffer *profile = new Buffer(size * sizeof(double));		\
 	  double *aProfilePt = (double*)profile->data;			\
-	  unsigned long long *aSrcProfilePt = (unsigned long long*)projection_##XorY->data + min_index; \
+	  SUMMTYPE *aSrcProfilePt = (SUMMTYPE*)projection_##XorY->data + min_index; \
 	  for(int i = 0;i < size;++i) /* @todo optimized if needed */	\
 	    aProfilePt[i] = double(aSrcProfilePt[i]);			\
 									\
@@ -543,37 +548,50 @@ BpmTask::BpmTask(const BpmTask &aTask) :
     } \
 }
 
-#define TUNE_FWHM(XorY,WidthorHeight)  \
+#define TUNE_FWHM(XorY,WidthorHeight,SUMMTYPE)		\
 { \
   int min_index,max_index; \
-  aResult.beam_fwhm_##XorY = _calculate_fwhm(*projection_##XorY,WidthorHeight, \
-					_max_intensity_position(*projection_##XorY,WidthorHeight), \
-					aResult.mBackgroundLevelTune##XorY, \
-					min_index,max_index); \
+  aResult.beam_fwhm_##XorY = _calculate_fwhm<SUMMTYPE>(*projection_##XorY,WidthorHeight, \
+						       _max_intensity_position<SUMMTYPE>(*projection_##XorY,WidthorHeight), \
+						       aResult.mBackgroundLevelTune##XorY, \
+						       min_index,max_index); \
  \
   int AOI_margin = (int)round((aResult.beam_fwhm_##XorY * (mAoiExtension - 1)) / 2.); \
   min_index = max(mBorderExclusion,min_index - AOI_margin); \
   max_index = min(max_index + AOI_margin,WidthorHeight - 1 - mBorderExclusion); \
 	       \
-  _calculate_background(*projection_##XorY,aResult.mBackgroundLevelTune##XorY, \
-			min_index,max_index); \
+  _calculate_background<SUMMTYPE>(*projection_##XorY,aResult.mBackgroundLevelTune##XorY, \
+				  min_index,max_index);			\
 }
 
-#define PROCESS(TYPE) \
-{				\
-  _treat_image<TYPE>(aSrc,*projection_x,*projection_y,aResult);  \
-  _max_intensity<TYPE>(aSrc,*projection_x,*projection_y,aResult); \
+#define PROCESS(TYPE,SUMMTYPE)				\
+{							\
+  int aSize = sizeof(SUMMTYPE) * aSrc.dimensions[0];	\
+  projection_x = new Buffer(aSize);		\
+  memset (projection_x->data, 0,aSize);				\
+  aResult.profile_x.dimensions.push_back(aSrc.dimensions[0]);	\
+  aResult.profile_x.setBuffer(projection_x);			\
+								\
+  aSize = sizeof(SUMMTYPE) * aSrc.dimensions[1];		\
+  projection_y = new Buffer(aSize);			\
+  memset (projection_y->data, 0,aSize);				\
+  aResult.profile_y.dimensions.push_back(aSrc.dimensions[1]);	\
+  aResult.profile_y.setBuffer(projection_y);			\
+								\
+									\
+_treat_image<TYPE,SUMMTYPE>(aSrc,*projection_x,*projection_y,aResult);	  \
+_max_intensity<TYPE,SUMMTYPE>(aSrc,*projection_x,*projection_y,aResult);	\
 if(mEnableX || mFwhmTunning) \
-  COMPUTE_BEAM_POSITION(x,aSrc.dimensions[0]); \
+    COMPUTE_BEAM_POSITION(x,aSrc.dimensions[0],SUMMTYPE);	\
 if(mEnableY || mFwhmTunning) \
-  COMPUTE_BEAM_POSITION(y,aSrc.dimensions[1]); \
+    COMPUTE_BEAM_POSITION(y,aSrc.dimensions[1],SUMMTYPE);	\
 if(mFwhmTunning) \
   { \
     if(aResult.beam_fwhm_x > 0. && aResult.beam_fwhm_y > 0.) \
       { \
-	_tune_projection<TYPE>(aSrc,*projection_x,*projection_y,aResult); \
-	TUNE_FWHM(x,aSrc.dimensions[0]); \
-	TUNE_FWHM(y,aSrc.dimensions[1]); \
+	_tune_projection<TYPE,SUMMTYPE>(aSrc,*projection_x,*projection_y,aResult); \
+	TUNE_FWHM(x,aSrc.dimensions[0],SUMMTYPE);				\
+	TUNE_FWHM(y,aSrc.dimensions[1],SUMMTYPE);				\
       } \
   } \
 }
@@ -587,7 +605,7 @@ void BpmTask::process(Data &aInputSrc)
       return;
     }
   else if(!(_RoiX1 < 0 && _RoiX2 < 0 &&
-       _RoiY1 < 0 && _RoiY2 < 0))
+	    _RoiY1 < 0 && _RoiY2 < 0))
     {
       SoftRoi *roiTaskPt = new SoftRoi();
       roiTaskPt->setRoi(_RoiX1,_RoiX2,_RoiY1,_RoiY2);
@@ -608,24 +626,36 @@ void BpmTask::process(Data &aInputSrc)
       aResult.mBackgroundLevelTuney = aLastResult.mBackgroundLevelTuney;
     }
   aResult.frameNumber = aSrc.frameNumber;
-  int aSize = sizeof(unsigned long long) * aSrc.dimensions[0];
-  Buffer *projection_x = new Buffer(aSize);
-  memset (projection_x->data, 0,aSize);
-  
-  aSize = sizeof(unsigned long long) * aSrc.dimensions[1];
-  Buffer *projection_y = new Buffer(aSize);
-  memset (projection_y->data, 0,aSize);
-  switch(aSrc.depth())
+  Buffer *projection_x = NULL,*projection_y = NULL;
+  switch(aSrc.type)
     {
-    case 1: PROCESS(unsigned char);break;
-    case 2: PROCESS(unsigned short);break;
-    case 4: PROCESS(unsigned int);break;
+    case Data::UINT8:
+       PROCESS(unsigned char,int);break;
+    case Data::INT8:
+      PROCESS(char,int);break;
+    case Data::UINT16:
+      PROCESS(unsigned short,int);break;
+    case Data::INT16:
+      PROCESS(short,int);break;
+    case Data::INT32:
+      PROCESS(int,long long);break;
     default:
       // should throw an error
       std::cerr << "BpmManager : Data depth of " << aSrc.depth() << "not implemented " << std::endl;
       goto clean;
     }
- 
+  switch(aSrc.depth())
+    {
+    case 1:
+    case 2:
+      aResult.profile_x.type = Data::INT32;
+      aResult.profile_y.type = Data::INT32;
+      break;
+    default:
+      aResult.profile_x.type = Data::INT64;
+      aResult.profile_y.type = Data::INT64;
+      break;
+    }
  clean:
   projection_x->unref();
   projection_y->unref();
