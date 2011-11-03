@@ -33,7 +33,7 @@ all: libprocesslib.so
 
 
 libprocesslib.so: $(processlib-objs)
-	gcc -shared -o $@ $+ -lgsl -lgslcblas -pthread
+	gcc -shared -o $@ $+ $(LDFLAGS) -lgsl -lgslcblas -pthread
 
 clean:
 	rm -f libprocesslib.so $(processlib-objs) ../core/src/*.P ../tasks/src/*.P 
