@@ -4,7 +4,7 @@
     <parent>
         <groupId>fr.soleil.lib.Lima.Third-party</groupId>
         <artifactId>Processlib</artifactId>
-        <version>1.0.6-SNAPSHOT</version>
+        <version>1.1.1</version>
     </parent>
 
     <groupId>fr.soleil.lib.Lima.Third-party.Processlib</groupId>
@@ -17,7 +17,7 @@
         <dependency>
             <groupId>fr.soleil.lib.Lima.Third-party.Processlib</groupId>
             <artifactId>LimaProcesslibCore-${aol}-shared-${mode}</artifactId>
-            <version>1.0.6-SNAPSHOT</version>
+            <version>1.1.1</version>
         </dependency>
     </dependencies>
 
