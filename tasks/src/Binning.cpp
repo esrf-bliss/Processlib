@@ -56,7 +56,7 @@ inline void _default_binning(Data &aSrcData,Data &aDstData,
 	  if(result  > MAX_VALUE)
 	    aLineDstPt[columnId / xFactor] = MAX_VALUE;
 	  else
-	    aLineDstPt[columnId / xFactor] = result;
+	    aLineDstPt[columnId / xFactor] = (INPUT) result;
 	}
     }
 }

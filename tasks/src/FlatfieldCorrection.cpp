@@ -65,7 +65,7 @@ Data _norm(Data &src)
       i = nbItems;
       float *aFFPt = (float*)aReturnFF.data();
       for(INPUT *aPt = (INPUT*)src.data();i;--i,++aPt,++aFFPt)
-	*aFFPt = float(*aPt) / mean;
+	*aFFPt = float(float(*aPt) / mean) ;
     }
   else
     throw ProcessException("FlatfieldCorrection : Flatfield data mean is 0. !!!");

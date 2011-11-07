@@ -64,7 +64,9 @@ unsigned long long _pthread_time_in_ms(void)
 {
 	struct __timeb64 tb;
 	
-	_ftime64(&tb);
+	//_ftime64(&tb);
+  //#pragma message ( "--- WARNING / _ftime64(&tb) unsafe" )
+	_ftime64_s(&tb);
 	
 	return tb.time * 1000 + tb.millitm;
 }
