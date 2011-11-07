@@ -20,6 +20,9 @@
 // You should have received a copy of the GNU General Public License
 // along with this program; if not, see <http://www.gnu.org/licenses/>.
 //###########################################################################
+
+#pragma warning(disable:4251)
+
 #include <pthread.h>
 #include <map>
 #include <string>

@@ -23,6 +23,8 @@
 #ifndef __POOLTHREAD_H__
 #define __POOLTHREAD_H__
 
+#pragma warning(disable:4251)
+
 #include <list>
 #include <vector>
 #include <pthread.h>

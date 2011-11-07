@@ -214,31 +214,33 @@ Data Flip::process(Data &aData)
     throw ProcessException("Flip : Only manage 2D data");
   else if(_processingInPlaceFlag)
     {
-      switch(_mode)
-	{
-	case FLIP_X:
-	  {
-	    Stat aStat(aData,"Flip X");
-	    _flip_x_inplace(aData);
-	  }
-	  break;
-	case FLIP_Y:
-	  {
-	    Stat aStat(aData,"Flip Y");
-	    _flip_y_inplace(aData);
-	  }
-	  break;
-	case FLIP_ALL:
+	switch(_mode)	{
+		case FLIP_X:
+		{
+			Stat aStat(aData,"Flip X");
+			_flip_x_inplace(aData);
+		}
+		break;
+	
+		case FLIP_Y:
+		{
+			Stat aStat(aData,"Flip Y");
+			_flip_y_inplace(aData);
+		}
+		break;
+	
+		case FLIP_ALL:
 	  {
 	    Stat aStat(aData,"Flip X&Y");
 	    _flip_all_inplace(aData);
 	  }
 	  break;
-	default:
+	
+		default:
 	  break;
-	}
+	  } //sw
       aNewData = aData;
-    }
+    } //if
   else
     {
       aNewData = aData.copyHeader(aData.type);
@@ -250,22 +252,25 @@ Data Flip::process(Data &aData)
 	    _flip_x(aData,aNewData);
 	  }
 	  break;
+
 	case FLIP_Y:
 	  {
 	    Stat aStat(aData,"Flip Y");
 	    _flip_y(aData,aNewData);
 	  }
 	  break;
+	
 	case FLIP_ALL:
 	  {
 	    Stat aStat(aData,"Flip X&Y");
 	    _flip_all(aData,aNewData);
 	  }
 	  break;
+	
 	default:
 	  memcpy(aNewData.data(),aData.data(),aData.size());
 	  break;
-	}
+	  }
     }
   return aNewData;
 }

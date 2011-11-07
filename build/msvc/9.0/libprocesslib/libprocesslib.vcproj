@@ -62,6 +62,7 @@
 			<Tool
 				Name="VCLinkerTool"
 				AdditionalDependencies="libgsl.a libgslcblas.a"
+				OutputFile="$(InputDir)Debug\$(ProjectName).dll"
 				LinkIncremental="2"
 				AdditionalLibraryDirectories="&quot;C:\Program Files\GnuWin32\lib&quot;"
 				GenerateDebugInformation="true"
