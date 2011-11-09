@@ -34,16 +34,24 @@
 #define __DATA_H
 struct DLL_EXPORT Buffer
 {
+  class DLL_EXPORT Callback
+  {
+  public:
+    virtual void destroy(void *dataPt) = 0;
+  };
+
   enum Ownership {MAPPED,SHARED};
   ~Buffer()
   {
+    if(callback)
+      callback->destroy(data);
     pthread_mutex_destroy(&_lock);
   }
-  Buffer() : owner(SHARED),refcount(1),data(NULL) 
+  Buffer() : owner(SHARED),refcount(1),data(NULL),callback(NULL)
   {
     pthread_mutex_init(&_lock,NULL);
   }
-  explicit Buffer(int aSize) :owner(SHARED),refcount(1)
+  explicit Buffer(int aSize) :owner(SHARED),refcount(1),callback(NULL)
   {
 #ifdef __unix
     if(posix_memalign(&data,16,aSize))
@@ -77,6 +85,7 @@ struct DLL_EXPORT Buffer
   volatile int          refcount;
   void			*data;
   pthread_mutex_t	_lock;
+  Callback*		callback;
 };
 struct DLL_EXPORT Data
 {
