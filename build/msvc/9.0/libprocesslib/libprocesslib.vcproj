@@ -250,6 +250,10 @@
 				>
 			</File>
 			<File
+				RelativePath="..\..\..\..\tasks\src\Rotation.cpp"
+				>
+			</File>
+			<File
 				RelativePath="..\..\..\..\core\src\SinkTask.cpp"
 				>
 			</File>
@@ -357,6 +361,10 @@
 			</File>
 			<File
 				RelativePath="..\..\..\..\tasks\include\RoiCounter.h"
+				>
+			</File>
+			<File
+				RelativePath="..\..\..\..\tasks\include\Rotation.h"
 				>
 			</File>
 			<File

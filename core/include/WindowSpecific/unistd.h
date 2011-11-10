@@ -34,12 +34,24 @@
 #define srandom srand
 #define random rand
 
-#define W_OK 2
-#define R_OK 4
+
+#define R_OK    4               /* Test for read permission.  */
+#define W_OK    2               /* Test for write permission.  */
+#define X_OK    1               /* Test for execute permission.  */
+#define F_OK    0               /* Test for existence.  */
 
 #define access _access
 #define ftruncate _chsize
 
 #define ssize_t int
 #define usleep(val) ::Sleep(val/1000)
+
+#ifndef S_ISDIR
+#define S_ISDIR(mode)  (((mode) & S_IFMT) == S_IFDIR)
+#endif
+
+#ifndef S_ISREG
+#define S_ISREG(mode)  (((mode) & S_IFMT) == S_IFREG)
+#endif
+
 #endif /* unistd.h  */
