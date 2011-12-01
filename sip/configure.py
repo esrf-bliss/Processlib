@@ -77,7 +77,8 @@ if platform.system() == 'Windows':
                                '/EHsc']
     makefile.extra_libs = ['libprocesslib']
     #makefile.extra_lib_dirs = ['..\\build']
-    makefile.extra_lib_dirs = ['..\\build\\msvc\\9.0\\libprocesslib\\Debug']
+    #makefile.extra_lib_dirs = ['..\\build\\msvc\\9.0\\libprocesslib\\Debug']
+    makefile.extra_lib_dirs = ['..\\build\\msvc\\9.0\\libprocesslib\\Release']
  
     print "---------- extra_libs", makefile.extra_libs
     print "---------- extra_lib_dirs", makefile.extra_lib_dirs
