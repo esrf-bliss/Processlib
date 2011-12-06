@@ -427,8 +427,6 @@ class PoolThreadMgr
  Py_END_ALLOW_THREADS
 %End
   void setNumberOfThread(int);
-  void setQueueLimit(int);
-  int  queueLimit();
   void setTaskMgr(const TaskMgr *);
   void abort();
   void suspend(bool);
