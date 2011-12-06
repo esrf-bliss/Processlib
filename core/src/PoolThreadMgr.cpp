@@ -185,6 +185,8 @@ bool PoolThreadMgr::wait(double askedTimeout)
       timeout.tv_sec = now.tv_sec + long(askedTimeout);
       timeout.tv_nsec = (now.tv_usec * 1000) + 
 	long((askedTimeout - long(askedTimeout)) * 1e9);
+      if(timeout.tv_nsec >= 1000000000L) // Carry
+	++timeout.tv_sec,timeout.tv_nsec -= 1000000000L;
       Lock aLock(&_lock);
       while(_runningThread)
 	retcode = pthread_cond_timedwait(&_cond,&_lock,&timeout);
