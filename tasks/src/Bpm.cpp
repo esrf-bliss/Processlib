@@ -38,6 +38,7 @@
 #include "PoolThreadMgr.h"
 #include "SoftRoi.h"
 
+
 using namespace Tasks;
 #ifdef __unix
 template<class INPUT> static inline INPUT max(INPUT a,INPUT b)
