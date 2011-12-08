@@ -20,8 +20,8 @@
 // You should have received a copy of the GNU General Public License
 // along with this program; if not, see <http://www.gnu.org/licenses/>.
 //###########################################################################
-#include <iostream>
 #include <math.h>
+#include "ProcessExceptions.h"
 #include "FlatfieldCorrection.h"
 using namespace Tasks;
 
@@ -68,7 +68,7 @@ Data _norm(Data &src)
 	*aFFPt = float(*aPt) / mean;
     }
   else
-    std::cerr << "FlatfieldCorrection : Flatfield data mean is 0. !!!" << std::endl;
+    throw ProcessException("FlatfieldCorrection : Flatfield data mean is 0. !!!");
   return aReturnFF;
 }
 
@@ -87,7 +87,7 @@ static Data _normalize(Data &src)
     case Data::INT64: 	aReturnData = _norm<long long>(src);break;
     case Data::FLOAT: 	aReturnData = _norm<float>(src);break;
     default:
-      std::cerr << "FlatfieldCorrection : flatfield array type not managed" << std::endl;
+      throw ProcessException("FlatfieldCorrection : flatfield array type not managed");
       break;
     }
   return aReturnData;
@@ -139,11 +139,11 @@ Data FlatfieldCorrection::process(Data &aData)
 	  _div<int>(aData.data(),aData.size(),
 		    _flatFieldImage.data());break;
 	default:
-	  std::cerr << "FlatfieldCorrection : data type not yet managed" << std::endl;
+	  throw ProcessException("FlatfieldCorrection : data type not yet managed");
 	  break;
 	}
     }
   else
-    std::cerr << "FlatfieldCorrection : Source image differ from flatfield array" << std::endl;
+    throw ProcessException("FlatfieldCorrection : Source image differ from flatfield array");
   return aData;
 }

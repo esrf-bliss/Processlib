@@ -26,13 +26,13 @@
 #include <gsl/gsl_linalg.h>
 #include <gsl/gsl_multifit.h>
 #include <gsl/gsl_spline.h>
-#include <iostream>
 #include <math.h>
 #ifdef __unix
 #include <sys/time.h>
 #endif
 #include <time.h>
 
+#include "ProcessExceptions.h"
 #include "Bpm.h"
 #include "GslErrorMgr.h"
 #include "PoolThreadMgr.h"
@@ -324,6 +324,7 @@ static void _find_summit(double arr[],int size,int &first_point,int &nb_points)
 
   double threshold = max * THRESHOLD;
   nb_points = 0;
+  first_point = -1;
   for(int i = 0;i < size;i++)
     if(arr[i] > threshold)
       {
@@ -440,7 +441,7 @@ static inline double _compute_center(double y[],int ly)
 #ifdef DEBUG
 		  printf("ERROR! result = -1.0\n");
 #endif
-		  std::cerr << GslErrorMgr::get().lastErrorMsg() << std::endl;
+		  throw ProcessException(GslErrorMgr::get().lastErrorMsg());
 		  GslErrorMgr::get().resetErrorMsg();
 		}
 	    }
@@ -600,10 +601,7 @@ void BpmTask::process(Data &aInputSrc)
 {
   Data aSrc;
   if(aInputSrc.dimensions.size() != 2)
-    {
-      std::cerr << "BpmTask : Only manage 2D data " << std::endl;
-      return;
-    }
+    throw ProcessException("BpmTask : Only manage 2D data");
   else if(!(_RoiX1 < 0 && _RoiX2 < 0 &&
 	    _RoiY1 < 0 && _RoiY2 < 0))
     {
@@ -630,7 +628,7 @@ void BpmTask::process(Data &aInputSrc)
   switch(aSrc.type)
     {
     case Data::UINT8:
-       PROCESS(unsigned char,int);break;
+      PROCESS(unsigned char,int);break;
     case Data::INT8:
       PROCESS(char,int);break;
     case Data::UINT16:
@@ -640,9 +638,11 @@ void BpmTask::process(Data &aInputSrc)
     case Data::INT32:
       PROCESS(int,long long);break;
     default:
-      // should throw an error
-      std::cerr << "BpmManager : Data depth of " << aSrc.depth() << "not implemented " << std::endl;
-      goto clean;
+      {
+	char aBuffer[256];
+	snprintf(aBuffer,sizeof(aBuffer),"BpmManager : Data depth of %d not implemented",aSrc.depth());
+	throw ProcessException(aBuffer);
+      }
     }
   switch(aSrc.depth())
     {
@@ -656,7 +656,7 @@ void BpmTask::process(Data &aInputSrc)
       aResult.profile_y.type = Data::INT64;
       break;
     }
- clean:
+
   projection_x->unref();
   projection_y->unref();
   if(!(_RoiX1 < 0 && _RoiX2 < 0 &&

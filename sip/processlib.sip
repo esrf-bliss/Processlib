@@ -401,6 +401,12 @@ class TaskMgr
 #include <TaskMgr.h>
 %End
 public:
+  class EventCallback
+  {
+  public:
+    virtual void error(Data&,const char*);
+  };
+
   TaskMgr();
   TaskMgr(const TaskMgr&);
   ~TaskMgr();
@@ -408,6 +414,7 @@ public:
   void setLinkTask(int aStage,LinkTask *);
   void addSinkTask(int aStage,SinkTaskBase*);
   void setInputData(Data &);
+  void setEventCallback(TaskMgr::EventCallback *);
   void syncProcess();
 };
 

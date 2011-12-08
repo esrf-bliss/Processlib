@@ -20,9 +20,9 @@
 // You should have received a copy of the GNU General Public License
 // along with this program; if not, see <http://www.gnu.org/licenses/>.
 //###########################################################################
+#include "ProcessExceptions.h"
 #include "Binning.h"
 #include "Stat.h"
-#include <iostream>
 #include <sstream>
 using namespace Tasks;
 
@@ -102,7 +102,7 @@ Data Binning::process(Data &aData)
 {
   Data aNewData = aData;
   if(aData.dimensions.size() != 2)
-    std::cerr << "Binning : Only manage 2D data " << std::endl;
+    throw ProcessException("Binning : Only manage 2D data");
   else if(!aData.empty())
     {
       std::stringstream info;
@@ -135,7 +135,7 @@ Data Binning::process(Data &aData)
 		case Data::UINT32:
 		  _binning2x2<unsigned int>(aData,aNewData,mXFactor);break;
 		default:
-		  std::cerr << "Binning : Data type not managed" << std::endl;
+		  throw ProcessException("Binning : Data type not managed");
 		  break;
 		}	  
 	    }
@@ -160,7 +160,7 @@ Data Binning::process(Data &aData)
 		case Data::UINT32:
 		  _default_binning<unsigned int>(aData,aNewData,mXFactor,mYFactor);break;
 		default:
-		  std::cerr << "Binning : Data type not managed" << std::endl;
+		  throw ProcessException("Binning : Data type not managed");
 		  break;
 		}
 	       if(_processingInPlaceFlag)
@@ -168,10 +168,10 @@ Data Binning::process(Data &aData)
 	    }
 	}
       else
-	std::cerr << "Binning : Factor as not been set" << std::endl;
+	throw ProcessException("Binning : Factor as not been set");
     }
   else
-    std::cerr << "Binning : Data is empty!" << std::endl;
+    throw ProcessException("Binning : Data is empty!");
   return aNewData;
 }
 

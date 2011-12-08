@@ -27,6 +27,7 @@
 #include <errno.h>
 #include "PoolThreadMgr.h"
 #include "TaskMgr.h"
+#include "ProcessExceptions.h"
 
 //Static variable
 static const int NB_DEFAULT_THREADS = 2;
@@ -210,8 +211,13 @@ void* PoolThreadMgr::_run(void *arg)
 	    {
 	      aNextTask->process();
 	    }
+	  catch(ProcessException &exp)
+	    {
+	      aNextTask->error(exp.getErrMsg());
+	    }
 	  catch(...)
 	    {
+	      aNextTask->error("Unknowed exception!");
 	    }
 	  aLock.lock();
 	  delete aNextTask;
