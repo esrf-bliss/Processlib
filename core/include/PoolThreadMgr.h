@@ -23,7 +23,9 @@
 #ifndef __POOLTHREAD_H__
 #define __POOLTHREAD_H__
 
+#ifndef __unix
 #pragma warning(disable:4251)
+#endif
 
 #include <list>
 #include <vector>
