@@ -72,7 +72,11 @@ struct DLL_EXPORT Buffer
     if(!(--refcount))
       {
 	if(owner == SHARED && data)
+#ifdef __unix
 	  free(data);
+#else
+	_aligned_free(data);
+#endif
 	pthread_mutex_unlock(&_lock);
 	delete this;
       }
