@@ -47,7 +47,9 @@ PoolThreadMgr::PoolThreadMgr()
 
 PoolThreadMgr::~PoolThreadMgr()
 {
+#ifdef __unix
   quit();
+#endif
   pthread_mutex_destroy(&_lock);
   pthread_cond_destroy(&_cond);
 }
