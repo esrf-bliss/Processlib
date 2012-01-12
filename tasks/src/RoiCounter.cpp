@@ -20,6 +20,7 @@
 // You should have received a copy of the GNU General Public License
 // along with this program; if not, see <http://www.gnu.org/licenses/>.
 //###########################################################################
+#include "ProcessExceptions.h"
 #include "RoiCounter.h"
 using namespace Tasks;
 #include <math.h>
@@ -130,10 +131,7 @@ void RoiCounterTask::process(Data &aData)
 {
   //_check_roi(_x,_y,_width,_height,aData);
   if(aData.dimensions.size() != 2)
-    {
-      std::cerr << "RoiCounterTask : Only manage 2D data " << std::endl;
-      return;
-    }
+    throw ProcessException("RoiCounterTask : Only manage 2D data");
 
   RoiCounterResult aResult;
   aResult.frameNumber = aData.frameNumber;
@@ -268,7 +266,7 @@ void RoiCounterTask::process(Data &aData)
 	}
     }
   else
-    std::cerr << "RoiCounter : Source image size differ from mask" << std::endl;
+    throw ProcessException("RoiCounter : Source image size differ from mask");
 
   _mgr.setResult(aResult);
 }

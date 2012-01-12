@@ -20,6 +20,7 @@
 // You should have received a copy of the GNU General Public License
 // along with this program; if not, see <http://www.gnu.org/licenses/>.
 //###########################################################################
+#include "ProcessExceptions.h"
 #include "Roi2Spectrum.h"
 using namespace Tasks;
 
@@ -73,10 +74,7 @@ void Roi2SpectrumTask::process(Data &aData)
   Roi2SpectrumResult aResult;
   aResult.frameNumber = aData.frameNumber;
   if(aData.dimensions.size() != 2)
-    {
-      std::cerr << "Roi2SpectrumResult : Only manage 2D data " << std::endl;
-      return;
-    }
+    throw ProcessException("Roi2SpectrumResult : Only manage 2D data");
 
   if(_width > 0 && _height > 0)
     {
@@ -97,8 +95,7 @@ void Roi2SpectrumTask::process(Data &aData)
 	  break;
 	default:
 	  aResult.errorCode = Roi2SpectrumManager::NOT_MANAGED;
-	  std::cerr << "Roi2SpectrumTask : type not yet managed" << std::endl;
-	  goto end;
+	  throw ProcessException("Roi2SpectrumTask : type not yet managed");
 	}
 
       aResult.spectrum.dimensions.push_back((_mode == LINES_SUM) ? _width : _height);
@@ -164,6 +161,5 @@ void Roi2SpectrumTask::process(Data &aData)
 	}
     }
 
- end:
   _mgr.setResult(aResult);
 }

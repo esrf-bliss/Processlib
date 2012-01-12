@@ -43,12 +43,19 @@ class DLL_EXPORT TaskMgr
   typedef std::deque<Task*> StageTask;
   
 public:
+  class EventCallback
+  {
+  public:
+    virtual void error(Data&,const char*) {}
+  };
+
   class TaskWrap
   {
     friend class TaskMgr;
   public:
     virtual ~TaskWrap(){};
     virtual void process() = 0;
+    virtual void error(const std::string &errMsg) = 0;
   protected:
     TaskWrap(TaskMgr &aMgr) : _Mgr(aMgr) {};
 
@@ -58,6 +65,8 @@ public:
       {_Mgr._endSinkTask(aFinnishedTask);}
     inline void _setNextData(Data &aNextData)
       {_Mgr._nextData = aNextData;}
+    inline void _callError(Data &aData,const char *msg)
+      {_Mgr._callError(aData,msg);}
     TaskMgr &_Mgr;
   };
   friend class TaskWrap;
@@ -71,6 +80,7 @@ public:
   void addSinkTask(int aStage,SinkTaskBase *);
   void getLastTask(std::pair<int,LinkTask*>&,
 		   std::pair<int,SinkTaskBase*>&);
+  void setEventCallback(EventCallback *);
   TaskWrap* next();
   //@brief do all the task synchronously
   void syncProcess();
@@ -81,10 +91,12 @@ private:
   int				_nbPendingSinkTask;
   Data       			_currentData;
   Data       			_nextData;
+  EventCallback*		_eventCBK;
 
   void _endLinkTask(LinkTask *aFinnishedTask);
   void _endSinkTask(SinkTaskBase *aFinnishedTask);
   void _goToNextStage();
+  void _callError(Data&,const char*);
 };
 
 #endif // __TASKMGR_H

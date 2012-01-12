@@ -20,6 +20,7 @@
 // You should have received a copy of the GNU General Public License
 // along with this program; if not, see <http://www.gnu.org/licenses/>.
 //###########################################################################
+#include "ProcessExceptions.h"
 #include "SoftRoi.h"
 #include "Stat.h"
 #include <string.h>
@@ -57,7 +58,7 @@ static inline int min(int a,int b) {return a < b ? a : b;}
 Data SoftRoi::process(Data &aData)
 {
   if(aData.dimensions.size() != 2)
-    std::cerr << "SoftRoi : Only manage 2D data " << std::endl;
+    throw ProcessException("SoftRoi : Only manage 2D data");
   else if(_x1 >= 0 && _y1 >= 0 &&
 	  _x2 >=0 && _y2 >= 0)
     {

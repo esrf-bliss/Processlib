@@ -20,6 +20,7 @@
 // You should have received a copy of the GNU General Public License
 // along with this program; if not, see <http://www.gnu.org/licenses/>.
 //###########################################################################
+#include "ProcessExceptions.h"
 #include "Rotation.h"
 #include "Stat.h"
 using namespace Tasks;
@@ -86,7 +87,7 @@ Data Rotation::process(Data &aData)
 {
   Data aNewData;
   if(aData.dimensions.size() != 2)
-    std::cerr << "Rotation : Only manage 2D data " << std::endl;
+    throw ProcessException("Rotation : Only manage 2D data");
   else
     {
       Type aType = m_type;
@@ -128,8 +129,7 @@ Data Rotation::process(Data &aData)
 		_rotate_180<int>(aData,aNewData);
 		break;
 	      default:
-		std::cerr << "Rotation : type not managed yet" << std::endl;
-		return aData;
+		throw ProcessException("Rotation : type not managed yet");
 	      }
 	  }
 	  break;
@@ -150,8 +150,7 @@ Data Rotation::process(Data &aData)
 		_rotate_270<int>(aData,aNewData);
 		break;
 	      default:
-		std::cerr << "Rotation : type not managed yet" << std::endl;
-		return aData;
+		throw ProcessException("Rotation : type not managed yet");
 	      }
 	  }
 	  break;
@@ -172,8 +171,7 @@ Data Rotation::process(Data &aData)
 		_rotate_90<int>(aData,aNewData);
 		break;
 	      default:
-		std::cerr << "Rotation : type not managed yet" << std::endl;
-		return aData;
+		throw ProcessException("Rotation : type not managed yet");
 	      }
 	  }
 	  break;

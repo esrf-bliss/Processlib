@@ -20,6 +20,10 @@
 // You should have received a copy of the GNU General Public License
 // along with this program; if not, see <http://www.gnu.org/licenses/>.
 //###########################################################################
+#ifndef __unix
+#pragma warning(disable:4251)
+#endif
+
 #include <stdlib.h>
 #include <iostream>
 #include <pthread.h>
@@ -68,7 +72,11 @@ struct DLL_EXPORT Buffer
     if(!(--refcount))
       {
 	if(owner == SHARED && data)
+#ifdef __unix
 	  free(data);
+#else
+	_aligned_free(data);
+#endif
 	pthread_mutex_unlock(&_lock);
 	delete this;
       }

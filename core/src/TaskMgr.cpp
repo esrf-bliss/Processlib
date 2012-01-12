@@ -45,6 +45,13 @@ public:
       eventCbkPt->finished(aResult);
     _setNextData(aResult);
   }
+  void error(const std::string &errMsg)
+  {
+    TaskEventCallback* eventCbkPt = _LinkTask->getEventCallback();
+    if(eventCbkPt)
+      eventCbkPt->error(_currentData,errMsg.c_str());
+    _callError(_currentData,errMsg.c_str());
+  }
 private:
   LinkTask	*_LinkTask;
   Data          _currentData;
@@ -69,6 +76,12 @@ public:
     _SinkTask->process(_currentData);
     if(eventCbkPt)
       eventCbkPt->finished(_currentData);
+  }
+  void error(const std::string &errMsg)
+  {
+    TaskEventCallback* eventCbkPt = _SinkTask->getEventCallback();
+    eventCbkPt->error(_currentData,errMsg.c_str());
+    _callError(_currentData,errMsg.c_str());
   }
 private:
   SinkTaskBase	*_SinkTask;
@@ -103,9 +116,10 @@ TaskMgr::Task::~Task()
     (*i)->unref();
 }
 
-TaskMgr::TaskMgr() : _PendingLinkTask(NULL),_initStageFlag(false) {}
+TaskMgr::TaskMgr() : _PendingLinkTask(NULL),_initStageFlag(false),
+		     _eventCBK(NULL) {}
 
-TaskMgr::TaskMgr(const TaskMgr &aMgr)
+TaskMgr::TaskMgr(const TaskMgr &aMgr) : _eventCBK(aMgr._eventCBK)
 {
   for(StageTask::const_iterator i = aMgr._Tasks.begin();
       i != aMgr._Tasks.end();++i)
@@ -172,6 +186,10 @@ void TaskMgr::getLastTask(std::pair<int,LinkTask*> &aLastLink,
 	  aLastSink.second = aTaskPt->_sinkTaskQueue.back();
 	}
     }
+}
+void TaskMgr::setEventCallback(TaskMgr::EventCallback *cbk)
+{
+  _eventCBK = cbk;
 }
 
 TaskMgr::TaskWrap* TaskMgr::next()
@@ -246,6 +264,12 @@ void TaskMgr::_goToNextStage()
       _initStageFlag = false;
       PoolThreadMgr::get().addProcess(this,false); // Re insert in the Poll
     }
+}
+
+void TaskMgr::_callError(Data &aData,const char *msg)
+{
+  if(_eventCBK)
+    _eventCBK->error(aData,msg);
 }
 
 void TaskMgr::syncProcess()

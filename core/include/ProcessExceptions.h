@@ -1,6 +1,5 @@
 //###########################################################################
-// This file is part of ProcessLib, a submodule of LImA project the
-// Library for Image Acquisition
+// This file is part of LImA, a Library for Image Acquisition
 //
 // Copyright (C) : 2009-2011
 // European Synchrotron Radiation Facility
@@ -20,38 +19,16 @@
 // You should have received a copy of the GNU General Public License
 // along with this program; if not, see <http://www.gnu.org/licenses/>.
 //###########################################################################
-#ifndef _UNISTD_H
-#define _UNISTD_H        1
+#ifndef PROCESS_EXCEPTIONS_H
+#define PROCESS_EXCEPTIONS_H
+#include <string>
 
-/* This file intended to serve as a drop-in replacement for 
- *  unistd.h on Windows
- *  Please add functionality as neeeded 
- */
-
-#include <stdlib.h>
-#include <io.h>
-
-#define srandom srand
-#define random rand
-
-
-#define R_OK    4               /* Test for read permission.  */
-#define W_OK    2               /* Test for write permission.  */
-#define X_OK    1               /* Test for execute permission.  */
-#define F_OK    0               /* Test for existence.  */
-
-#define access _access
-#define ftruncate _chsize
-
-#define ssize_t int
-#define usleep(val) ::Sleep(val/1000)
-
-#ifndef S_ISDIR
-#define S_ISDIR(mode)  (((mode) & S_IFMT) == S_IFDIR)
+class ProcessException
+{
+ public:
+  ProcessException(const char *msg) : m_msg(msg) {}
+  std::string& getErrMsg() const {return m_msg;}
+ private:
+  mutable std::string m_msg;
+};
 #endif
-
-#ifndef S_ISREG
-#define S_ISREG(mode)  (((mode) & S_IFMT) == S_IFREG)
-#endif
-
-#endif /* unistd.h  */

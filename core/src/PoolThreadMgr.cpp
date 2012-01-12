@@ -27,10 +27,10 @@
 #include <errno.h>
 #include "PoolThreadMgr.h"
 #include "TaskMgr.h"
+#include "ProcessExceptions.h"
 
 //Static variable
 static const int NB_DEFAULT_THREADS = 2;
-static const int QUEUE_DEFAULT_LIMIT = 8;
 PoolThreadMgr PoolThreadMgr::_processMgr;
 
 PoolThreadMgr::PoolThreadMgr()
@@ -41,14 +41,15 @@ PoolThreadMgr::PoolThreadMgr()
   _stopFlag = false;
   _suspendFlag = false;
   _runningThread = 0;
-  _queueLimit = QUEUE_DEFAULT_LIMIT;
   _taskMgr = NULL;
   _createProcessThread(NB_DEFAULT_THREADS);
 }
 
 PoolThreadMgr::~PoolThreadMgr()
 {
+#ifdef __unix
   quit();
+#endif
   pthread_mutex_destroy(&_lock);
   pthread_cond_destroy(&_cond);
 }
@@ -74,8 +75,6 @@ void PoolThreadMgr::removeProcess(TaskMgr *aProcess,bool aFlag)
       if(*i == aProcess)
        {
          _processQueue.erase(i);
-         if(_queueLimit == int(_processQueue.size()))
-           pthread_cond_broadcast(&_cond);
          break;
        }
     }
@@ -94,23 +93,6 @@ void PoolThreadMgr::setNumberOfThread(int nbThread)
       quit();
       _createProcessThread(nbThread);
     }
-}
-/** @brief set the process queue limit.
-    This methode limit the number of process queued by startNewProcess
-    @see startNewProcess
-    @param size the queue size limit, if <= 0 unlimited
-*/
-void PoolThreadMgr::setQueueLimit(int size)
-{
-  Lock aLock(&_lock);
-  _queueLimit = size;
-}
-/** @brief get the max lenght queue process
- */
-int PoolThreadMgr::queueLimit()
-{
-  Lock aLock(&_lock);
-  return _queueLimit;
 }
 /** @brief set the image processing mgr 
  *
@@ -185,6 +167,8 @@ bool PoolThreadMgr::wait(double askedTimeout)
       timeout.tv_sec = now.tv_sec + long(askedTimeout);
       timeout.tv_nsec = (now.tv_usec * 1000) + 
 	long((askedTimeout - long(askedTimeout)) * 1e9);
+      if(timeout.tv_nsec >= 1000000000L) // Carry
+	++timeout.tv_sec,timeout.tv_nsec -= 1000000000L;
       Lock aLock(&_lock);
       while(_runningThread)
 	retcode = pthread_cond_timedwait(&_cond,&_lock,&timeout);
@@ -229,8 +213,13 @@ void* PoolThreadMgr::_run(void *arg)
 	    {
 	      aNextTask->process();
 	    }
+	  catch(ProcessException &exp)
+	    {
+	      aNextTask->error(exp.getErrMsg());
+	    }
 	  catch(...)
 	    {
+	      aNextTask->error("Unknowed exception!");
 	    }
 	  aLock.lock();
 	  delete aNextTask;
@@ -256,81 +245,4 @@ PoolThreadMgr& PoolThreadMgr::get() throw()
   return PoolThreadMgr::_processMgr;
 }
 #endif
-/** @brief this function is the entry point of the processing library.
- *
- * This function is usually called by an external acquisition library.
- * new process is limited by the queue limit size @see setQueueLimit
- * @param frameNumber the image unique id
- * @param depth the number of bytes per pixel
- * @param width the image width
- * @param height the image height
- * @param data the array data pointer
- * @return 
- * - STARTED every thing is OK
- * - NO_TASK no task manager defined
- * - BAD_DATA input data not valid
- * - OVERRUN queue limit exceeded 
- */
-START_PROCESS_ERROR startNewProcess(long frameNumber,
-				    int depth,int width,int height,const char *data)
-{
-  const char *errorMessagePt = NULL;
-  START_PROCESS_ERROR errorEnum = NO_TASK;
-  PoolThreadMgr &pollThreadMgr = PoolThreadMgr::get();
-  PoolThreadMgr::Lock aLock(&pollThreadMgr._lock);
-  TaskMgr *aTaskMgr = pollThreadMgr._taskMgr;
 
-  if(aTaskMgr)
-    {
-      if(pollThreadMgr._queueLimit > 0 && 
-	 int(pollThreadMgr._processQueue.size()) > pollThreadMgr._queueLimit)
-	{
-	  errorEnum = OVERRUN;
-	  errorMessagePt = "ProcessLib overrun";
-	  goto error;
-	}
-
-      //Init new Data
-      Data aNewData = Data();
-      aNewData.frameNumber = frameNumber;
-      aNewData.dimensions.push_back(width);
-      aNewData.dimensions.push_back(height);
-      switch(depth)
-	{
-	case 1: aNewData.type = Data::UINT8;break;
-	case 2: aNewData.type = Data::UINT16;break;
-	case 4: aNewData.type = Data::UINT32;break;
-	case 8: aNewData.type = Data::UINT64;break;
-	default:
-	  errorMessagePt = "Depth not managed";
-	  errorEnum = BAD_DATA;
-	  goto error;
-	}
-      if(data)
-	{
-	  Buffer *aNewBuffer = new Buffer();
-	  aNewBuffer->owner = Buffer::MAPPED;
-	  aNewBuffer->data = (void*)data;
-	  aNewData.setBuffer(aNewBuffer);
-	  aNewBuffer->unref();
-	}
-      else
-	{
-	  errorMessagePt = "Data array is empty";
-	  errorEnum = BAD_DATA;
-	  goto error;
-	}
-
-      TaskMgr *aNewTaskPt = new TaskMgr(*aTaskMgr);
-      aNewTaskPt->setInputData(aNewData);
-      pollThreadMgr.addProcess(aNewTaskPt,false);
-      errorEnum = STARTED;	// OK
-    }
-  else
-    errorMessagePt = "There is no image chain process set";
-  
- error:
-  if(errorMessagePt)
-    std::cerr << "Processlib core : " << errorMessagePt << std::endl;
-  return errorEnum;
-}

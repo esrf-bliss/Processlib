@@ -20,6 +20,8 @@
 // You should have received a copy of the GNU General Public License
 // along with this program; if not, see <http://www.gnu.org/licenses/>.
 //###########################################################################
+#include <stdio.h>
+#include "ProcessExceptions.h"
 #include "Mask.h"
 using namespace Tasks;
 
@@ -182,6 +184,10 @@ Data Mask::process(Data &aData)
 
  error:
   if(errorMsgPt)
-    std::cerr << "Mask : " << errorMsgPt << std::endl;
+    {
+      char aBuffer[256];
+      snprintf(aBuffer,sizeof(aBuffer),"Mask : %s",errorMsgPt);
+      throw ProcessException(aBuffer);
+    }
   return Data();
 }
