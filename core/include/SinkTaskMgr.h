@@ -38,7 +38,7 @@
 
 
 template<class Result>
-class SinkTaskMgr
+class DLL_EXPORT SinkTaskMgr
 {
   typedef std::vector<Result> FrameResultList;
 public:
@@ -77,7 +77,7 @@ private:
   int				_refCounter;
 };
 
-#ifdef __unix
+#if (defined __unix || defined LIBPROCESSLIB_EXPORTS)
 #include "SinkTaskMgr.i"
 #endif
 

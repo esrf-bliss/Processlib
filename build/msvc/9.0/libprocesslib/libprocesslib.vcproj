@@ -380,6 +380,10 @@
 				>
 			</File>
 			<File
+				RelativePath="..\..\..\..\core\include\SinkTaskMgr.i"
+				>
+			</File>
+			<File
 				RelativePath="..\..\..\..\tasks\include\SoftRoi.h"
 				>
 			</File>

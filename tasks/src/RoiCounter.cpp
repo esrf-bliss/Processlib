@@ -272,3 +272,27 @@ void RoiCounterTask::process(Data &aData)
 }
 
 
+#ifndef __unix
+extern "C"
+{
+  static void _impl_bpm()
+  {
+    RoiCounterManager *RoiCounterMgr = new RoiCounterManager();
+
+    RoiCounterMgr->setMode(RoiCounterManager::Counter);
+    RoiCounterMgr->getResult();
+    std::list<RoiCounterResult> aResult;
+    RoiCounterMgr->getHistory(aResult);
+    RoiCounterMgr->resizeHistory(10);
+    RoiCounterMgr->resetHistory();
+    RoiCounterMgr->historySize();
+    RoiCounterMgr->lastFrameNumber();
+    RoiCounterMgr->ref();
+    RoiCounterMgr->unref();
+
+    RoiCounterTask *roiCounterTask = new RoiCounterTask(*RoiCounterMgr);
+    roiCounterTask->ref();
+    roiCounterTask->unref();
+  }
+}
+#endif

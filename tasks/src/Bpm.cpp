@@ -690,3 +690,28 @@ void BpmTask::getRoi(int &x1,int &x2,
   x1 = _RoiX1,x2 = _RoiX2;
   y1 = _RoiY1,y2 = _RoiY2;
 }
+
+#ifndef __unix
+extern "C"
+{
+  static void _impl_bpm()
+  {
+    BpmManager *bpmMgr = new BpmManager();
+
+    bpmMgr->setMode(BpmManager::Counter);
+    bpmMgr->getResult();
+    std::list<BpmResult> aResult;
+    bpmMgr->getHistory(aResult);
+    bpmMgr->resizeHistory(10);
+    bpmMgr->resetHistory();
+    bpmMgr->historySize();
+    bpmMgr->lastFrameNumber();
+    bpmMgr->ref();
+    bpmMgr->unref();
+
+    BpmTask *bpmTask = new BpmTask(*bpmMgr);
+    bpmTask->ref();
+    bpmTask->unref();
+  }
+}
+#endif

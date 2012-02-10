@@ -163,3 +163,28 @@ void Roi2SpectrumTask::process(Data &aData)
 
   _mgr.setResult(aResult);
 }
+
+#ifndef __unix
+extern "C"
+{
+  static void _impl_bpm()
+  {
+    Roi2SpectrumManager *roi2SpectrumMgr = new Roi2SpectrumManager();
+
+    roi2SpectrumMgr->setMode(Roi2SpectrumManager::Counter);
+    roi2SpectrumMgr->getResult();
+    std::list<Roi2SpectrumResult> aResult;
+    roi2SpectrumMgr->getHistory(aResult);
+    roi2SpectrumMgr->resizeHistory(10);
+    roi2SpectrumMgr->resetHistory();
+    roi2SpectrumMgr->historySize();
+    roi2SpectrumMgr->lastFrameNumber();
+    roi2SpectrumMgr->ref();
+    roi2SpectrumMgr->unref();
+
+    Roi2SpectrumTask *roiCounterTask = new Roi2SpectrumTask(*roi2SpectrumMgr);
+    roiCounterTask->ref();
+    roiCounterTask->unref();
+  }
+}
+#endif
