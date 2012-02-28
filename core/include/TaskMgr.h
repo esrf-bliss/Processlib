@@ -46,6 +46,7 @@ public:
   class EventCallback
   {
   public:
+    virtual ~EventCallback() {}
     virtual void error(Data&,const char*) {}
   };
 

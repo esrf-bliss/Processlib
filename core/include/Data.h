@@ -41,6 +41,7 @@ struct DLL_EXPORT Buffer
   class DLL_EXPORT Callback
   {
   public:
+    virtual ~Callback() {}
     virtual void destroy(void *dataPt) = 0;
   };
 
