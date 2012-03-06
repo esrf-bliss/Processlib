@@ -136,7 +136,7 @@ for(std::map<std::string,std::string>::iterator i = header.begin();
 if(str.str().size() > 1)
   str.seekp (-1, str.end);
 str << "}";
-std::string& tmpString = str.str();
+const std::string& tmpString = str.str();
 sipRes = tmpString.c_str();
 %End
 
@@ -155,7 +155,7 @@ for(std::map<std::string,std::string>::iterator i = header.begin();
 if(str.str().size() > 1)
   str.seekp (-1, str.end);
 str << "}";
-std::string& tmpString = str.str();
+const std::string& tmpString = str.str();
 sipRes = tmpString.c_str();
 %End
 void __enter__();
@@ -332,7 +332,7 @@ extern "C"
 %MethodCode
 	std::ostringstream str;
 	str << *sipCpp;	
-	std::string& tmpString = str.str();
+	const std::string& tmpString = str.str();
 	sipRes = tmpString.c_str();
 %End
 };
