@@ -77,7 +77,7 @@ private:
   int				_refCounter;
 };
 
-#if (defined __unix || defined LIBPROCESSLIB_EXPORTS || defined LIMACORE_EXPORTS)
+#if (defined __unix || defined LIBPROCESSLIB_EXPORTS)
 #include "SinkTaskMgr.i"
 #endif
 
