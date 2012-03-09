@@ -28,15 +28,24 @@ SRCS = $(processlib-objs:.o=.cpp)
 INCLUDES=-I../core/include -I../tasks/include
 CXXFLAGS += $(INCLUDES) -fPIC -Wall -pthread -O3
 
+version-file := ../VERSION
+full-version := $(shell cat $(version-file))
+lib-version := $(shell echo $(full-version) |cut -d. -f1-2)
 
-all: libprocesslib.so
+full-name := libprocesslib.so.$(full-version)
+lib-name := libprocesslib.so.$(lib-version)
+LDFLAGS += -Wl,-soname,$(lib-name)
+
+all: $(full-name)
 
 
-libprocesslib.so: $(processlib-objs)
+$(full-name): $(processlib-objs)
 	gcc -shared -o $@ $+ $(LDFLAGS) -lgsl -lgslcblas -pthread
+	ln -sf $(full-name) $(lib-name)
+	ln -sf $(lib-name) libprocesslib.so
 
 clean:
-	rm -f libprocesslib.so $(processlib-objs) ../core/src/*.P ../tasks/src/*.P 
+	rm -f libprocesslib.so $(processlib-objs) ../core/src/*.P ../tasks/src/*.P $(full-name) $(maj-name)
 
 %.o : %.cpp
 	$(COMPILE.cpp) -MD $(CXXFLAGS) -o $@ $<
