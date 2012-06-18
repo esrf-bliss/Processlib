@@ -28,7 +28,10 @@ namespace Tasks
 #include <Mask.h>
 %End
   public:
+    enum Type {STANDARD,DUMMY};
     void setMaskImageData(Data &);
+    void setType(Tasks::Mask::Type);
+    void getType(Tasks::Mask::Type& /Out/) const;
     virtual Data process(Data&);
   };
 };

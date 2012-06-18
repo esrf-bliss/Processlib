@@ -27,14 +27,12 @@ import shutil
 import numpy
 import platform
 
-print "-------------------- copy file:", "processlib.sip","processlib_tmp.sip"
 shutil.copyfile("processlib.sip","processlib_tmp.sip")
 
 ##Append Tasks sip
 sipFile = file("processlib_tmp.sip","a")
 sipFile.write('\n')
 for filename in glob.glob(os.path.join("..","tasks","sip","*.sip")) :
-    print "-------------- include", filename
     sipFile.write('%%Include %s\n' % filename.replace('\\','/'))
 sipFile.close()
 
@@ -44,7 +42,6 @@ sipFile.close()
 build_file = "processlib.sbf"
 config = sipconfig.Configuration()
 
-print "--------- generating code", build_file
 # Run SIP to generate the code.
 # module's specification files using the -I flag.
 cmd = " ".join([config.sip_bin,"-g", "-e","-c", '.',
@@ -79,10 +76,6 @@ if platform.system() == 'Windows':
     #makefile.extra_lib_dirs = ['..\\build']
     #makefile.extra_lib_dirs = ['..\\build\\msvc\\9.0\\libprocesslib\\Debug']
     makefile.extra_lib_dirs = ['..\\build\\msvc\\9.0\\libprocesslib\\Release']
- 
-    print "---------- extra_libs", makefile.extra_libs
-    print "---------- extra_lib_dirs", makefile.extra_lib_dirs
-    
 else:
     makefile.extra_cxxflags = ['-pthread','-I../core/include','-I../tasks/include','-I' + numpy.get_include()]
     makefile.extra_libs = ['pthread','processlib']
@@ -94,7 +87,6 @@ else:
 # None (for me)
 
 # Generate the Makefile itself.
-print "------------------ makefile.generate"
 makefile.generate()
 
 # Now we create the configuration module.  This is done by merging a Python
@@ -106,7 +98,6 @@ content = {
     "processlib_sip_dir":    config.default_sip_dir
 }
 
-print "--------------- create", "processlibconfig.py", "processlibconfig.py.in", content
 # This creates the pixmaptoolsconfig.py module from the pixmaptoolsconfig.py.in
 # template and the dictionary.
 sipconfig.create_config_module("processlibconfig.py", "processlibconfig.py.in", content)

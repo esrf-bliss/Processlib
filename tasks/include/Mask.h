@@ -27,11 +27,15 @@ namespace Tasks
   class DLL_EXPORT Mask : public LinkTask
   {
   public:
+    enum Type {STANDARD,DUMMY};
     Mask();
     Mask(const Mask&);
     void setMaskImageData(Data &);
+    void setType(Type);
+    void getType(Type&) const;
     Data process(Data&);
   private:
     Data _MaskImage;
+    Type _type;
   };
 }
