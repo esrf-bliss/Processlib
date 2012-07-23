@@ -30,7 +30,7 @@
 using namespace Tasks;
 
 template<class INPUT>
-static void _substract_in_place(void *src,int aSize,void *background)
+static void _substract_on_itself(void *src,int aSize,void *background)
 {
   INPUT *aSrcPt,*aBackPt;
   aSrcPt = (INPUT*)src;
@@ -45,7 +45,7 @@ static void _substract_in_place(void *src,int aSize,void *background)
 }
 #ifdef __SSE2__
 template<>
-void _substract_in_place<unsigned short>(void *source,int aSize,void *background)
+void _substract_on_itself<unsigned short>(void *source,int aSize,void *background)
 {
   unsigned short *srcShort,*backgroundShort;
   srcShort = (unsigned short*)source;
@@ -110,7 +110,7 @@ void _substract<unsigned short>(void *source,void *dst,int aSize,void *backgroun
 	  srcShort += 8,backgroundShort += 8,destshort += 8;
 	}
     }
-  for(;n;--n,++srcShort,++backgroundShort,++destshort)
+  for(;n;--n,++srcShort,++backgroundShort)
     {
       if(*srcShort > *backgroundShort)
 	*destshort = *srcShort - *backgroundShort;
@@ -144,23 +144,14 @@ Data BackgroundSubstraction::process(Data &aData)
 	{
 	  switch(aData.type)
 	    {
-	    case Data::INT8:
-	      _substract_in_place<char>(aData.data(),aData.size(),
-					 _backgroundImageData.data());break;
 	    case Data::UINT8:
-	      _substract_in_place<unsigned char>(aData.data(),aData.size(),
+	      _substract_on_itself<unsigned char>(aData.data(),aData.size(),
 						  _backgroundImageData.data());break;
-	    case Data::INT16:
-	      _substract_in_place<short>(aData.data(),aData.size(),
-					  _backgroundImageData.data());break;
 	    case Data::UINT16:
-	      _substract_in_place<unsigned short>(aData.data(),aData.size(),
+	      _substract_on_itself<unsigned short>(aData.data(),aData.size(),
 						   _backgroundImageData.data());break;
-	    case Data::INT32:
-	      _substract_in_place<int>(aData.data(),aData.size(),
-					_backgroundImageData.data());break;
 	    case Data::UINT32:
-	      _substract_in_place<unsigned int>(aData.data(),aData.size(),
+	      _substract_on_itself<unsigned int>(aData.data(),aData.size(),
 						 _backgroundImageData.data());break;
 	    default: break;
 	    }
@@ -171,21 +162,12 @@ Data BackgroundSubstraction::process(Data &aData)
 	  Data aNewData = aData.copyHeader(aData.type);	// get a new data buffer
 	  switch(aData.type)
 	    {
-	    case Data::INT8:
-	      _substract<char>(aData.data(),aNewData.data(),aData.size(),
-			       _backgroundImageData.data());break;
 	    case Data::UINT8:
 	      _substract<unsigned char>(aData.data(),aNewData.data(),aData.size(),
 					_backgroundImageData.data());break;
-	    case Data::INT16:
-	      _substract<short>(aData.data(),aNewData.data(),aData.size(),
-				_backgroundImageData.data());break;
 	    case Data::UINT16:
 	      _substract<unsigned short>(aData.data(),aNewData.data(),aData.size(),
 					 _backgroundImageData.data());break;
-	    case Data::INT32:
-	      _substract<int>(aData.data(),aNewData.data(),aData.size(),
-			      _backgroundImageData.data());break;
 	    case Data::UINT32:
 	      _substract<unsigned int>(aData.data(),aNewData.data(),aData.size(),
 				       _backgroundImageData.data());break;

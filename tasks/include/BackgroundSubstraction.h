@@ -22,6 +22,7 @@
 //###########################################################################
 #ifndef __BACKGROUNDSUBSTRACTION__H_
 #define __BACKGROUNDSUBSTRACTION__H_
+#include "Compatibility.h"
 #include "LinkTask.h"
 namespace Tasks
 {

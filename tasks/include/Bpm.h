@@ -22,7 +22,7 @@
 //###########################################################################
 #ifndef __BPM_H__
 #define __BPM_H__
-
+#include "Compatibility.h"
 #include "SinkTask.h"
 
 namespace Tasks

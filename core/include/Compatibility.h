@@ -24,7 +24,19 @@
 #define __COMPATIBILITY_H__
 
 #ifdef WIN32
-#define DLL_EXPORT __declspec(dllexport)
+# if defined(LIMA_PROCESSCORE_DLL)
+#   define LIMA_PROCESSCORE_DECL_EXPORT __declspec(dllexport)
+#   define LIMA_PROCESSCORE_DECL_IMPORT __declspec(dllimport)
+#   if defined (LIMA_PROCESSCORE_BUILD)
+#     define DLL_EXPORT LIMA_PROCESSCORE_DECL_EXPORT
+#   else
+#     define DLL_EXPORT LIMA_PROCESSCORE_DECL_IMPORT
+#   endif
+# else
+#   define LIMA_PROCESSCORE_DECL_EXPORT
+#   define LIMA_PROCESSCORE_DECL_IMPORT
+#   define DLL_EXPORT
+# endif
 #else
 #define DLL_EXPORT
 #endif

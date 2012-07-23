@@ -23,6 +23,8 @@
 #ifndef __ROICOUNTER_H__
 #define __ROICOUNTER_H__
 
+#include "Compatibility.h"
+
 #include <sstream>
 #include "SinkTask.h"
 
