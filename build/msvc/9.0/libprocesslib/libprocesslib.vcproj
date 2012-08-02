@@ -119,7 +119,7 @@
 				Optimization="2"
 				EnableIntrinsicFunctions="true"
 				AdditionalIncludeDirectories="&quot;C:\Program Files\GnuWin32\include&quot;;..\..\..\..\tasks\include;..\..\..\..\core\include;..\..\..\..\core\include\WindowSpecific"
-				PreprocessorDefinitions="WIN32;NDEBUG;_WINDOWS;_USRDLL;LIBPROCESSLIB_EXPORTS;_WIN32_WINNT=0x0502"
+				PreprocessorDefinitions="WIN32;NDEBUG;_WINDOWS;_USRDLL;LIBPROCESSLIB_EXPORTS;_WIN32_WINNT=0x0502;LIMA_PROCESSCORE_DLL;LIMA_PROCESSCORE_BUILD"
 				RuntimeLibrary="2"
 				EnableFunctionLevelLinking="true"
 				UsePrecompiledHeader="0"
