@@ -20,6 +20,9 @@
 // You should have received a copy of the GNU General Public License
 // along with this program; if not, see <http://www.gnu.org/licenses/>.
 //###########################################################################
+#ifndef __SINKTASKMGR_I
+#define __SINKTASKMGR_I
+
 template<class Result>
 inline bool _history_sort(const Result &A,const Result &B)
 {return A.frameNumber < B.frameNumber;}
@@ -217,3 +220,5 @@ void SinkTaskMgr<Result>::unref()
       delete this;
     }
 }
+
+#endif
