@@ -30,7 +30,6 @@
 #include <time.h>
 #include <errno.h>
 
-#include "Compatibility.h"
 #include <list>
 #include <vector>
 
@@ -78,8 +77,8 @@ private:
   int				_refCounter;
 };
 
-//#if (defined __unix || defined LIBPROCESSLIB_EXPORTS)
+#if (defined __unix || defined LIBPROCESSLIB_EXPORTS)
 #include "SinkTaskMgr.i"
-//#endif
+#endif
 
 #endif

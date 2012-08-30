@@ -22,7 +22,6 @@
 //###########################################################################
 #include "Data.h"
 #include <pthread.h>
-#include "Compatibility.h"
 
 #ifndef __TASKEVENTCALLBACK_H
 #define __TASKEVENTCALLBACK_H
