@@ -92,7 +92,9 @@ private:
   volatile int			     _runningThread;
   std::list<TaskMgr*>   _processQueue;
   std::vector<pthread_t>             _threadID;
+#ifndef WIN32
   static PoolThreadMgr               _processMgr;
+#endif
   TaskMgr		             *_taskMgr;
   static void* _run(void*);
   void _createProcessThread(int aNumber);
