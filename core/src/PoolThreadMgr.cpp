@@ -151,7 +151,7 @@ void PoolThreadMgr::suspend(bool aFlag)
 {
   Lock aLock(&_lock);
   _suspendFlag = aFlag;
-  if(aFlag)
+  if(!aFlag)
     pthread_cond_broadcast(&_cond);
 }
 /** @brief wait until queue is empty
@@ -170,7 +170,7 @@ bool PoolThreadMgr::wait(double askedTimeout)
       if(timeout.tv_nsec >= 1000000000L) // Carry
 	++timeout.tv_sec,timeout.tv_nsec -= 1000000000L;
       Lock aLock(&_lock);
-      while(_runningThread)
+      while(_runningThread && !retcode)
 	retcode = pthread_cond_timedwait(&_cond,&_lock,&timeout);
       return retcode != ETIMEDOUT;
     }
