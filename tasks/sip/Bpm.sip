@@ -79,6 +79,11 @@ namespace Tasks
       int		AOI_min_y;
       int		AOI_max_y;
       unsigned int	border_exclusion;
+      double		mBackgroundLevelx;
+      double		mBackgroundLevely;
+      double		mBackgroundLevelTunex;
+      double		mBackgroundLevelTuney;
+
       Tasks::BpmManager::ErrorCode errorCode;
     };
 

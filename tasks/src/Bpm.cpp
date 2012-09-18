@@ -149,14 +149,21 @@ static void _max_intensity(const Data &aSrc,
   
   int yMaxPos = _max_intensity_position<SUMMTYPE>(projection_y,aSrc.dimensions[1]);
   int xMaxPos = _max_intensity_position<SUMMTYPE>(projection_x,aSrc.dimensions[0]);
-  // get the five pixel values around x_max_pos and y_max_pos
-  if(xMaxPos > 0 && xMaxPos < (aSrc.dimensions[0] - 1) &&
-     yMaxPos > 0 && yMaxPos < (aSrc.dimensions[1] - 1))
+  bool xPositionFound = xMaxPos > 0 && xMaxPos < (aSrc.dimensions[0] - 1);
+  bool yPositionFound = yMaxPos > 0 && yMaxPos < (aSrc.dimensions[1] - 1);
+  if(xPositionFound)
     {
       aResult.max_pixel_x = xMaxPos;
-      aResult.max_pixel_y = yMaxPos;
       aResult.beam_center_x = (double)xMaxPos;
+    }
+  if(yPositionFound)
+    {
+      aResult.max_pixel_y = yMaxPos;
       aResult.beam_center_y = (double)yMaxPos;
+    }
+  // get the five pixel values around x_max_pos and y_max_pos
+  if(xPositionFound && yPositionFound)
+    {
       // Center left Pixel
       aSrcPt += yMaxPos * aSrc.dimensions[0] + xMaxPos - 1;
       unsigned long long aBeamSum = *aSrcPt;
@@ -175,6 +182,8 @@ static void _max_intensity(const Data &aSrc,
       aBeamSum += *aSrcPt;
       aResult.beam_intensity = (double)(aBeamSum) / 5.;
     }
+  else
+    aResult.beam_intensity = -1.;
 }
 template<class SUMMTYPE>
 double BpmTask::_calculate_fwhm(const Buffer &projectionBuffer,int size,
@@ -515,7 +524,7 @@ BpmTask::BpmTask(const BpmTask &aTask) :
       aResult.beam_fwhm_max_##XorY##_index = max_index; \
       if(mRoiAutomatic) \
 	{ \
-	  int AOI_margin = (int)round((aResult.beam_fwhm_##XorY *(mAoiExtension - 1)) / 2.); \
+	  int AOI_margin = (int)round(((max_index - min_index) * (mAoiExtension - 1)) / 2.); \
 	  min_index = max(mBorderExclusion,min_index - AOI_margin); \
 	  max_index = min(max_index + AOI_margin,WidthorHeight - 1 - mBorderExclusion); \
 	  aResult.AOI_min_##XorY = min_index; \
