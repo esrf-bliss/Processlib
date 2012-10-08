@@ -36,6 +36,7 @@ namespace Tasks
   {
     RoiCounterResult() : 
       sum(0.),average(0.),std(0.),
+      min(0.),max(0.),
       frameNumber(-1),
       errorCode(RoiCounterManager::OK)
     {}
@@ -45,6 +46,8 @@ namespace Tasks
     double                       sum;
     double                       average;
     double                       std;
+    double			 min;
+    double			 max;
     int                          frameNumber;
     RoiCounterManager::ErrorCode errorCode;
   };
@@ -55,7 +58,9 @@ namespace Tasks
        << "frameNumber=" << aRoiResult.frameNumber << ", "
        << "sum=" << aRoiResult.sum << ", "
        << "average=" << aRoiResult.average << ", "
-       << "std=" << aRoiResult.std;
+       << "std=" << aRoiResult.std << ", "
+       << "min=" << aRoiResult.min << ", "
+       << "max=" << aRoiResult.max;
     os << ">";
     return os;
   }

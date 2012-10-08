@@ -45,17 +45,27 @@ template<class INPUT> static void _get_average_std(const INPUT *aSrcPt,
 						   int width,int height,
 						   RoiCounterResult &aResult)
 {
+  INPUT aMin,aMax;
+  aMin = aMax = *aSrcPt; // Init
   double aSum = 0.;
   for(int lineId = y;lineId < y + height;++lineId)
     {
       const INPUT *aLinePt = aSrcPt + lineId * widthStep + x;
       for(int i = 0;i < width;++i,++aLinePt)
-	aSum += double(*aLinePt);
+	{
+	  aSum += double(*aLinePt);
+	  if(*aLinePt > aMax)
+	    aMax = *aLinePt;
+	  else if(*aLinePt < aMin)
+	    aMin = *aLinePt;
+	}
     }
 
   aResult.sum = aSum;
   aResult.average = aSum / (width * height);
-  
+  aResult.min = double(aMin);
+  aResult.max = double(aMax);
+
   //STD
   aSum = 0.;
   for(int lineId = y;lineId < y + height;++lineId)
