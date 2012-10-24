@@ -222,3 +222,4 @@ void SinkTaskMgr<Result>::unref()
 }
 
 #endif
+
