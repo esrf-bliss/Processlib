@@ -27,8 +27,8 @@ class ProcessException
 {
  public:
   ProcessException(const char *msg) : m_msg(msg) {}
-  std::string& getErrMsg() const {return m_msg;}
+  const std::string& getErrMsg() const {return m_msg;}
  private:
-  mutable std::string m_msg;
+  std::string m_msg;
 };
 #endif

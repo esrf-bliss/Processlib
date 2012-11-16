@@ -80,7 +80,8 @@ public:
   void error(const std::string &errMsg)
   {
     TaskEventCallback* eventCbkPt = _SinkTask->getEventCallback();
-    eventCbkPt->error(_currentData,errMsg.c_str());
+    if(eventCbkPt)
+      eventCbkPt->error(_currentData,errMsg.c_str());
     _callError(_currentData,errMsg.c_str());
   }
 private:
@@ -125,6 +126,7 @@ TaskMgr::TaskMgr(const TaskMgr &aMgr) : _eventCBK(aMgr._eventCBK)
       i != aMgr._Tasks.end();++i)
     _Tasks.push_back((*i)->copy());
   _currentData = aMgr._currentData;
+  _eventCBK = aMgr._eventCBK;
 }
 
 TaskMgr::~TaskMgr()
