@@ -63,8 +63,8 @@ template<class INPUT> static void _get_average_std(const INPUT *aSrcPt,
 
   aResult.sum = aSum;
   aResult.average = aSum / (width * height);
-  aResult.min = double(aMin);
-  aResult.max = double(aMax);
+  aResult.minValue = double(aMin);
+  aResult.maxValue = double(aMax);
 
   //STD
   aSum = 0.;

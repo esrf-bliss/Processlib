@@ -56,8 +56,8 @@ namespace Tasks
     double                       sum;
     double                       average;
     double                       std;
-    double			 min;
-    double			 max;
+    double			 minValue;
+    double			 maxValue;
     int                          frameNumber;
     Tasks::RoiCounterManager::ErrorCode errorCode;
 
