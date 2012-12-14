@@ -174,7 +174,7 @@ void TaskMgr::getLastTask(std::pair<int,LinkTask*> &aLastLink,
   aLastSink.first = -1,aLastSink.second = NULL;
 
   for(int i = _Tasks.size() - 1;
-      i >= 0 && aLastSink.first < 0 && aLastLink.first < 0;--i)
+      i >= 0 && (aLastSink.first < 0 || aLastLink.first < 0);--i)
     {
       Task *aTaskPt = _Tasks[i];
       if(aLastLink.first < 0 && aTaskPt->_linkTask)
