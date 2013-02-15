@@ -20,6 +20,7 @@
 // You should have received a copy of the GNU General Public License
 // along with this program; if not, see <http://www.gnu.org/licenses/>.
 //###########################################################################
+#ifndef WITHOUT_GSL
 #include <cstring>
 
 #include <gsl/gsl_fft_complex.h>
@@ -725,3 +726,4 @@ extern "C"
   }
 }
 #endif
+#endif //WITHOUT_GSL

@@ -27,13 +27,27 @@ import shutil
 import numpy
 import platform
 
-shutil.copyfile("processlib.sip","processlib_tmp.sip")
+# get sip version
+str_version = sipconfig.version_to_string(sipconfig.Configuration().sip_version)
+versions = [int(x) for x in str_version.split('.')]
+major,minor = versions[0],versions[1]
 
+if major == 4 and minor < 12:
+    shutil.copyfile("processlib_before_4_12.sip","processlib_tmp.sip")
+else:
+    shutil.copyfile("processlib.sip","processlib_tmp.sip")
+
+exclude_sipfile = set()
+
+if platform.system() == 'Windows' and platform.machine() == 'AMD64':
+    exclude_sipfile.add('..\\tasks\\sip\\Bpm.sip')
+    
 ##Append Tasks sip
 sipFile = file("processlib_tmp.sip","a")
 sipFile.write('\n')
 for filename in glob.glob(os.path.join("..","tasks","sip","*.sip")) :
-    sipFile.write('%%Include %s\n' % filename.replace('\\','/'))
+    if filename not in exclude_sipfile:
+	sipFile.write('%%Include %s\n' % filename.replace('\\','/'))
 sipFile.close()
 
 
@@ -73,9 +87,10 @@ if platform.system() == 'Windows':
                                '/I' + numpy.get_include(),
                                '/EHsc']
     makefile.extra_libs = ['libprocesslib']
-    #makefile.extra_lib_dirs = ['..\\build']
-    #makefile.extra_lib_dirs = ['..\\build\\msvc\\9.0\\libprocesslib\\Debug']
-    makefile.extra_lib_dirs = ['..\\build\\msvc\\9.0\\libprocesslib\\Release']
+    if platform.machine() == "AMD64":
+	makefile.extra_lib_dirs = ['..\\build\\msvc\\9.0\\libprocesslib\\x64\\Release']
+    else:
+	makefile.extra_lib_dirs = ['..\\build\\msvc\\9.0\\libprocesslib\\Release']
 else:
     makefile.extra_cxxflags = ['-pthread','-I../core/include','-I../tasks/include','-I' + numpy.get_include()]
     makefile.extra_libs = ['pthread','processlib']

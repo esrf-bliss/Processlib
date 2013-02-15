@@ -31,7 +31,7 @@ if os.access('./Makefile',os.R_OK) :
         os.system('nmake clean')
     else:
         os.system('make clean')
-dont_rm_files = ['processlib.sip','processlibconfig.py.in','configure.py','clean.py','.gitignore','data_header_iterator.h']
+dont_rm_files = ['processlib.sip','processlib_before_4_12.sip','processlibconfig.py.in','configure.py','clean.py','.gitignore','data_header_iterator.h']
 
 for root,dirs,files in os.walk('.') :
     for file_name in files :
