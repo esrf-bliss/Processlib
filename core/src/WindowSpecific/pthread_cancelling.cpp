@@ -78,7 +78,7 @@ int pthread_once(pthread_once_t *o, void (*func)(void))
 }
 
 
-volatile long _pthread_cancelling;
+volatile long _pthread_cancelling = 0;
 
 static void _pthread_invoke_cancel(void)
 {
