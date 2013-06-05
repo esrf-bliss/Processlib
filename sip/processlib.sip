@@ -306,6 +306,8 @@ if(!sipErr)
 }
 %End
 
+  void releaseBuffer();
+
 %TypeCode
 #define PY_ARRAY_UNIQUE_SYMBOL _ProcessLibNumpyArray
 #include "numpy/arrayobject.h"
