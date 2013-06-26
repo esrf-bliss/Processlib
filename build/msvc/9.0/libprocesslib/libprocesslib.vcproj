@@ -141,7 +141,7 @@
 				AdditionalDependencies="libgsl.a libgslcblas.a"
 				OutputFile="$(InputDir)Release\$(ProjectName).dll"
 				LinkIncremental="1"
-				AdditionalLibraryDirectories="&quot;$(GSL_ROOT)\lib&quot;"
+				AdditionalLibraryDirectories="&quot;C:\Program Files\GnuWin32\lib\&quot;;&quot;$(GSL_ROOT)\lib\&quot;"
 				GenerateDebugInformation="true"
 				GenerateMapFile="true"
 				MapExports="true"
