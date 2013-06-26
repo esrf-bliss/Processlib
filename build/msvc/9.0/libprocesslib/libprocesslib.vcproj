@@ -118,7 +118,7 @@
 				Name="VCCLCompilerTool"
 				Optimization="2"
 				EnableIntrinsicFunctions="true"
-				AdditionalIncludeDirectories="&quot;$(GSL_ROOT)\include&quot;;..\..\..\..\tasks\include;..\..\..\..\core\include;..\..\..\..\core\include\WindowSpecific"
+				AdditionalIncludeDirectories="&quot;C:\Program Files\GnuWin32\include&quot;;&quot;$(GSL_ROOT)\include&quot;;..\..\..\..\tasks\include;..\..\..\..\core\include;..\..\..\..\core\include\WindowSpecific"
 				PreprocessorDefinitions="WIN32;NDEBUG;_WINDOWS;_USRDLL;LIBPROCESSLIB_EXPORTS;_WIN32_WINNT=0x0502"
 				RuntimeLibrary="2"
 				EnableFunctionLevelLinking="true"
