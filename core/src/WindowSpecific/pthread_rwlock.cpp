@@ -32,7 +32,7 @@ extern unsigned long long _pthread_time_in_ms_from_timespec(const struct timespe
 int pthread_rwlock_init(pthread_rwlock_t *l, pthread_rwlockattr_t *a)
 {
   (void) a;
-#if (_WIN32_WINNT >= _WIN32_WINNT_LONGHORN)	
+#ifndef PTHREAD_WIN_XP_SYNC	
   InitializeSRWLock(l);
 #else
   l->sema_read = CreateSemaphore(NULL,0,MAX_INT,NULL);
@@ -47,7 +47,7 @@ int pthread_rwlock_init(pthread_rwlock_t *l, pthread_rwlockattr_t *a)
 
 int pthread_rwlock_destroy(pthread_rwlock_t *l)
 {
-#if (_WIN32_WINNT >= _WIN32_WINNT_LONGHORN)	
+#ifndef PTHREAD_WIN_XP_SYNC	
   (void) *l;
 #else
   CloseHandle(l->mutex);
@@ -60,7 +60,7 @@ int pthread_rwlock_destroy(pthread_rwlock_t *l)
 int pthread_rwlock_rdlock(pthread_rwlock_t *l)
 {
   pthread_testcancel();
-#if (_WIN32_WINNT >= _WIN32_WINNT_LONGHORN)	
+#ifndef PTHREAD_WIN_XP_SYNC	
   AcquireSRWLockShared(l);
 #else
   WaitForSingleObject(l->mutex,INFINITE);
@@ -83,7 +83,7 @@ int pthread_rwlock_rdlock(pthread_rwlock_t *l)
 int pthread_rwlock_wrlock(pthread_rwlock_t *l)
 {
   pthread_testcancel();
-#if (_WIN32_WINNT >= _WIN32_WINNT_LONGHORN)
+#ifndef PTHREAD_WIN_XP_SYNC
   AcquireSRWLockExclusive(l);
 #else
   WaitForSingleObject(l->mutex,INFINITE);
@@ -105,7 +105,7 @@ int pthread_rwlock_wrlock(pthread_rwlock_t *l)
 
 int pthread_rwlock_tryrdlock(pthread_rwlock_t *l)
 {
-#if (_WIN32_WINNT >= _WIN32_WINNT_LONGHORN)
+#ifndef PTHREAD_WIN_XP_SYNC
   /* Get the current state of the lock */
   void *state = *(void **) l;
 	
@@ -137,7 +137,7 @@ int pthread_rwlock_tryrdlock(pthread_rwlock_t *l)
 
 int pthread_rwlock_trywrlock(pthread_rwlock_t *l)
 {
-#if (_WIN32_WINNT >= _WIN32_WINNT_LONGHORN)
+#ifndef PTHREAD_WIN_XP_SYNC
   /* Try to grab lock if it has no users */
   if (!InterlockedCompareExchangePointer((PVOID *) l, (void *)1, NULL)) return 0;
 	
@@ -154,7 +154,7 @@ int pthread_rwlock_trywrlock(pthread_rwlock_t *l)
 
 int pthread_rwlock_unlock(pthread_rwlock_t *l)
 {
-#if (_WIN32_WINNT >= _WIN32_WINNT_LONGHORN)
+#ifndef PTHREAD_WIN_XP_SYNC
   void *state = *(void **)l;
 	
   if (state == (void *) 1)

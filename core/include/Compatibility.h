@@ -29,4 +29,10 @@
 #define DLL_EXPORT
 #endif
 
+#ifdef WIN32
+#if (_WIN32_WINNT < _WIN32_WINNT_LONGHORN)
+#define PTHREAD_WIN_XP_SYNC
+#endif
+#endif
+
 #endif /* __COMPATIBILITY_H__ */

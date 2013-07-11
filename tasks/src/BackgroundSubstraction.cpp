@@ -131,7 +131,13 @@ BackgroundSubstraction::BackgroundSubstraction(const BackgroundSubstraction &aBa
 
 void BackgroundSubstraction::setBackgroundImageData(Data &aData)
 {
-  _backgroundImageData.setData(aData);
+  if(aData.buffer && aData.buffer->owner == Buffer::MAPPED)
+    {
+      Data copiedData = aData.copy();
+      _backgroundImageData.setData(copiedData);
+    }
+  else
+    _backgroundImageData.setData(aData);
 }
 
 Data BackgroundSubstraction::process(Data &aData) 

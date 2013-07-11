@@ -355,6 +355,7 @@ static inline double _compute_center(double y[],int ly)
   double result = -1.0;
   int n;
   for(n = 1;n < ly;n <<= 1);	// Find the next above power of two
+  n <<= 1;
   int n1 = n << 2;
 #ifdef DEBUG
   printf("n : %d , n1 %d\n",n,n1);
