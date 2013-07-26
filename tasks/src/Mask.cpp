@@ -25,7 +25,7 @@
 #include "Mask.h"
 using namespace Tasks;
 
-Mask::Mask() : LinkTask() {}
+Mask::Mask() : LinkTask(),_type(Mask::STANDARD) {}
 
 Mask::Mask(const Mask &aTask) :
   LinkTask(aTask),
@@ -161,6 +161,30 @@ Data Mask::process(Data &aData)
 		    goto error;
 		  }
 		break;
+	      case Data::INT32:
+		switch(_MaskImage.type)
+		  {
+		  case Data::UINT8:
+		    _INPLACE((int*)aData.data(),aData.size(),
+			     (unsigned char*)_MaskImage.data());
+		    break;
+		  case Data::UINT16:
+		    _INPLACE((int*)aData.data(),aData.size(),
+			     (unsigned short*)_MaskImage.data());
+		    break;
+		  case Data::UINT32:
+		    _INPLACE((int*)aData.data(),aData.size(),
+			     (unsigned int*)_MaskImage.data());
+		    break;
+		  case Data::INT32:
+		    _INPLACE((int*)aData.data(),aData.size(),
+			     (int*)_MaskImage.data());
+		    break;
+		  default:
+		    errorMsgPt = "mask image must be an unsigned char,unsigned short,unsigned int or int";
+		    goto error;
+		  }
+		break;
 	      default: 
 		errorMsgPt = "Data type not managed";
 		goto error;
@@ -221,6 +245,33 @@ Data Mask::process(Data &aData)
 		    break;
 		  default:
 		    errorMsgPt = "mask image must be an unsigned char,unsigned short or unsigned int";
+		    goto error;
+		  }
+	      case Data::INT32:
+		switch(_MaskImage.type)
+		  {
+		  case Data::UINT8:
+		    _COPY((int*)aData.data(),(int*)aNewData.data(),
+			  aData.size(),
+			  (unsigned char*)_MaskImage.data());
+		    break;
+		  case Data::UINT16:
+		    _COPY((int*)aData.data(),(int*)aNewData.data(),
+			  aData.size(),
+			  (unsigned short*)_MaskImage.data());
+		    break;
+		  case Data::INT32:
+		    _COPY((int*)aData.data(),(int*)aNewData.data(),
+			  aData.size(),
+			  (int*)_MaskImage.data());
+		    break;
+		  case Data::UINT32:
+		    _COPY((int*)aData.data(),(int*)aNewData.data(),
+			  aData.size(),
+			  (unsigned int*)_MaskImage.data());
+		    break;
+		  default:
+		    errorMsgPt = "mask image must be an unsigned char,unsigned short,unsigned int or int";
 		    goto error;
 		  }
 		break;
