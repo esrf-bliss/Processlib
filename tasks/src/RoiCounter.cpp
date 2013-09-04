@@ -46,7 +46,7 @@ template<class INPUT> static void _get_average_std(const INPUT *aSrcPt,
 						   RoiCounterResult &aResult)
 {
   INPUT aMin,aMax;
-  aMin = aMax = *aSrcPt; // Init
+  aMin = aMax = *(aSrcPt + y * widthStep + x); // Init
   double aSum = 0.;
   for(int lineId = y;lineId < y + height;++lineId)
     {
@@ -89,6 +89,21 @@ template<class INPUT> static void _get_average_std_with_mask(const INPUT *aSrcPt
 							     int width,int height,
 							     RoiCounterResult &aResult)
 {
+  INPUT aMin = INPUT(0.),aMax = INPUT(0.);
+  //min max init;
+  bool continueFlag = true;
+  for(int lineId = y;continueFlag && lineId < y + height;++lineId)
+    {
+      int offset = lineId * widthStep + x;
+      const INPUT *aLinePt = aSrcPt + offset;
+      const char *aMaskLinePt = aMaskPt + offset;
+      for(int i = 0;continueFlag && i < width;++i,++aLinePt,++aMaskLinePt)
+	{
+	  if(*aMaskLinePt)
+	    aMin = aMax = *aLinePt,continueFlag = false;
+	}
+    }
+
   double aSum = 0.;
   int usedSize = width * height;
   for(int lineId = y;lineId < y + height;++lineId)
