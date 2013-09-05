@@ -27,6 +27,7 @@ using namespace Tasks;
 
 RoiCounterTask::RoiCounterTask(RoiCounterManager &aMgr) :
   SinkTask<RoiCounterResult>(aMgr),
+  _type(UNDEF),
   _x(0),_y(0),
   _width(0),_height(0)
 {
@@ -34,17 +35,51 @@ RoiCounterTask::RoiCounterTask(RoiCounterManager &aMgr) :
 
 RoiCounterTask::RoiCounterTask(const RoiCounterTask &aTask) :
   SinkTask<RoiCounterResult>(aTask),
+  _type(aTask._type),
   _x(aTask._x),_y(aTask._y),
-  _width(aTask._width),_height(aTask._height)
+  _width(aTask._width),_height(aTask._height),
+  _mask(aTask._mask),
+  _lut(aTask._lut)
 {
 }
 
-template<class INPUT> static void _get_average_std(const INPUT *aSrcPt,
-						   int widthStep,
+void RoiCounterTask::setRoi(int x,int y,int width,int height)
+{
+  _type = SQUARE;
+  _x = x,_y = y;
+  _width = width,_height = height;
+}
+void RoiCounterTask::getRoi(int &x,int &y,int &width,int &height)
+{
+  if(_type != SQUARE)
+    throw ProcessException("RoiCounterTask: This is not a SQUARE Roi");
+  x = _x,y = _y,width = _width,height = _height;
+}
+
+void RoiCounterTask::setLut(int x,int y,Data &lut)
+{
+  if(lut.dimensions.size() < 1 || lut.dimensions.size() > 2)
+    throw ProcessException("RoiCounterTask : Only manage 1 or 2D data");
+
+  _type = LUT;
+  _lut = lut.cast(Data::DOUBLE);
+  _x = x,_y = y;
+}
+void RoiCounterTask::getLut(int &x,int &y,Data &lut)
+{
+  if(_type != LUT)
+    throw ProcessException("RoiCounterTask: This is not a LUT Roi");
+
+  x = _x,y = _y,lut = _lut;
+}
+
+template<class INPUT> static void _get_average_std(const Data& aData,
 						   int x,int y,
 						   int width,int height,
 						   RoiCounterResult &aResult)
 {
+  const INPUT *aSrcPt = (const INPUT*)aData.data();
+  int widthStep = aData.dimensions[0];
   INPUT aMin,aMax;
   aMin = aMax = *(aSrcPt + y * widthStep + x); // Init
   double aSum = 0.;
@@ -82,13 +117,14 @@ template<class INPUT> static void _get_average_std(const INPUT *aSrcPt,
   aResult.std = sqrt(aSum);
 }
 
-template<class INPUT> static void _get_average_std_with_mask(const INPUT *aSrcPt,
-							     int widthStep,
+template<class INPUT> static void _get_average_std_with_mask(const Data& aData,
 							     const char *aMaskPt,
 							     int x,int y,
 							     int width,int height,
 							     RoiCounterResult &aResult)
 {
+  const INPUT *aSrcPt = (INPUT*)aData.data();
+  int widthStep = aData.dimensions[0];
   INPUT aMin = INPUT(0.),aMax = INPUT(0.);
   //min max init;
   bool continueFlag = true;
@@ -152,6 +188,117 @@ template<class INPUT> static void _get_average_std_with_mask(const INPUT *aSrcPt
     aResult.std = 0.;
 }
 
+template<class INPUT> static void _lut_get_average_std(const Data& data,
+						       int x,int y,Data& lut,
+						       RoiCounterResult &aResult)
+{
+  double *lutPt = (double*)lut.data();
+  const INPUT* aSrcPt = (const INPUT*)data.data();
+  //basic check
+  if(lut.dimensions.size() != data.dimensions.size())
+    throw ProcessException("RoiLutCounterResult lut and data must have the same dimension");
+  if(x < 0 || y < 0)
+    throw ProcessException("RoiLutCounterResult lut origin must be positive");
+  if(lut.dimensions[0] + x > data.dimensions[0])
+    throw ProcessException("RoiLutCounterResult lut width + origin go outside of the data bounding box");
+  if(lut.dimensions.size() > 1 && 
+     lut.dimensions[1] + y > data.dimensions[1])
+    throw ProcessException("RoiLutCounterResult lut height + origin got outside of the data bounding box");
+
+  
+  int widthStep = data.dimensions[0];
+  double aMin,aMax;
+  //jump to start
+  aSrcPt += y * widthStep + x;
+
+  int nbItems = 1;
+  for(std::vector<int>::iterator i = lut.dimensions.begin();
+      i != lut.dimensions.end();++i)
+    nbItems *= *i;
+  
+  int totalItems = nbItems;
+  //min max initialization
+  aMin = aMax = 0.;
+  double aSum = 0.;
+  double aWeight = 0.;
+  int cId;
+  bool continueFlag = true;
+  while(continueFlag && nbItems)
+    {
+      for(cId = 0;continueFlag && cId < lut.dimensions[0];++cId,--nbItems,++lutPt)
+	{
+	  if(*lutPt != 0.)
+	    {
+	      double value = aSrcPt[cId] * *lutPt; 
+	      aMax = aMin = value;
+	      aSum = value;
+	      aWeight = *lutPt;
+	      continueFlag = false;
+	    }
+	}
+      if(continueFlag)
+	aSrcPt += widthStep;
+    }
+  
+  while(nbItems)
+    {
+      for(;cId < lut.dimensions[0];++cId,--nbItems,++lutPt)
+	{
+	  if(*lutPt != 0.)
+	    {
+	      double value = aSrcPt[cId] * *lutPt;
+	      if(value > aMax) aMax = value;
+	      else if(value < aMin) aMin = value;
+	      aSum += value;
+	      aWeight += *lutPt;
+	    }
+	}
+      aSrcPt += widthStep,cId = 0;
+    }
+
+  aResult.minValue = aMin;
+  aResult.maxValue = aMax;
+  aResult.sum = aSum;
+  if(aWeight > 0.)
+    aResult.average = aSum / aWeight;
+  else
+    aResult.average = 0.;
+  
+  lutPt = (double*)lut.data();
+  aSrcPt = (const INPUT*)data.data();
+  aSrcPt += y * widthStep + x;
+  
+  nbItems = totalItems;
+  aSum = 0.;
+  while(nbItems)
+    {
+      for(int cId = 0;cId < lut.dimensions[0];++cId,--nbItems,++lutPt)
+	{
+	  if(*lutPt != 0.)
+	    {
+	      double value = aSrcPt[cId] * *lutPt;
+	      double diff = value - aResult.average;
+	      diff *= diff;
+	      aSum += diff;
+	    }
+	}
+      aSrcPt += widthStep;
+    }
+  
+  if(aWeight != 0.)
+    aResult.std = sqrt(aSum / aWeight);
+  else
+    aResult.std = 0.;
+}
+
+#define GET_AVERAGE_STD(TYPE)					\
+  {								\
+  if(_type == SQUARE)						\
+    _get_average_std<TYPE>(aData,_x,_y,_width,_height,aResult);	\
+  else if(_type == LUT)						\
+    _lut_get_average_std<TYPE>(aData,_x,_y,_lut,aResult);	\
+  }
+
 void RoiCounterTask::process(Data &aData)
 {
   //_check_roi(_x,_y,_width,_height,aData);
@@ -165,56 +312,35 @@ void RoiCounterTask::process(Data &aData)
       switch(aData.type)
 	{
 	case Data::UINT8: 
-	  _get_average_std((unsigned char*)aData.data(),
-			   aData.dimensions[0],
-			   _x,_y,_width,_height,aResult);
+	  GET_AVERAGE_STD(unsigned char);
 	  break;
 	case Data::INT8:
-	  _get_average_std((char*)aData.data(),
-			   aData.dimensions[0],
-			   _x,_y,_width,_height,aResult);
+	  GET_AVERAGE_STD(char);
 	  break;
-
 	case Data::UINT16:
-	  _get_average_std((unsigned short*)aData.data(),
-			   aData.dimensions[0],
-			   _x,_y,_width,_height,aResult);
+	  GET_AVERAGE_STD(unsigned short);
 	  break;
 	case Data::INT16:
-	  _get_average_std((short*)aData.data(),
-			   aData.dimensions[0],
-			   _x,_y,_width,_height,aResult);
+	  GET_AVERAGE_STD(short);
 	  break;
 	case Data::UINT32:
-	  _get_average_std((unsigned int*)aData.data(),
-			   aData.dimensions[0],
-			   _x,_y,_width,_height,aResult);
+	  GET_AVERAGE_STD(unsigned int);
 	  break;
 	case Data::INT32:
-	  _get_average_std((int*)aData.data(),
-			   aData.dimensions[0],
-			   _x,_y,_width,_height,aResult);
+	  GET_AVERAGE_STD(int);
 	  break;
 	case Data::UINT64:
-	  _get_average_std((unsigned long long*)aData.data(),
-			   aData.dimensions[0],
-			   _x,_y,_width,_height,aResult);
+	  GET_AVERAGE_STD(unsigned long long);
 	  break;
 	case Data::INT64:
-	  _get_average_std((long long*)aData.data(),
-			   aData.dimensions[0],
-			   _x,_y,_width,_height,aResult);
+	  GET_AVERAGE_STD(long long);
 	  break;
 
 	case Data::FLOAT:
-	  _get_average_std((float*)aData.data(),
-			   aData.dimensions[0],
-			   _x,_y,_width,_height,aResult);
+	  GET_AVERAGE_STD(float);
 	  break;
 	case Data::DOUBLE:
-	  _get_average_std((double*)aData.data(),
-			   aData.dimensions[0],
-			   _x,_y,_width,_height,aResult);
+	  GET_AVERAGE_STD(double);
 	  break;
 	default: 
 	  break;				// error
@@ -225,66 +351,56 @@ void RoiCounterTask::process(Data &aData)
       switch(aData.type)
 	{
 	case Data::UINT8: 
-	  _get_average_std_with_mask((unsigned char*)aData.data(),
-				     aData.dimensions[0],
-				     (char*)_mask.data(),
-				     _x,_y,_width,_height,aResult);
+	  _get_average_std_with_mask<unsigned char>(aData,
+						    (char*)_mask.data(),
+						    _x,_y,_width,_height,aResult);
 	  break;
 	case Data::INT8:
-	  _get_average_std_with_mask((char*)aData.data(),
-				     aData.dimensions[0],
-				     (char*)_mask.data(),
-				     _x,_y,_width,_height,aResult);
+	  _get_average_std_with_mask<char>(aData,
+					   (char*)_mask.data(),
+					   _x,_y,_width,_height,aResult);
 	  break;
 
 	case Data::UINT16:
-	  _get_average_std_with_mask((unsigned short*)aData.data(),
-				     aData.dimensions[0],
-				     (char*)_mask.data(),
-				     _x,_y,_width,_height,aResult);
+	  _get_average_std_with_mask<unsigned short>(aData,
+						     (char*)_mask.data(),
+						     _x,_y,_width,_height,aResult);
 	  break;
 	case Data::INT16:
-	  _get_average_std_with_mask((short*)aData.data(),
-				     aData.dimensions[0],
-				     (char*)_mask.data(),
-				     _x,_y,_width,_height,aResult);
+	  _get_average_std_with_mask<short>(aData,
+					    (char*)_mask.data(),
+					    _x,_y,_width,_height,aResult);
 	  break;
 	case Data::UINT32:
-	  _get_average_std_with_mask((unsigned int*)aData.data(),
-				     aData.dimensions[0],
-				     (char*)_mask.data(),
-				     _x,_y,_width,_height,aResult);
+	  _get_average_std_with_mask<unsigned int>(aData,
+						   (char*)_mask.data(),
+						   _x,_y,_width,_height,aResult);
 	  break;
 	case Data::INT32:
-	  _get_average_std_with_mask((int*)aData.data(),
-				     aData.dimensions[0],
-				     (char*)_mask.data(),
-				     _x,_y,_width,_height,aResult);
+	  _get_average_std_with_mask<int>(aData,
+					  (char*)_mask.data(),
+					  _x,_y,_width,_height,aResult);
 	  break;
 	case Data::UINT64:
-	  _get_average_std_with_mask((unsigned long long*)aData.data(),
-				     aData.dimensions[0],
-				     (char*)_mask.data(),
-				     _x,_y,_width,_height,aResult);
+	  _get_average_std_with_mask<unsigned long long>(aData,
+							 (char*)_mask.data(),
+							 _x,_y,_width,_height,aResult);
 	  break;
 	case Data::INT64:
-	  _get_average_std_with_mask((long long*)aData.data(),
-				     aData.dimensions[0],
-				     (char*)_mask.data(),
-				     _x,_y,_width,_height,aResult);
+	  _get_average_std_with_mask<long long>(aData,
+						(char*)_mask.data(),
+						_x,_y,_width,_height,aResult);
 	  break;
 
 	case Data::FLOAT:
-	  _get_average_std_with_mask((float*)aData.data(),
-				     aData.dimensions[0],
-				     (char*)_mask.data(),
-				     _x,_y,_width,_height,aResult);
+	  _get_average_std_with_mask<float>(aData,
+					    (char*)_mask.data(),
+					    _x,_y,_width,_height,aResult);
 	  break;
 	case Data::DOUBLE:
-	  _get_average_std_with_mask((double*)aData.data(),
-				     aData.dimensions[0],
-				     (char*)_mask.data(),
-				     _x,_y,_width,_height,aResult);
+	  _get_average_std_with_mask<double>(aData,
+					     (char*)_mask.data(),
+					     _x,_y,_width,_height,aResult);
 	  break;
 	default: 
 	  break;				// error

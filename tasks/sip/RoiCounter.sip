@@ -83,5 +83,8 @@ sipRes = tmpString.c_str();
     void setRoi(int,int,int,int);
     void getRoi(int &x /Out/,int &y /Out/,
 		int &width /Out/,int &height /Out/);
+
+    void setLut(int x,int y,Data &lut);
+    void getLut(int &x /Out/,int &y /Out/,Data &lut /Out/);
    };
 };
