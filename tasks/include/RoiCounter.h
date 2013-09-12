@@ -68,20 +68,26 @@ namespace Tasks
   class DLL_EXPORT RoiCounterTask : public SinkTask<RoiCounterResult>
   {
   public:
-    enum type {UNDEF,SQUARE,LUT};
+    enum type {UNDEF,SQUARE,LUT,MASK};
     RoiCounterTask(RoiCounterManager&);
     RoiCounterTask(const RoiCounterTask&);
     virtual void process(Data&);
     
     void setMask(Data &aMask) {_mask = aMask;}
-
+    void getType(type& aType) {aType = _type;}
     //Method for SQUARE roi
     void setRoi(int x,int y,int width,int height);
     void getRoi(int &x,int &y,int &width,int &height);
     //Method for LUT roi
     void setLut(int x,int y,Data &lut);
     void getLut(int &x,int &y,Data &lut);
-
+    //Method for Mask
+    void setLutMask(int x,int y,Data &mask);
+    void getLutMask(int &x,int &y,Data &mask);
+    //Method helper for arcs
+    void setArcMask(double centerX,double centerY,
+		    double rayon1,double rayon2,
+		    double angle_start,double angle_end);
   private:
     type _type;
     int _x,_y;

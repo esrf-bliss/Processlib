@@ -23,7 +23,12 @@
 #include "ProcessExceptions.h"
 #include "RoiCounter.h"
 using namespace Tasks;
-#include <math.h>
+#ifndef __unix
+#define _USE_MATH_DEFINES
+#endif
+
+#include <cmath>
+#include <cstdio>
 
 RoiCounterTask::RoiCounterTask(RoiCounterManager &aMgr) :
   SinkTask<RoiCounterResult>(aMgr),
@@ -71,6 +76,130 @@ void RoiCounterTask::getLut(int &x,int &y,Data &lut)
     throw ProcessException("RoiCounterTask: This is not a LUT Roi");
 
   x = _x,y = _y,lut = _lut;
+}
+void RoiCounterTask::setLutMask(int x,int y,Data &mask)
+{
+  _type = MASK;
+  _lut = mask.mask();
+  _x = x,_y = y;
+}
+void RoiCounterTask::getLutMask(int& x,int& y,Data &mask)
+{
+  if(_type != MASK)
+    throw ProcessException("RoiCounterTask: This is not a MASK Roi");
+  x = _x,y = _y,mask = _lut;
+}
+void RoiCounterTask::setArcMask(double centerX,double centerY,
+				double rayon1,double rayon2,
+				double angle_start,double angle_end)
+{
+  if(rayon1 > rayon2)
+    {
+      double rayon_tmp = rayon2;
+      rayon2 = rayon1;
+      rayon1 = rayon_tmp;
+    }
+  _type = MASK;
+  //find the bounding box
+  double x_min,x_max;
+  double y_min,y_max;
+  double rayons[] = {rayon1,rayon2,rayon1,rayon2};
+  double angles[] = {angle_start,angle_start,angle_end,angle_end};
+  // Init
+  x_min = x_max = centerX + rayons[0] * cos(angles[0] * M_PI / 180.);
+  y_min = y_max = centerY + rayons[0] * sin(angles[0] * M_PI / 180.);
+  for(int i = 1;i <= 3;++i)
+    {
+      double x = centerX + rayons[i] * cos(angles[i] * M_PI / 180.);
+      double y = centerY + rayons[i] * sin(angles[i] * M_PI / 180.);
+      if(x > x_max) x_max = x;
+      else if(x < x_min) x_min = x;
+
+      if(y > y_max) y_max = y;
+      else if(y < y_min) y_min = y;
+    }
+  double a_start,a_end;
+  if(angle_end > angle_start) 
+    a_start = angle_start,a_end = angle_end;
+  else
+    a_start = angle_end,a_end = angle_start;
+  //find all intersected axis
+  for(int angle = int((a_start + 90) / 90) * 90;
+      angle < a_end;angle += 90)
+    {
+      double x = centerX + rayon2 * cos(angle * M_PI / 180.);
+      double y = centerY + rayon2 * sin(angle * M_PI / 180.);
+      if(x > x_max) x_max = x;
+      else if(x < x_min) x_min = x;
+
+      if(y > y_max) y_max = y;
+      else if(y < y_min) y_min = y;
+    }
+  _x = int(floor(x_min));
+  _y = int(floor(y_min));
+  
+  if(_x < 0 || _y < 0)
+    {
+      _type = UNDEF;
+      char buffer[512];
+      snprintf(buffer,sizeof(buffer),
+	       "RoiCounterTask arc calculation give an origin (%d,%d) which is below index 0",_x,_y);
+      throw ProcessException(buffer);
+    }
+
+  _width = int(ceil(x_max)) - _x + 1;
+  _height = int(ceil(y_max)) - _y + 1;
+  
+  //Allocation memory for the lut
+  Buffer *buffer = new Buffer(_width * _height * sizeof(char));
+  _lut.dimensions.clear();
+  _lut.dimensions.push_back(_width);
+  _lut.dimensions.push_back(_height);
+  _lut.type = Data::INT8;
+  _lut.setBuffer(buffer);
+  buffer->unref();
+
+  double angle_diff = angle_end - angle_start;
+  double rayon1sqr = rayon1 * rayon1;
+  double rayon2sqr = rayon2 * rayon2;
+  char *bufferPt = (char*)_lut.data();
+  for(int y = _y;y < _y + _height;++y)
+    {
+      for(int x = _x;x < _x + _width;++x,++bufferPt)
+	{
+	  double r1sqrt = pow(x - centerX,2) + pow(y - centerY,2);
+	  double r2sqrt = pow(x - centerX,2) + pow(y - centerY,2);
+	  double X = x - centerX;
+	  double Y = y - centerY;
+	  double angle = 0.;
+	  if(r1sqrt >= rayon1sqr && r2sqrt <= rayon2sqr)
+	    {
+	      if(fabs(X - 1e-6) > 1e-6)
+		angle = atan(Y/X) * 180 / M_PI;
+	      else
+		angle = Y > 0 ? 90 : -90;
+
+	      if(X < 0)
+		{
+		  if(Y > 0) angle += 180.;
+		  else angle -= 180;
+		}
+	      double angle_min_diff = angle - angle_start;
+	      if(angle_diff > 0)
+		{
+		  if(angle_min_diff < 0) angle_min_diff += 360;
+		  *bufferPt = angle_min_diff >= 0 && angle_min_diff <= angle_diff;
+		}
+	      else
+		{
+		  if(angle_min_diff > 0) angle_min_diff -= 360;
+		  *bufferPt = angle_min_diff <= 0 && angle_min_diff >= angle_diff;
+		}
+	    }
+	  else
+	    *bufferPt = 0;
+	}
+    }
 }
 
 template<class INPUT> static void _get_average_std(const Data& aData,
@@ -291,12 +420,117 @@ template<class INPUT> static void _lut_get_average_std(const Data& data,
     aResult.std = 0.;
 }
 
+template<class INPUT> static void _mask_get_average_std(const Data& data,
+							int x,int y,Data& mask,
+							RoiCounterResult &aResult)
+{
+  char *maskPt = (char*)mask.data();
+  const INPUT* aSrcPt = (const INPUT*)data.data();
+  //basic check
+  if(mask.dimensions.size() != data.dimensions.size())
+    throw ProcessException("RoiLutCounterResult mask and data must have the same dimension");
+  if(x < 0 || y < 0)
+    throw ProcessException("RoiLutCounterResult mask origin must be positive");
+  if(mask.dimensions[0] + x > data.dimensions[0])
+    throw ProcessException("RoiLutCounterResult mask width + origin go outside of the data bounding box");
+  if(mask.dimensions.size() > 1 && 
+     mask.dimensions[1] + y > data.dimensions[1])
+    throw ProcessException("RoiLutCounterResult mask height + origin got outside of the data bounding box");
+
+  
+  int widthStep = data.dimensions[0];
+  INPUT aMin,aMax;
+  //jump to start
+  aSrcPt += y * widthStep + x;
+
+  int nbItems = 1;
+  for(std::vector<int>::iterator i = mask.dimensions.begin();
+      i != mask.dimensions.end();++i)
+    nbItems *= *i;
+  
+  int totalItems = nbItems;
+  //min max initialization
+  aMin = aMax = INPUT(0);
+  long long aSum = 0;
+  int aNbPixel = 0;
+  int cId;
+  bool continueFlag = true;
+  while(continueFlag && nbItems)
+    {
+      for(cId = 0;continueFlag && cId < mask.dimensions[0];++cId,--nbItems,++maskPt)
+	{
+	  if(*maskPt)
+	    {
+	      INPUT value = aSrcPt[cId];
+	      aMax = aMin = value;
+	      aSum = value;
+	      ++aNbPixel;
+	      continueFlag = false;
+	    }
+	}
+      if(continueFlag)
+	aSrcPt += widthStep;
+    }
+  
+  while(nbItems)
+    {
+      for(;cId < mask.dimensions[0];++cId,--nbItems,++maskPt)
+	{
+	  if(*maskPt)
+	    {
+	      INPUT value = aSrcPt[cId];
+	      if(value > aMax) aMax = value;
+	      else if(value < aMin) aMin = value;
+	      aSum += value;
+	      ++aNbPixel;
+	    }
+	}
+      aSrcPt += widthStep,cId = 0;
+    }
+
+  aResult.minValue = aMin;
+  aResult.maxValue = aMax;
+  aResult.sum = aSum;
+  if(aNbPixel)
+    aResult.average = double(aSum) / aNbPixel;
+  else
+    aResult.average = 0.;
+  
+  maskPt = (char*)mask.data();
+  aSrcPt = (const INPUT*)data.data();
+  aSrcPt += y * widthStep + x;
+  
+  nbItems = totalItems;
+  aSum = 0.;
+  while(nbItems)
+    {
+      for(int cId = 0;cId < mask.dimensions[0];++cId,--nbItems,++maskPt)
+	{
+	  if(*maskPt)
+	    {
+	      double value = aSrcPt[cId];
+	      double diff = value - aResult.average;
+	      diff *= diff;
+	      aSum += diff;
+	    }
+	}
+      aSrcPt += widthStep;
+    }
+  
+  if(aNbPixel)
+    aResult.std = sqrt(double(aSum) / aNbPixel);
+  else
+    aResult.std = 0.;
+}
+
 #define GET_AVERAGE_STD(TYPE)					\
   {								\
   if(_type == SQUARE)						\
     _get_average_std<TYPE>(aData,_x,_y,_width,_height,aResult);	\
   else if(_type == LUT)						\
     _lut_get_average_std<TYPE>(aData,_x,_y,_lut,aResult);	\
+  else if(_type == MASK)					\
+    _mask_get_average_std<TYPE>(aData,_x,_y,_lut,aResult);	\
   }
 
 void RoiCounterTask::process(Data &aData)

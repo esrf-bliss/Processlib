@@ -22,6 +22,7 @@
 //###########################################################################
 #ifndef __unix
 #pragma warning(disable:4251)
+#pragma warning(disable:4244)
 #endif
 
 #include <stdlib.h>
@@ -310,12 +311,12 @@ struct DLL_EXPORT Data
       for(int i = 0;i < pixelnb;++i,++aSrcPt,++aDstPt)
 	*aDstPt = char(*aSrcPt);
     }
-  template<class OUT,class IN> 
-    static void _cast(OUT* dst,IN* src,int nbItems)
+  template<class OUTPUT,class INPUT> 
+    static void _cast(OUTPUT* dst,INPUT* src,int nbItems)
   {
     while(nbItems)
       {
-	*dst = OUT(*src);
+	*dst = OUTPUT(*src);
 	++dst,++src,--nbItems;
       }
   }

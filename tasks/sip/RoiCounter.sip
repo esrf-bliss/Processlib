@@ -76,15 +76,26 @@ sipRes = tmpString.c_str();
 #include <RoiCounter.h>
 %End
   public:
+    enum type {UNDEF,SQUARE,LUT,MASK};
     RoiCounterTask(Tasks::RoiCounterManager&);
     RoiCounterTask(const Tasks::RoiCounterTask&);
     virtual void process(Data&);
 
+    void setMask(Data &aMask);
+    void getType(type& aType /Out/);
+    //Method for SQUARE roi
     void setRoi(int,int,int,int);
     void getRoi(int &x /Out/,int &y /Out/,
 		int &width /Out/,int &height /Out/);
-
+    //Method for LUT roi
     void setLut(int x,int y,Data &lut);
     void getLut(int &x /Out/,int &y /Out/,Data &lut /Out/);
-   };
+    //Method for Mask
+    void setLutMask(int x,int y,Data &mask);
+    void getLutMask(int &x /Out/,int &y /Out/,Data &mask /Out/);
+    //Method helper for arcs
+    void setArcMask(double centerX,double centerY,
+		    double rayon1,double rayon2,
+		    double angle_start,double angle_end);
+  };
 };
