@@ -76,7 +76,7 @@ sipRes = tmpString.c_str();
 #include <RoiCounter.h>
 %End
   public:
-    enum type {UNDEF,SQUARE,LUT,MASK};
+    enum type {UNDEF,SQUARE,ARC,LUT,MASK};
     RoiCounterTask(Tasks::RoiCounterManager&);
     RoiCounterTask(const Tasks::RoiCounterTask&);
     virtual void process(Data&);
@@ -97,5 +97,8 @@ sipRes = tmpString.c_str();
     void setArcMask(double centerX,double centerY,
 		    double rayon1,double rayon2,
 		    double angle_start,double angle_end);
+    void getArcMask(double &centerX /Out/,double &centerY /Out/,
+		    double &rayon1 /Out/,double &rayon2 /Out/,
+		    double &angle_start /Out/,double &angle_end /Out/);
   };
 };
