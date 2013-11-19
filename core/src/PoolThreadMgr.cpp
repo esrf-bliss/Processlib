@@ -42,6 +42,8 @@ static void _processMgrInit()
 PoolThreadMgr PoolThreadMgr::_processMgr;
 #endif
 
+bool PoolThreadMgr::_threadWaitOnQuit = true;
+
 PoolThreadMgr::PoolThreadMgr()
 {
   pthread_mutex_init(&_lock,NULL);
@@ -57,11 +59,23 @@ PoolThreadMgr::PoolThreadMgr()
 PoolThreadMgr::~PoolThreadMgr()
 {
 #ifdef __unix
-  quit();
+  if (_threadWaitOnQuit)
+    quit();
 #endif
   pthread_mutex_destroy(&_lock);
   pthread_cond_destroy(&_cond);
 }
+
+/** @brief enable/disable waiting for threads to finish on quit (Unix).
+ *  This is necessary when the process is forked, and default threads do not
+ *  exist on the child process
+ *  @param wait_on_quit if false do not wait for threads on quit (default true)
+*/
+void PoolThreadMgr::setThreadWaitOnQuit(bool wait_on_quit)
+{
+  _threadWaitOnQuit = wait_on_quit;
+}
+
 /** @brief add a process in the process queue.
  *  Notice that after calling this methode aProcess will be own by PoolThreadMgr,
  *  do not modify or even delete it.
