@@ -22,7 +22,7 @@
 //###########################################################################
 #ifndef __BPM_H__
 #define __BPM_H__
-
+#ifndef WITHOUT_GSL
 #include "SinkTask.h"
 
 namespace Tasks
@@ -149,4 +149,18 @@ namespace Tasks
 			       int min_index,int max_index);
   };
 }
+#else
+namespace Tasks
+{
+  struct BpmResult
+  {
+  };
+  class BpmManager
+  {
+  };
+  class BpmTask
+  {
+  };
+}
+#endif	// WITHOUT_GSL
 #endif

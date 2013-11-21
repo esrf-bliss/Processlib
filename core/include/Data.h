@@ -22,6 +22,7 @@
 //###########################################################################
 #ifndef __unix
 #pragma warning(disable:4251)
+#pragma warning(disable:4244)
 #endif
 
 #include <stdlib.h>
@@ -33,6 +34,7 @@
 #include <cstring>
 
 #include "Compatibility.h"
+#include "ProcessExceptions.h"
 
 #ifndef __DATA_H
 #define __DATA_H
@@ -241,6 +243,7 @@ struct DLL_EXPORT Data
       aReturnData.buffer = NULL;
     return aReturnData;
   }
+  inline Data cast(Data::TYPE aType);
   inline Data mask() const
   {
     Data aReturnData;
@@ -279,15 +282,15 @@ struct DLL_EXPORT Data
   }
 
   inline Data& operator=(const Data &aData)
-  {
-    type = aData.type;
-    dimensions = aData.dimensions;
-    frameNumber = aData.frameNumber;
-    timestamp = aData.timestamp;
-    header    = aData.header;
-    setBuffer(aData.buffer);
-    return *this;
-  }
+    {
+      type = aData.type;
+      dimensions = aData.dimensions;
+      frameNumber = aData.frameNumber;
+      timestamp = aData.timestamp;
+      header    = aData.header;
+      setBuffer(aData.buffer);
+      return *this;
+    }
 
   TYPE      			type;
   std::vector<int> 		dimensions;
@@ -296,19 +299,317 @@ struct DLL_EXPORT Data
   mutable HeaderContainer 	header;
   mutable Buffer *		buffer;
 
-private:
+ private:
   template<class INPUT>
-  static void _make_mask(const Data &src,Data &dst)
-  {
-    const INPUT *aSrcPt;
-    aSrcPt = (const INPUT*)src.data();
-    char *aDstPt = (char*)dst.data();
+    static void _make_mask(const Data &src,Data &dst)
+    {
+      const INPUT *aSrcPt;
+      aSrcPt = (const INPUT*)src.data();
+      char *aDstPt = (char*)dst.data();
 
-    int pixelnb = src.size() / src.depth();
-    for(int i = 0;i < pixelnb;++i,++aSrcPt,++aDstPt)
-      *aDstPt = char(*aSrcPt);
+      int pixelnb = src.size() / src.depth();
+      for(int i = 0;i < pixelnb;++i,++aSrcPt,++aDstPt)
+	*aDstPt = char(*aSrcPt);
+    }
+  template<class OUTPUT,class INPUT> 
+    static void _cast(OUTPUT* dst,INPUT* src,int nbItems)
+  {
+    while(nbItems)
+      {
+	*dst = OUTPUT(*src);
+	++dst,++src,--nbItems;
+      }
   }
 };
+
+Data Data::cast(Data::TYPE aType)
+{
+  if(aType == type)
+    return *this;
+
+  Data aReturnData;
+  aReturnData.type = aType;
+  aReturnData.dimensions = dimensions;
+  aReturnData.frameNumber = frameNumber;
+  aReturnData.timestamp = timestamp;
+  aReturnData.header = header;
+
+  aReturnData.buffer = new Buffer(aReturnData.size());
+  int nbItems = aReturnData.size() / aReturnData.depth();
+    
+  switch(type)
+    {
+    case UINT8:
+      switch(aReturnData.type)
+	{
+	case UINT16: 
+	  Data::_cast((unsigned short*)aReturnData.data(),
+		      (unsigned char*)data(),nbItems);
+	  break;
+	case INT16:
+	  Data::_cast((short*)aReturnData.data(),
+		      (unsigned char*)data(),nbItems);
+	  break;
+	case UINT32:	    
+	  Data::_cast((unsigned int*)aReturnData.data(),
+		      (unsigned char*)data(),nbItems);
+	  break;
+	case INT32:
+	  Data::_cast((int*)aReturnData.data(),
+		      (unsigned char*)data(),nbItems);
+	  break;
+	case UINT64:
+	  Data::_cast((unsigned long long*)aReturnData.data(),
+		      (unsigned char*)data(),nbItems);
+	  break;
+	case INT64:
+	  Data::_cast((long long*)aReturnData.data(),
+		      (unsigned char*)data(),nbItems);
+	  break;
+	case FLOAT:
+	  Data::_cast((float*)aReturnData.data(),
+		      (unsigned char*)data(),nbItems);
+	  break;
+	case DOUBLE:
+	  Data::_cast((double*)aReturnData.data(),
+		      (unsigned char*)data(),nbItems);
+	  break;
+	default:
+	  throw ProcessException("This cast is not manage");
+	}
+      break;
+    case INT8:
+      switch(aReturnData.type)
+	{
+	case UINT16: 
+	  Data::_cast((unsigned short*)aReturnData.data(),
+		      (char*)data(),nbItems);
+	  break;
+	case INT16:
+	  Data::_cast((short*)aReturnData.data(),
+		      (char*)data(),nbItems);
+	  break;
+	case UINT32:	    
+	  Data::_cast((unsigned int*)aReturnData.data(),
+		      (char*)data(),nbItems);
+	  break;
+	case INT32:
+	  Data::_cast((int*)aReturnData.data(),
+		      (char*)data(),nbItems);
+	  break;
+	case UINT64:
+	  Data::_cast((unsigned long long*)aReturnData.data(),
+		      (char*)data(),nbItems);
+	  break;
+	case INT64:
+	  Data::_cast((long long*)aReturnData.data(),
+		      (char*)data(),nbItems);
+	  break;
+	case FLOAT:
+	  Data::_cast((float*)aReturnData.data(),
+		      (char*)data(),nbItems);
+	  break;
+	case DOUBLE:
+	  Data::_cast((double*)aReturnData.data(),
+		      (char*)data(),nbItems);
+	  break;
+	default:
+	  throw ProcessException("This cast is not manage");
+	}
+      break;
+    case UINT16:
+      switch(aReturnData.type)
+	{
+	case UINT32:	    
+	  Data::_cast((unsigned int*)aReturnData.data(),
+		      (unsigned short*)data(),nbItems);
+	  break;
+	case INT32:
+	  Data::_cast((int*)aReturnData.data(),
+		      (unsigned short*)data(),nbItems);
+	  break;
+	case UINT64:
+	  Data::_cast((unsigned long long*)aReturnData.data(),
+		      (unsigned short*)data(),nbItems);
+	  break;
+	case INT64:
+	  Data::_cast((long long*)aReturnData.data(),
+		      (unsigned short*)data(),nbItems);
+	  break;
+	case FLOAT:
+	  Data::_cast((float*)aReturnData.data(),
+		      (unsigned short*)data(),nbItems);
+	  break;
+	case DOUBLE:
+	  Data::_cast((double*)aReturnData.data(),
+		      (unsigned short*)data(),nbItems);
+	  break;
+	default:
+	  throw ProcessException("This cast is not manage");
+	}
+      break;
+    case INT16:
+      switch(aReturnData.type)
+	{
+	case UINT16:	    
+	  Data::_cast((unsigned short*)aReturnData.data(),
+		      (short*)data(),nbItems);
+	  break;
+	case UINT32:	    
+	  Data::_cast((unsigned int*)aReturnData.data(),
+		      (short*)data(),nbItems);
+	  break;
+	case INT32:
+	  Data::_cast((int*)aReturnData.data(),
+		      (short*)data(),nbItems);
+	  break;
+	case UINT64:
+	  Data::_cast((unsigned long long*)aReturnData.data(),
+		      (short*)data(),nbItems);
+	  break;
+	case INT64:
+	  Data::_cast((long long*)aReturnData.data(),
+		      (short*)data(),nbItems);
+	  break;
+	case FLOAT:
+	  Data::_cast((float*)aReturnData.data(),
+		      (short*)data(),nbItems);
+	  break;
+	case DOUBLE:
+	  Data::_cast((double*)aReturnData.data(),
+		      (short*)data(),nbItems);
+	  break;
+	default:
+	  throw ProcessException("This cast is not manage");
+	}
+      break;
+    case UINT32:
+      switch(aReturnData.type)
+	{
+	case UINT64:
+	  Data::_cast((unsigned long long*)aReturnData.data(),
+		      (unsigned int*)data(),nbItems);
+	  break;
+	case INT64:
+	  Data::_cast((long long*)aReturnData.data(),
+		      (unsigned int*)data(),nbItems);
+	  break;
+	case FLOAT:
+	  Data::_cast((float*)aReturnData.data(),
+		      (unsigned int*)data(),nbItems);
+	  break;
+	case DOUBLE:
+	  Data::_cast((double*)aReturnData.data(),
+		      (unsigned int*)data(),nbItems);
+	  break;
+	default:
+	  throw ProcessException("This cast is not manage");
+	}
+      break;
+    case INT32:
+      switch(aReturnData.type)
+	{
+	case UINT32:	    
+	  Data::_cast((unsigned int*)aReturnData.data(),
+		      (int*)data(),nbItems);
+	  break;
+	case UINT64:
+	  Data::_cast((unsigned long long*)aReturnData.data(),
+		      (int*)data(),nbItems);
+	  break;
+	case INT64:
+	  Data::_cast((long long*)aReturnData.data(),
+		      (int*)data(),nbItems);
+	  break;
+	case FLOAT:
+	  Data::_cast((float*)aReturnData.data(),
+		      (int*)data(),nbItems);
+	  break;
+	case DOUBLE:
+	  Data::_cast((double*)aReturnData.data(),
+		      (int*)data(),nbItems);
+	  break;
+	default:
+	  throw ProcessException("This cast is not manage");
+	}
+      break;
+    case UINT64:
+      switch(aReturnData.type)
+	{
+	case FLOAT:
+	  Data::_cast((float*)aReturnData.data(),
+		      (unsigned long long*)data(),nbItems);
+	  break;
+	case DOUBLE:
+	  Data::_cast((double*)aReturnData.data(),
+		      (unsigned long long*)data(),nbItems);
+	  break;
+	default:
+	  throw ProcessException("This cast is not manage");
+	}
+      break;
+    case INT64:
+      switch(aReturnData.type)
+	{
+	case UINT64:
+	  Data::_cast((unsigned long long*)aReturnData.data(),
+		      (long long*)data(),nbItems);
+	  break;
+	case FLOAT:
+	  Data::_cast((float*)aReturnData.data(),
+		      (long long*)data(),nbItems);
+	  break;
+	case DOUBLE:
+	  Data::_cast((double*)aReturnData.data(),
+		      (long long*)data(),nbItems);
+	  break;
+	default:
+	  throw ProcessException("This cast is not manage");
+	}
+      break;
+    case FLOAT:
+      switch(aReturnData.type)
+	{
+	case INT32:
+	  Data::_cast((int*)aReturnData.data(),
+		      (float*)data(),nbItems);
+	  break;
+	case INT64:
+	  Data::_cast((long long*)aReturnData.data(),
+		      (float*)data(),nbItems);
+	  break;
+	case DOUBLE:
+	  Data::_cast((double*)aReturnData.data(),
+		      (float*)data(),nbItems);
+	  break;
+	default:
+	  throw ProcessException("This cast is not manage");
+	}
+      break;
+    case DOUBLE:
+      switch(aReturnData.type)
+	{
+	case INT32:
+	  Data::_cast((int*)aReturnData.data(),
+		      (double*)data(),nbItems);
+	  break;
+	case INT64:
+	  Data::_cast((long long*)aReturnData.data(),
+		      (double*)data(),nbItems);
+	  break;
+	case FLOAT:
+	  Data::_cast((float*)aReturnData.data(),
+		      (double*)data(),nbItems);
+	  break;
+	default:
+	  throw ProcessException("This cast is not manage");
+	}
+      break;
+    default:
+      throw ProcessException("This cast is not manage");
+    }
+  return aReturnData;
+}
 
 DLL_EXPORT std::ostream& operator<<(std::ostream &os,
 				    const Data::HeaderContainer &aHeader);

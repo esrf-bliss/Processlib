@@ -56,6 +56,8 @@ public:
   void suspend(bool);
   bool wait(double timeout = -1.);
   void quit();
+  // Necessary when forked
+  void setThreadWaitOnQuit(bool wait_on_quit);
 
   class Lock
   {
@@ -96,6 +98,8 @@ private:
   static PoolThreadMgr               _processMgr;
 #endif
   TaskMgr		             *_taskMgr;
+  bool				      _threadWaitOnQuit;
+
   static void* _run(void*);
   void _createProcessThread(int aNumber);
 };
