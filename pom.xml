@@ -10,7 +10,7 @@
    
 	<groupId>fr.soleil.lib</groupId>
 	<artifactId>LimaProcesslib-${aol}-shared-${mode}</artifactId>
-	<version>1.3.0-SNAPSHOT</version>
+	<version>1.3.0</version>
 	
 	<packaging>nar</packaging>
     <name>LimaProcesslib</name>
