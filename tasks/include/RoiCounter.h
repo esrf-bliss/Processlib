@@ -89,6 +89,8 @@ namespace Tasks
 		    double rayon1,double rayon2,
 		    double angle_start,double angle_end);
   private:
+    void _check_roi_with_data_size(Data&);
+
     type _type;
     int _x,_y;
     int _width,_height;

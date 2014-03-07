@@ -323,17 +323,6 @@ template<class INPUT> static void _lut_get_average_std(const Data& data,
 {
   double *lutPt = (double*)lut.data();
   const INPUT* aSrcPt = (const INPUT*)data.data();
-  //basic check
-  if(lut.dimensions.size() != data.dimensions.size())
-    throw ProcessException("RoiLutCounterResult lut and data must have the same dimension");
-  if(x < 0 || y < 0)
-    throw ProcessException("RoiLutCounterResult lut origin must be positive");
-  if(lut.dimensions[0] + x > data.dimensions[0])
-    throw ProcessException("RoiLutCounterResult lut width + origin go outside of the data bounding box");
-  if(lut.dimensions.size() > 1 && 
-     lut.dimensions[1] + y > data.dimensions[1])
-    throw ProcessException("RoiLutCounterResult lut height + origin got outside of the data bounding box");
-
   
   int widthStep = data.dimensions[0];
   double aMin,aMax;
@@ -426,18 +415,7 @@ template<class INPUT> static void _mask_get_average_std(const Data& data,
 {
   char *maskPt = (char*)mask.data();
   const INPUT* aSrcPt = (const INPUT*)data.data();
-  //basic check
-  if(mask.dimensions.size() != data.dimensions.size())
-    throw ProcessException("RoiLutCounterResult mask and data must have the same dimension");
-  if(x < 0 || y < 0)
-    throw ProcessException("RoiLutCounterResult mask origin must be positive");
-  if(mask.dimensions[0] + x > data.dimensions[0])
-    throw ProcessException("RoiLutCounterResult mask width + origin go outside of the data bounding box");
-  if(mask.dimensions.size() > 1 && 
-     mask.dimensions[1] + y > data.dimensions[1])
-    throw ProcessException("RoiLutCounterResult mask height + origin got outside of the data bounding box");
 
-  
   int widthStep = data.dimensions[0];
   INPUT aMin,aMax;
   //jump to start
@@ -523,6 +501,51 @@ template<class INPUT> static void _mask_get_average_std(const Data& data,
     aResult.std = 0.;
 }
 
+void RoiCounterTask::_check_roi_with_data_size(Data& data)
+{
+  if(_x < 0 || _y < 0)
+    throw ProcessException("RoiCounter : roi origin must be positive");
+
+  long width = data.dimensions[0];
+  long height = data.dimensions[1];
+
+  switch(_type)
+    {
+    case SQUARE:
+      {
+	if(width < _x + _width || height < _y + _height)
+	  {
+	    char buffer[1024];
+	    snprintf(buffer,sizeof(buffer),"RoiCounter : roi <%d,%d>-<%dx%d>"
+		     " is not contained into data <%ldx%ld>",
+		     _x,_y,_width,_height,width,height);
+	    throw ProcessException(buffer);
+	  }
+	break;
+      }
+    case LUT:
+      if(_lut.dimensions.size() != data.dimensions.size())
+	throw ProcessException("RoiLutCounter lut and data must have the same dimension");
+      if(_lut.dimensions[0] + _x > data.dimensions[0])
+	throw ProcessException("RoiLutCounter lut width + origin go outside of the data bounding box");
+      if(_lut.dimensions.size() > 1 && 
+	 _lut.dimensions[1] + _y > data.dimensions[1])
+	throw ProcessException("RoiLutCounter lut height + origin got outside of the data bounding box");
+      break;
+    case MASK:
+      if(_mask.dimensions.size() != data.dimensions.size())
+	throw ProcessException("RoiLutCounter mask and data must have the same dimension");
+      if(_mask.dimensions[0] + _x > data.dimensions[0])
+	throw ProcessException("RoiLutCounter mask width + origin go outside of the data bounding box");
+      if(_mask.dimensions.size() > 1 && 
+	 _mask.dimensions[1] + _y > data.dimensions[1])
+	throw ProcessException("RoiLutCounter mask height + origin got outside of the data bounding box");
+      break;
+    default:
+      throw ProcessException("RoiCounter : roi is not defined");
+    }
+}
+
 #define GET_AVERAGE_STD(TYPE)					\
   {								\
   if(_type == SQUARE)						\
@@ -538,6 +561,8 @@ void RoiCounterTask::process(Data &aData)
   //_check_roi(_x,_y,_width,_height,aData);
   if(aData.dimensions.size() != 2)
     throw ProcessException("RoiCounterTask : Only manage 2D data");
+
+  _check_roi_with_data_size(aData);
 
   RoiCounterResult aResult;
   aResult.frameNumber = aData.frameNumber;
