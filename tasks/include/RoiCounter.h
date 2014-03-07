@@ -92,6 +92,8 @@ namespace Tasks
 		    double &rayon1,double &rayon2,
 		    double &angle_start,double &angle_end);
   private:
+    void _check_roi_with_data_size(Data&);
+
     typedef struct ArcRoi {
       double x, y;
       double r1, r2;
