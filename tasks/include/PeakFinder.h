@@ -66,10 +66,14 @@ namespace Tasks
     virtual void process(Data&);
     
     void setMask(Data &aMask) {_mask = aMask;}
+    void setComputingMode(int computing_mode);
+    int  getComputingMode(void);
   private:
     
     Data _mask;
     int _nb_peaks;
+    int _computing_mode;
+
     //    void _compute_peaks(const Data& aData, PeakFinderResult &aResult);
   };
 
