@@ -78,5 +78,7 @@ sipRes = tmpString.c_str();
     virtual void process(Data&);
 
     void setMask(Data &aMask);
+    void setComputingMode(int computing_mode);
+    int  getComputingMode();
   };
 };
