@@ -38,8 +38,8 @@ PeakFinderTask::PeakFinderTask(PeakFinderManager &aMgr) :
 
 PeakFinderTask::PeakFinderTask(const PeakFinderTask &aTask) :
   SinkTask<PeakFinderResult>(aTask),
-  _nb_peaks(aTask._nb_peaks),
-  _mask(aTask._mask)
+  _mask(aTask._mask),
+  _nb_peaks(aTask._nb_peaks)
 {
 }
 
