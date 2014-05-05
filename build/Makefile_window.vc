@@ -68,7 +68,8 @@ LISTEOBJ = \
  	SoftRoi.obj\
  	Bpm.obj\
  	Mask.obj\
-	Roi2Spectrum.obj
+	Roi2Spectrum.obj \
+	PeakFinder.obj
 
 # --------------------------------------
 !include common_target.opt
@@ -145,3 +146,6 @@ Mask.obj:$(CPPDIRUSER2)\Mask.cpp
 
 Roi2Spectrum.obj:$(CPPDIRUSER2)\Roi2Spectrum.cpp
 	$(CXX) $(CPPFLAGS) /c $(CPPDIRUSER2)\Roi2Spectrum.cpp
+
+PeakFinder.obj:$(CPPDIRUSER2)\PeakFinder.cpp
+	$(CXX) $(CPPFLAGS) /c $(CPPDIRUSER2)\PeakFinder.cpp
