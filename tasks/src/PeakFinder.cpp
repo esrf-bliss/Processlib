@@ -33,7 +33,7 @@ using namespace Tasks;
 PeakFinderTask::PeakFinderTask(PeakFinderManager &aMgr) :
   SinkTask<PeakFinderResult>(aMgr),
   _nb_peaks(1),
-  _computing_mode(0)
+  _computing_mode(PeakFinderTask::MAXIMUM)
 {
 }
 
@@ -41,7 +41,7 @@ PeakFinderTask::PeakFinderTask(const PeakFinderTask &aTask) :
   SinkTask<PeakFinderResult>(aTask),
   _mask(aTask._mask),
   _nb_peaks(aTask._nb_peaks),
-  _computing_mode(0)
+  _computing_mode(PeakFinderTask::MAXIMUM)
 {
 }
 
@@ -94,7 +94,6 @@ template<class INPUT> static void _compute_peaks(const Data& aData, PeakFinderRe
       break;
     case 1:
       // Make projections
-      
       for(int lineId = 0;lineId < y_dimension;lineId++){
 	y_projection[lineId] = 0;
 	for( int x_value = 0; x_value < aData.dimensions[0]; x_value++){
@@ -147,14 +146,14 @@ template<class INPUT> static void _compute_peaks(const Data& aData, PeakFinderRe
     }  
 }
 
-void PeakFinderTask::setComputingMode(int computing_mode){
+void PeakFinderTask::setComputingMode(PeakFinderTask::ComputingMode aComputingMode){
 
-  _computing_mode = computing_mode;
+  _computing_mode = aComputingMode;
 
 }
-int PeakFinderTask::getComputingMode(){
+void PeakFinderTask::getComputingMode(PeakFinderTask::ComputingMode &aComputingMode) const{
 
-  return _computing_mode;
+    aComputingMode = _computing_mode;
 
 }
 
