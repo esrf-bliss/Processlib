@@ -73,10 +73,14 @@ sipRes = tmpString.c_str();
 #include <PeakFinder.h>
 %End
   public:
+    enum ComputingMode {MAXIMUM,CM};
+
     PeakFinderTask(Tasks::PeakFinderManager&);
     PeakFinderTask(const Tasks::PeakFinderTask&);
     virtual void process(Data&);
 
     void setMask(Data &aMask);
+    void setComputingMode(Tasks::PeakFinderTask::ComputingMode);
+    void getComputingMode(Tasks::PeakFinderTask::ComputingMode& /Out/) const;
   };
 };

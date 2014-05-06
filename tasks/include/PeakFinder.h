@@ -61,15 +61,21 @@ namespace Tasks
   class DLL_EXPORT PeakFinderTask : public SinkTask<PeakFinderResult>
   {
   public:
+    enum ComputingMode {MAXIMUM,CM};
     PeakFinderTask(PeakFinderManager&);
     PeakFinderTask(const PeakFinderTask&);
     virtual void process(Data&);
     
     void setMask(Data &aMask) {_mask = aMask;}
+    void setComputingMode(ComputingMode);
+    void getComputingMode(ComputingMode &) const;
   private:
     
     Data _mask;
     int _nb_peaks;
+    ComputingMode _computing_mode;
+    
+
     //    void _compute_peaks(const Data& aData, PeakFinderResult &aResult);
   };
 
