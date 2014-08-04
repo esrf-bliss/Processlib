@@ -20,21 +20,10 @@
 # You should have received a copy of the GNU General Public License
 # along with this program; if not, see <http://www.gnu.org/licenses/>.
 ############################################################################
-#!/usr/bin/env python
 
-import os
-import os.path
-import platform
+INCLUDES=-I../../core/include -I../include
+CXXFLAGS += $(INCLUDES) -fPIC -Wall -pthread -O3
 
-if os.access('./Makefile',os.R_OK) :
-    if platform.system() == 'Windows':
-        os.system('nmake clean')
-    else:
-        os.system('make clean')
-dont_rm_files = ['processlib.sip','processlib_before_4_12.sip','processlibconfig.py.in','configure.py','clean.py','.gitignore','data_header_iterator.h']
-
-for root,dirs,files in os.walk('.') :
-    for file_name in files :
-        if file_name not in dont_rm_files :
-            os.remove(os.path.join(root,file_name))
-    break
+.PHONY: check-syntax
+check-syntax:
+	$(CXX) -Wall -Wextra -fsyntax-only $(CXXFLAGS) $(CHK_SOURCES)

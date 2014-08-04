@@ -29,7 +29,7 @@
 DLL_EXPORT int pthread_cond_init(pthread_cond_t *c, pthread_condattr_t *a)
 {
 	(void) a;
-#if (_WIN32_WINNT >= _WIN32_WINNT_LONGHORN)	
+#ifndef PTHREAD_WIN_XP_SYNC	
 	InitializeConditionVariable(c);
 #else
 	c->sema = CreateSemaphore(NULL,0,MAX_INT,NULL);
@@ -42,7 +42,7 @@ DLL_EXPORT int pthread_cond_init(pthread_cond_t *c, pthread_condattr_t *a)
 
 int pthread_cond_signal(pthread_cond_t *c)
 {
-#if (_WIN32_WINNT >= _WIN32_WINNT_LONGHORN)
+#ifndef PTHREAD_WIN_XP_SYNC
 	WakeConditionVariable(c);
 #else
 	bool signalFlag = false;
@@ -61,7 +61,7 @@ int pthread_cond_signal(pthread_cond_t *c)
 
 int pthread_cond_broadcast(pthread_cond_t *c)
 {
-#if (_WIN32_WINNT >= _WIN32_WINNT_LONGHORN)
+#ifndef PTHREAD_WIN_XP_SYNC
 	WakeAllConditionVariable(c);
 #else
 	WaitForSingleObject(c->mutex,INFINITE);
@@ -79,7 +79,7 @@ int pthread_cond_broadcast(pthread_cond_t *c)
 int pthread_cond_wait(pthread_cond_t *c, pthread_mutex_t *m)
 {
 	pthread_testcancel();
-#if (_WIN32_WINNT >= _WIN32_WINNT_LONGHORN)
+#ifndef PTHREAD_WIN_XP_SYNC
 	SleepConditionVariableCS(c, m, INFINITE);
 #else
 	WaitForSingleObject(c->mutex,INFINITE);
@@ -101,7 +101,7 @@ int pthread_cond_wait(pthread_cond_t *c, pthread_mutex_t *m)
 
 int pthread_cond_destroy(pthread_cond_t *c)
 {
-#if (_WIN32_WINNT >= _WIN32_WINNT_LONGHORN)
+#ifndef PTHREAD_WIN_XP_SYNC
 	(void) c;
 #else
 	CloseHandle(c->mutex);
@@ -117,7 +117,7 @@ int pthread_cond_timedwait(pthread_cond_t *c, pthread_mutex_t *m, struct timespe
 	
 	pthread_testcancel();
 	int returnState = 0;
-#if (_WIN32_WINNT >= _WIN32_WINNT_LONGHORN)
+#ifndef PTHREAD_WIN_XP_SYNC
 	if (!SleepConditionVariableCS(c, m, DWORD(tm))) return ETIMEDOUT;
 #else
 	WaitForSingleObject(c->mutex,INFINITE);

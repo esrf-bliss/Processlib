@@ -25,7 +25,7 @@
 #include <Windows.h>
 #include "Compatibility.h"
 
-#if (_WIN32_WINNT >= _WIN32_WINNT_LONGHORN)
+#ifndef PTHREAD_WIN_XP_SYNC
 typedef SRWLOCK pthread_rwlock_t;
 #else
 struct pthread_rwlock_t

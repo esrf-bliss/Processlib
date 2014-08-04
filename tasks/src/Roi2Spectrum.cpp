@@ -24,6 +24,8 @@
 #include "Roi2Spectrum.h"
 using namespace Tasks;
 
+#include <cstdio>
+
 Roi2SpectrumTask::Roi2SpectrumTask(Roi2SpectrumManager &aMgr) :
   SinkTask<Roi2SpectrumResult>(aMgr),
   _x(0),_y(0),
@@ -74,8 +76,21 @@ void Roi2SpectrumTask::process(Data &aData)
   Roi2SpectrumResult aResult;
   aResult.frameNumber = aData.frameNumber;
   if(aData.dimensions.size() != 2)
-    throw ProcessException("Roi2SpectrumResult : Only manage 2D data");
+    throw ProcessException("Roi2Spectrum : Only manage 2D data");
 
+  long width = aData.dimensions[0];
+  long height = aData.dimensions[1];
+
+  if(width < _x + _width || height < _y + _height)
+    throw ProcessException("Roi2Spectrum : roi is not contained into data");
+  if(width < _x + _width || height < _y + _height)
+    {
+      char buffer[1024];
+      snprintf(buffer,sizeof(buffer),"Roi2Spectrum : roi <%d,%d>-<%dx%d>"
+	       " is not contained into data <%ldx%ld>",
+	       _x,_y,_width,_height,width,height);
+      throw ProcessException(buffer);
+	  }
   if(_width > 0 && _height > 0)
     {
 

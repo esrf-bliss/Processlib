@@ -20,7 +20,7 @@
 // You should have received a copy of the GNU General Public License
 // along with this program; if not, see <http://www.gnu.org/licenses/>.
 //###########################################################################
-%Module(name=processlib,version=0)
+%Module processlib 0
 
 %ModuleHeaderCode
 extern "C" { void processlib_import_array();}
@@ -234,8 +234,7 @@ sipCpp->insert(a0,a1);
   int frameNumber;
   double timestamp;
   Data::HeaderContainer header;
-  void *buffer
-{
+  void *buffer;
 %GetCode
 if(!sipCpp->buffer || !sipCpp->buffer->data)
    Py_RETURN_NONE;
@@ -306,7 +305,6 @@ if(!sipErr)
  aNewBuffer->unref();
 }
 %End
-};
 
   void releaseBuffer();
 

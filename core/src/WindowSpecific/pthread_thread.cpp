@@ -32,7 +32,7 @@
 extern void (**_pthread_key_dest)(void *);
 
 int _pthread_concur;
-pthread_once_t _pthread_tls_once;
+pthread_once_t _pthread_tls_once = PTHREAD_ONCE_INIT;
 DWORD _pthread_tls;
 
 extern pthread_rwlock_t _pthread_key_lock;

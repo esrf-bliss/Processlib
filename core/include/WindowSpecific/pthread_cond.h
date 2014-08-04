@@ -26,7 +26,7 @@
 #include <pthread_mutex.h>
 #include "Compatibility.h"
 
-#if (_WIN32_WINNT >= _WIN32_WINNT_LONGHORN)
+#ifndef PTHREAD_WIN_XP_SYNC
 typedef CONDITION_VARIABLE pthread_cond_t;
 #else
 struct pthread_cond_t

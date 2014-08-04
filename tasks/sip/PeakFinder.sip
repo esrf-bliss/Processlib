@@ -22,23 +22,23 @@
 //###########################################################################
 namespace Tasks
 {
-  class RoiCounterManager
+  class PeakFinderManager
    {
 %TypeHeaderCode
-#include <RoiCounter.h>
+#include <PeakFinder.h>
 %End
     public:
     enum ErrorCode {OK,NOT_MANAGED,NO_MORE_AVAILABLE,TIMEDOUT};
     enum RUN_MODE {Counter,Monitor};
-    RoiCounterManager(int = 4);
+    PeakFinderManager(int = 4);
 
-    Tasks::RoiCounterResult	getResult(double = 0.,int = -1) const;
+    Tasks::PeakFinderResult    getResult(double = 0.,int = -1) const;
     void	resizeHistory(int aSize);
     void  resetHistory();
     int	  historySize() const;
     int   lastFrameNumber() const;
     protected:
-    virtual ~RoiCounterManager();
+    virtual ~PeakFinderManager();
 %MethodCode
  Py_BEGIN_ALLOW_THREADS;
  sipCpp->unref();
@@ -48,18 +48,15 @@ namespace Tasks
    };
 
 
-  struct RoiCounterResult
+  struct PeakFinderResult
   {
 %TypeHeaderCode
-#include <RoiCounter.h>
+#include <PeakFinder.h>
 %End
-    double                       sum;
-    double                       average;
-    double                       std;
-    double			 minValue;
-    double			 maxValue;
+    double                       x_peak;
+    double                       y_peak;
     int                          frameNumber;
-    Tasks::RoiCounterManager::ErrorCode errorCode;
+    Tasks::PeakFinderManager::ErrorCode errorCode;
 
 const char* __repr__();
 %MethodCode
@@ -70,35 +67,20 @@ sipRes = tmpString.c_str();
 %End
   };
   
-  class RoiCounterTask : SinkTaskBase
+  class PeakFinderTask : SinkTaskBase
   {
 %TypeHeaderCode
-#include <RoiCounter.h>
+#include <PeakFinder.h>
 %End
   public:
-    enum type {UNDEF,SQUARE,ARC,LUT,MASK};
-    RoiCounterTask(Tasks::RoiCounterManager&);
-    RoiCounterTask(const Tasks::RoiCounterTask&);
+    enum ComputingMode {MAXIMUM,CM};
+
+    PeakFinderTask(Tasks::PeakFinderManager&);
+    PeakFinderTask(const Tasks::PeakFinderTask&);
     virtual void process(Data&);
 
     void setMask(Data &aMask);
-    void getType(type& aType /Out/);
-    //Method for SQUARE roi
-    void setRoi(int,int,int,int);
-    void getRoi(int &x /Out/,int &y /Out/,
-		int &width /Out/,int &height /Out/);
-    //Method for LUT roi
-    void setLut(int x,int y,Data &lut);
-    void getLut(int &x /Out/,int &y /Out/,Data &lut /Out/);
-    //Method for Mask
-    void setLutMask(int x,int y,Data &mask);
-    void getLutMask(int &x /Out/,int &y /Out/,Data &mask /Out/);
-    //Method helper for arcs
-    void setArcMask(double centerX,double centerY,
-		    double rayon1,double rayon2,
-		    double angle_start,double angle_end);
-    void getArcMask(double &centerX /Out/,double &centerY /Out/,
-		    double &rayon1 /Out/,double &rayon2 /Out/,
-		    double &angle_start /Out/,double &angle_end /Out/);
+    void setComputingMode(Tasks::PeakFinderTask::ComputingMode);
+    void getComputingMode(Tasks::PeakFinderTask::ComputingMode& /Out/) const;
   };
 };
