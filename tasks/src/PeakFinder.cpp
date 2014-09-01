@@ -53,8 +53,13 @@ template<class INPUT> static void _compute_peaks(const Data& aData, PeakFinderRe
   int y_max = 0;
 
 
+#ifndef WIN32
   INPUT x_projection[aData.dimensions[0]];
   INPUT y_projection[aData.dimensions[1]];
+#else
+  INPUT *x_projection = (INPUT*)alloca(aData.dimensions[0] * sizeof(INPUT)); 
+  INPUT *y_projection = (INPUT*)alloca(aData.dimensions[1] * sizeof(INPUT)); 
+#endif
   INPUT x_sum = 0;
   INPUT y_sum = 0;
   INPUT x_background_value = 0;
