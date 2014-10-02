@@ -214,37 +214,61 @@ double BpmTask::_calculate_fwhm(const Buffer &projectionBuffer,int size,
   double hm = ((max_value - usedBackgroundLevel) / 2.) + usedBackgroundLevel;
   // FIRST ON THE LEFT SIDE OF THE CURVE
   int index;
-  for(index = peak_index;aProjectionPt[index] > hm && index > 0;--index);
-  double val_h = aProjectionPt[index - 1] - hm;
-  double val_l = aProjectionPt[index] - hm;
-  double correction1;
-  if(fabs(val_h) < fabs(val_l))
-    {
-      min_index = index - 1;
-      correction1 = -1. * val_h / (val_h - val_l); 
+  bool err = false;
+  index = peak_index;
+  while( aProjectionPt[index] > hm ){
+    index = index - 1;
+    if(index < 0){
+      index=0;
+      err = true;
+      break;
     }
-  else
+  }
+
+  if(err)			// Error
+    return -1.;
+
+  double val_h = aProjectionPt[index + 1];
+  double val_l = aProjectionPt[index];
+  double locut;
+  if(!(val_h> val_l && val_h> hm && hm> val_l))
     {
-      min_index = index;
-      correction1 = val_l / (val_l - val_h);
+      std::cout << "val_h" << val_h
+		<< "val_l" << val_l
+		<< "hm" << hm
+		<< std::endl;
+      return -1.;
     }
 
+  locut = index + (hm - val_l)/(val_h-val_l);
   // NOW ON THE RIGHT SIDE OF THE CURVE
-  for(index = peak_index;aProjectionPt[index] > hm && index < (size - 1);++index);
-  val_h = aProjectionPt[index - 1] - hm;
-  val_l = aProjectionPt[index] - hm;
-  double correction2;
-  if(fabs(val_h) < fabs(val_l))
-    {
-      max_index = index - 1;
-      correction2 = -1. * val_h / (val_h - val_l);
+  index = peak_index;
+  while( aProjectionPt[index] > hm ){
+    index = index + 1;
+    if(index > (size-1)){
+      index=size;
+      err = 1;
+      break;
     }
-  else
+  }
+  val_h = aProjectionPt[index - 1];
+  val_l = aProjectionPt[index];
+  if(!(val_h> val_l && val_h> hm && hm> val_l))
     {
-      max_index = index;
-      correction2 = val_l / (val_l - val_h);
+      std::cout << "val_h" << val_h
+		<< "val_l" << val_l
+		<< "hm" << hm
+		<< std::endl;
+      return -1.;
     }
-  return max_index - correction2 - min_index - correction1; // fwhm result
+
+  double hicut;
+  hicut = index - (hm - val_l)/(val_h-val_l);
+
+  min_index = int(locut);
+  max_index = int(hicut);
+
+  return hicut - locut;
 }
 /** @brief Caluclate the background level around the peak
  */

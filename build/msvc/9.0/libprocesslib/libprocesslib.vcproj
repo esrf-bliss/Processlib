@@ -536,6 +536,10 @@
 				>
 			</File>
 			<File
+				RelativePath="..\..\..\..\tasks\src\PeakFinder.cpp"
+				>
+			</File>
+			<File
 				RelativePath="..\..\..\..\core\src\PoolThreadMgr.cpp"
 				>
 			</File>
@@ -643,6 +647,10 @@
 			</File>
 			<File
 				RelativePath="..\..\..\..\tasks\include\Mask.h"
+				>
+			</File>
+			<File
+				RelativePath="..\..\..\..\tasks\include\PeakFinder.h"
 				>
 			</File>
 			<File
