@@ -43,8 +43,7 @@
 #define access _access
 #define ftruncate _chsize
 
-//#define ssize_t int
-typedef int ssize_t;
+#define ssize_t int
 #define usleep(val) ::Sleep(val/1000)
 
 #ifndef S_ISDIR

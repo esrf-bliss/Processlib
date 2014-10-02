@@ -446,5 +446,5 @@ class PoolThreadMgr
   void suspend(bool);
   bool wait(double timeout = -1.);
   void quit();
-  static void setThreadWaitOnQuit(bool wait_on_quit);
+  void setThreadWaitOnQuit(bool wait_on_quit);
 };

@@ -43,6 +43,7 @@ RoiCounterTask::RoiCounterTask(const RoiCounterTask &aTask) :
   _type(aTask._type),
   _x(aTask._x),_y(aTask._y),
   _width(aTask._width),_height(aTask._height),
+  _arc_roi(aTask._arc_roi),
   _mask(aTask._mask),
   _lut(aTask._lut)
 {
@@ -99,7 +100,8 @@ void RoiCounterTask::setArcMask(double centerX,double centerY,
       rayon2 = rayon1;
       rayon1 = rayon_tmp;
     }
-  _type = MASK;
+  _type = ARC;
+  _arc_roi = ArcRoi(centerX, centerY, rayon1, rayon2, angle_start, angle_end);
   //find the bounding box
   double x_min,x_max;
   double y_min,y_max;
@@ -201,7 +203,20 @@ void RoiCounterTask::setArcMask(double centerX,double centerY,
 	}
     }
 }
+void RoiCounterTask::getArcMask(double &centerX,double &centerY,
+				double &rayon1,double &rayon2,
+				double &angle_start,double &angle_end)
+{
+  if(_type != ARC)
+    throw ProcessException("RoiCounterTask: This is not a ARC Roi");
 
+  centerX = _arc_roi.x;
+  centerY = _arc_roi.y;
+  rayon1 = _arc_roi.r1;
+  rayon2 = _arc_roi.r2;
+  angle_start = _arc_roi.a1;
+  angle_end = _arc_roi.a2;
+}
 template<class INPUT> static void _get_average_std(const Data& aData,
 						   int x,int y,
 						   int width,int height,
@@ -532,6 +547,7 @@ void RoiCounterTask::_check_roi_with_data_size(Data& data)
 	 _lut.dimensions[1] + _y > data.dimensions[1])
 	throw ProcessException("RoiLutCounter lut height + origin got outside of the data bounding box");
       break;
+    case ARC:
     case MASK:
       if(_mask.dimensions.size() != data.dimensions.size())
 	throw ProcessException("RoiLutCounter mask and data must have the same dimension");
@@ -552,7 +568,7 @@ void RoiCounterTask::_check_roi_with_data_size(Data& data)
     _get_average_std<TYPE>(aData,_x,_y,_width,_height,aResult);	\
   else if(_type == LUT)						\
     _lut_get_average_std<TYPE>(aData,_x,_y,_lut,aResult);	\
-  else if(_type == MASK)					\
+  else if((_type == MASK) || (_type == ARC))			\
     _mask_get_average_std<TYPE>(aData,_x,_y,_lut,aResult);	\
   }
 

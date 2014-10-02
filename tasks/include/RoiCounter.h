@@ -68,7 +68,7 @@ namespace Tasks
   class DLL_EXPORT RoiCounterTask : public SinkTask<RoiCounterResult>
   {
   public:
-    enum type {UNDEF,SQUARE,LUT,MASK};
+    enum type {UNDEF,SQUARE,ARC,LUT,MASK};
     RoiCounterTask(RoiCounterManager&);
     RoiCounterTask(const RoiCounterTask&);
     virtual void process(Data&);
@@ -88,12 +88,31 @@ namespace Tasks
     void setArcMask(double centerX,double centerY,
 		    double rayon1,double rayon2,
 		    double angle_start,double angle_end);
+    void getArcMask(double &centerX,double &centerY,
+		    double &rayon1,double &rayon2,
+		    double &angle_start,double &angle_end);
   private:
     void _check_roi_with_data_size(Data&);
+
+    typedef struct ArcRoi {
+      double x, y;
+      double r1, r2;
+      double a1, a2;
+      ArcRoi() : x(0), y(0), r1(0), r2(0), a1(0), a2(0) 
+      {}
+      ArcRoi(double dx, double dy, 
+	     double dr1, double dr2,
+	     double da1, double da2) 
+	: x(dx), y(dy), r1(dr1), r2(dr2), a1(da1), a2(da2) 
+      {}
+      bool isSet() 
+      { return (r1 != 0) || (r2 != 0) || (a1 != 0) || (a2 != 0); }
+    } ArcRoi;
 
     type _type;
     int _x,_y;
     int _width,_height;
+    ArcRoi _arc_roi;
     Data _mask;
     Data _lut;
   };
