@@ -42,6 +42,8 @@ static void _processMgrInit()
 PoolThreadMgr PoolThreadMgr::_processMgr;
 #endif
 
+bool PoolThreadMgr::_threadWaitOnQuit = true;
+
 PoolThreadMgr::PoolThreadMgr()
 {
   pthread_mutex_init(&_lock,NULL);
