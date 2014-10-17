@@ -23,7 +23,11 @@
 %Module(name=processlib,version=0)
 
 %ModuleHeaderCode
+#if PY_VERSION_HEX >= 0x03000000
+extern "C" { int processlib_import_array();}
+#else
 extern "C" { void processlib_import_array();}
+#endif
 %End
 
 %PostInitialisationCode
@@ -74,6 +78,7 @@ struct Data
 #include <Data.h>
 #include <PoolThreadMgr.h>
 #include <sstream>
+#include "numpy/npy_3kcompat.h"
 #include "data_header_iterator.h"
 %End
 
@@ -317,10 +322,17 @@ if(!sipErr)
 using namespace std;
 extern "C"
 {
+#if PY_VERSION_HEX >= 0x03000000
+  int processlib_import_array()
+  {
+    import_array();
+  }
+#else
   void processlib_import_array()
   {
     import_array();
   }
+#endif
 }
 %End
   SIP_PYOBJECT refcount();
