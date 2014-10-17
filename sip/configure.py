@@ -43,11 +43,11 @@ if platform.system() == 'Windows' and platform.machine() == 'AMD64':
     exclude_sipfile.add('..\\tasks\\sip\\Bpm.sip')
     
 ##Append Tasks sip
-sipFile = file("processlib_tmp.sip","a")
+sipFile = open("processlib_tmp.sip","a")
 sipFile.write('\n')
 for filename in glob.glob(os.path.join("..","tasks","sip","*.sip")) :
     if filename not in exclude_sipfile:
-	sipFile.write('%%Include %s\n' % filename.replace('\\','/'))
+        sipFile.write('%%Include %s\n' % filename.replace('\\','/'))
 sipFile.close()
 
 
@@ -60,7 +60,7 @@ config = sipconfig.Configuration()
 # module's specification files using the -I flag.
 cmd = " ".join([config.sip_bin,"-g", "-e","-c", '.',
                 "-b", build_file,"processlib_tmp.sip"])
-print cmd
+print(cmd)
 os.system(cmd)
 
 # We are going to install the SIP specification file for this module and
@@ -88,9 +88,9 @@ if platform.system() == 'Windows':
                                '/EHsc']
     makefile.extra_libs = ['libprocesslib']
     if platform.machine() == "AMD64":
-	makefile.extra_lib_dirs = ['..\\build\\msvc\\9.0\\libprocesslib\\x64\\Release']
+        makefile.extra_lib_dirs = ['..\\build\\msvc\\9.0\\libprocesslib\\x64\\Release']
     else:
-	makefile.extra_lib_dirs = ['..\\build\\msvc\\9.0\\libprocesslib\\Release']
+        makefile.extra_lib_dirs = ['..\\build\\msvc\\9.0\\libprocesslib\\Release']
 else:
     makefile.extra_cxxflags = ['-pthread','-I../core/include','-I../tasks/include','-I' + numpy.get_include()]
     makefile.extra_libs = ['pthread','processlib']
