@@ -31,16 +31,13 @@
 
 //Static variable
 static const int NB_DEFAULT_THREADS = 2;
-#ifdef WIN32
+
 static PoolThreadMgr *_processMgrPt = NULL;
 static pthread_once_t _init = PTHREAD_ONCE_INIT;
 static void _processMgrInit()
 {
   _processMgrPt = new PoolThreadMgr();
 }
-#else
-PoolThreadMgr PoolThreadMgr::_processMgr;
-#endif
 
 PoolThreadMgr::PoolThreadMgr()
 {
@@ -261,11 +258,14 @@ void PoolThreadMgr::_createProcessThread(int aNumber)
 	_threadID.push_back(threadID);
     }
 }
-#ifdef WIN32
+
 PoolThreadMgr& PoolThreadMgr::get() throw()
 {
+#ifdef WIN32
   _pthread_once_raw(&_init,_processMgrInit);
+#else
+  pthread_once(&_init,_processMgrInit);
+#endif
   return *_processMgrPt;
 }
-#endif
 

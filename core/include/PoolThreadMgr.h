@@ -41,12 +41,7 @@ class DLL_EXPORT PoolThreadMgr
 public:
   PoolThreadMgr();
   ~PoolThreadMgr();
-#ifdef WIN32
   static PoolThreadMgr& get() throw();
-#else
-  static inline PoolThreadMgr& get() throw() 
-  {return PoolThreadMgr::_processMgr;}
-#endif
 
   void addProcess(TaskMgr *aProcess,bool lock = true);
   void removeProcess(TaskMgr *aProcess,bool lock = true);
@@ -94,9 +89,6 @@ private:
   volatile int			     _runningThread;
   std::list<TaskMgr*>   _processQueue;
   std::vector<pthread_t>             _threadID;
-#ifndef WIN32
-  static PoolThreadMgr               _processMgr;
-#endif
   TaskMgr		             *_taskMgr;
   bool				      _threadWaitOnQuit;
 
