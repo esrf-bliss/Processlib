@@ -20,8 +20,8 @@
 // You should have received a copy of the GNU General Public License
 // along with this program; if not, see <http://www.gnu.org/licenses/>.
 //###########################################################################
-#include "LinkTask.h"
-#include "PoolThreadMgr.h"
+#include "processlib/LinkTask.h"
+#include "processlib/PoolThreadMgr.h"
 
 LinkTask::LinkTask() :
   _processingInPlaceFlag(true),

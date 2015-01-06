@@ -21,8 +21,8 @@
 // along with this program; if not, see <http://www.gnu.org/licenses/>.
 //###########################################################################
 #include <pthread.h>
-#include "Data.h"
-#include "TaskEventCallback.h"
+#include "processlib/Data.h"
+#include "processlib/TaskEventCallback.h"
 
 #ifndef __LINKTASK_H
 #define __LINKTASK_H

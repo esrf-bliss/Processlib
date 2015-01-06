@@ -34,7 +34,7 @@
 #include <vector>
 
 
-#include "PoolThreadMgr.h"
+#include "processlib/PoolThreadMgr.h"
 
 
 template<class Result>

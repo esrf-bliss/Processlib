@@ -25,7 +25,7 @@ namespace Tasks
   class Mask : LinkTask
   {
 %TypeHeaderCode
-#include <Mask.h>
+#include "processlib/Mask.h"
 %End
   public:
     enum Type {STANDARD,DUMMY};

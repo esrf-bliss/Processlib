@@ -21,8 +21,8 @@
 // along with this program; if not, see <http://www.gnu.org/licenses/>.
 //###########################################################################
 #include <stdio.h>
-#include "ProcessExceptions.h"
-#include "Mask.h"
+#include "processlib/ProcessExceptions.h"
+#include "processlib/Mask.h"
 using namespace Tasks;
 
 Mask::Mask() : LinkTask(),_type(Mask::STANDARD) {}

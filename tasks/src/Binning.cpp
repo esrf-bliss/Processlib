@@ -20,9 +20,9 @@
 // You should have received a copy of the GNU General Public License
 // along with this program; if not, see <http://www.gnu.org/licenses/>.
 //###########################################################################
-#include "ProcessExceptions.h"
-#include "Binning.h"
-#include "Stat.h"
+#include "processlib/ProcessExceptions.h"
+#include "processlib/Binning.h"
+#include "processlib/Stat.h"
 #include <sstream>
 using namespace Tasks;
 

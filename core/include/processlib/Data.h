@@ -33,8 +33,8 @@
 #include <string>
 #include <cstring>
 
-#include "Compatibility.h"
-#include "ProcessExceptions.h"
+#include "processlib/Compatibility.h"
+#include "processlib/ProcessExceptions.h"
 
 #ifndef __DATA_H
 #define __DATA_H

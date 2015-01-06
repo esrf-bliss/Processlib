@@ -25,7 +25,7 @@ namespace Tasks
   class Binning :  LinkTask
   {
 %TypeHeaderCode
-#include <Binning.h>
+#include "processlib/Binning.h"
 %End
   public:
     virtual Data process(Data&);

@@ -21,8 +21,8 @@
 // along with this program; if not, see <http://www.gnu.org/licenses/>.
 //###########################################################################
 #include <math.h>
-#include "ProcessExceptions.h"
-#include "FlatfieldCorrection.h"
+#include "processlib/ProcessExceptions.h"
+#include "processlib/FlatfieldCorrection.h"
 using namespace Tasks;
 
 template<class INPUT>

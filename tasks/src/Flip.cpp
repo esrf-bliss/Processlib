@@ -24,9 +24,9 @@
 #ifdef __unix
 #include <stdint.h>
 #endif
-#include "ProcessExceptions.h"
-#include "Flip.h"
-#include "Stat.h"
+#include "processlib/ProcessExceptions.h"
+#include "processlib/Flip.h"
+#include "processlib/Stat.h"
 using namespace Tasks;
 
 Flip::Flip() : _mode(FLIP_NONE) {}

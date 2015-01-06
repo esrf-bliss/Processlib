@@ -20,8 +20,8 @@
 // You should have received a copy of the GNU General Public License
 // along with this program; if not, see <http://www.gnu.org/licenses/>.
 //###########################################################################
-#include "ProcessExceptions.h"
-#include "RoiCounter.h"
+#include "processlib/ProcessExceptions.h"
+#include "processlib/RoiCounter.h"
 using namespace Tasks;
 #ifndef __unix
 #define _USE_MATH_DEFINES

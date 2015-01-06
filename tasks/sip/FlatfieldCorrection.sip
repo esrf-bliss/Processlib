@@ -26,7 +26,7 @@ namespace Tasks
   class FlatfieldCorrection : LinkTask
   {
 %TypeHeaderCode
-#include <FlatfieldCorrection.h>
+#include "processlib/FlatfieldCorrection.h"
 %End
   public:
     void setFlatFieldImageData(Data &aData,bool normalize = true);

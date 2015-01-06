@@ -20,9 +20,9 @@
 // You should have received a copy of the GNU General Public License
 // along with this program; if not, see <http://www.gnu.org/licenses/>.
 //###########################################################################
-#include "ProcessExceptions.h"
-#include "SoftRoi.h"
-#include "Stat.h"
+#include "processlib/ProcessExceptions.h"
+#include "processlib/SoftRoi.h"
+#include "processlib/Stat.h"
 #include <string.h>
 using namespace Tasks;
 

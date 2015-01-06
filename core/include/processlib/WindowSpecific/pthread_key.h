@@ -23,7 +23,7 @@
 #ifndef __PTHREAD_KEY_H__
 #define __PTHREAD_KEY_H__
 
-#include "Compatibility.h"
+#include "processlib/Compatibility.h"
 
 typedef long pthread_key_t;
 

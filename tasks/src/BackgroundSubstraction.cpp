@@ -23,9 +23,9 @@
 #ifdef __SSE2__
 #include <emmintrin.h>
 #endif
-#include "ProcessExceptions.h"
-#include "BackgroundSubstraction.h"
-#include "Stat.h"
+#include "processlib/ProcessExceptions.h"
+#include "processlib/BackgroundSubstraction.h"
+#include "processlib/Stat.h"
 
 using namespace Tasks;
 

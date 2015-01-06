@@ -24,8 +24,8 @@
 #define __TASKMGR_H
 
 #include <deque>
-#include "Data.h"
-#include "Compatibility.h"
+#include "processlib/Data.h"
+#include "processlib/Compatibility.h"
 
 class LinkTask;
 class SinkTaskBase;

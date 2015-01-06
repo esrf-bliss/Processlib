@@ -25,9 +25,9 @@
 #include <sys/time.h>
 #endif
 #include <errno.h>
-#include "PoolThreadMgr.h"
-#include "TaskMgr.h"
-#include "ProcessExceptions.h"
+#include "processlib/PoolThreadMgr.h"
+#include "processlib/TaskMgr.h"
+#include "processlib/ProcessExceptions.h"
 
 //Static variable
 static const int NB_DEFAULT_THREADS = 2;

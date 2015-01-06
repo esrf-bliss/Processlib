@@ -28,7 +28,7 @@
 #include <map>
 #include <string>
 
-#include "Compatibility.h"
+#include "processlib/Compatibility.h"
 
 /** @brief this class manage error message in thread safe maner
  */

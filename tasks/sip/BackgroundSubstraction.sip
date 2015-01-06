@@ -25,7 +25,7 @@ namespace Tasks
   class BackgroundSubstraction : LinkTask
   {
 %TypeHeaderCode
-#include <BackgroundSubstraction.h>
+#include "processlib/BackgroundSubstraction.h"
 %End
   public:
     void setBackgroundImageData(Data &aData);

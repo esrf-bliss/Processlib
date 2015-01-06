@@ -25,7 +25,7 @@ namespace Tasks
   class Roi2SpectrumManager
   {
 %TypeHeaderCode
-#include <Roi2Spectrum.h>
+#include "processlib/Roi2Spectrum.h"
 %End
 
   public:
@@ -58,7 +58,7 @@ namespace Tasks
   struct Roi2SpectrumResult
   {
 %TypeHeaderCode
-#include <Roi2Spectrum.h>
+#include "processlib/Roi2Spectrum.h"
 %End
     Data 				spectrum;
     int 				frameNumber;
@@ -76,7 +76,7 @@ namespace Tasks
   class Roi2SpectrumTask : SinkTaskBase
   {
 %TypeHeaderCode
-#include <Roi2Spectrum.h>
+#include "processlib/Roi2Spectrum.h"
 %End
   public:
     enum Mode {LINES_SUM,COLUMN_SUM};

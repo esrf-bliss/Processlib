@@ -25,7 +25,7 @@ namespace Tasks
   class SoftRoi : LinkTask
   {
 %TypeHeaderCode
-#include <SoftRoi.h>
+#include "processlib/SoftRoi.h"
 %End
   public:
   void setRoi(int x1,int x2,
