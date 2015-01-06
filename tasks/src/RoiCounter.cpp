@@ -294,7 +294,11 @@ template<class INPUT> static void _get_average_std_with_mask(const Data& aData,
       for(int i = 0;i < width;++i,++aLinePt,++aMaskLinePt)
 	{
 	  if(*aMaskLinePt)
-	    aSum += double(*aLinePt);
+	    {
+	      aSum += double(*aLinePt);
+	      if(*aLinePt > aMax) aMax = *aLinePt;
+	      else if(*aLinePt < aMin) aMin = *aLinePt;
+	    }
 	  else
 	    --usedSize;
 	}
@@ -330,6 +334,9 @@ template<class INPUT> static void _get_average_std_with_mask(const Data& aData,
     }
   else
     aResult.std = 0.;
+
+  aResult.minValue = aMin;
+  aResult.maxValue = aMax;
 }
 
 template<class INPUT> static void _lut_get_average_std(const Data& data,
@@ -354,7 +361,7 @@ template<class INPUT> static void _lut_get_average_std(const Data& data,
   aMin = aMax = 0.;
   double aSum = 0.;
   double aWeight = 0.;
-  int cId;
+  int cId = 0;
   bool continueFlag = true;
   while(continueFlag && nbItems)
     {
@@ -446,7 +453,7 @@ template<class INPUT> static void _mask_get_average_std(const Data& data,
   aMin = aMax = INPUT(0);
   long long aSum = 0;
   int aNbPixel = 0;
-  int cId;
+  int cId = 0;
   bool continueFlag = true;
   while(continueFlag && nbItems)
     {
