@@ -556,12 +556,12 @@ void RoiCounterTask::_check_roi_with_data_size(Data& data)
       break;
     case ARC:
     case MASK:
-      if(_mask.dimensions.size() != data.dimensions.size())
+      if(_lut.dimensions.size() != data.dimensions.size())
 	throw ProcessException("RoiLutCounter mask and data must have the same dimension");
-      if(_mask.dimensions[0] + _x > data.dimensions[0])
+      if(_lut.dimensions[0] + _x > data.dimensions[0])
 	throw ProcessException("RoiLutCounter mask width + origin go outside of the data bounding box");
-      if(_mask.dimensions.size() > 1 && 
-	 _mask.dimensions[1] + _y > data.dimensions[1])
+      if(_lut.dimensions.size() > 1 && 
+	 _lut.dimensions[1] + _y > data.dimensions[1])
 	throw ProcessException("RoiLutCounter mask height + origin got outside of the data bounding box");
       break;
     default:
