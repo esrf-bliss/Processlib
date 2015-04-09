@@ -22,8 +22,8 @@
 //###########################################################################
 #ifndef WITHOUT_GSL
 #include <gsl/gsl_errno.h>
-#include "GslErrorMgr.h"
-#include "PoolThreadMgr.h"
+#include "processlib/GslErrorMgr.h"
+#include "processlib/PoolThreadMgr.h"
 
 //Static variable
 GslErrorMgr GslErrorMgr::_errorMgr;

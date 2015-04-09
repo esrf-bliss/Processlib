@@ -24,7 +24,7 @@
 #define __PTHREAD_COND__H__
 #include <Windows.h>
 #include <pthread_mutex.h>
-#include "Compatibility.h"
+#include "processlib/Compatibility.h"
 
 #ifndef PTHREAD_WIN_XP_SYNC
 typedef CONDITION_VARIABLE pthread_cond_t;

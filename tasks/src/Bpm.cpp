@@ -33,11 +33,11 @@
 #endif
 #include <time.h>
 
-#include "ProcessExceptions.h"
-#include "Bpm.h"
-#include "GslErrorMgr.h"
-#include "PoolThreadMgr.h"
-#include "SoftRoi.h"
+#include "processlib/ProcessExceptions.h"
+#include "processlib/Bpm.h"
+#include "processlib/GslErrorMgr.h"
+#include "processlib/PoolThreadMgr.h"
+#include "processlib/SoftRoi.h"
 
 
 using namespace Tasks;

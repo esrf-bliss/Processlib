@@ -26,7 +26,7 @@ namespace Tasks
   class Rotation :LinkTask
   {
 %TypeHeaderCode
-#include <Rotation.h>
+#include "processlib/Rotation.h"
 %End
   public:
     enum Type {R_90,R_180,R_270};

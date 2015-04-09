@@ -31,7 +31,7 @@
 #include <vector>
 #include <pthread.h>
 
-#include "Compatibility.h"
+#include "processlib/Compatibility.h"
 
 class TaskMgr;
 struct Data;

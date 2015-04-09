@@ -24,7 +24,7 @@
 #define __ROICOUNTER_H__
 
 #include <sstream>
-#include "SinkTask.h"
+#include "processlib/SinkTask.h"
 
 namespace Tasks
 {

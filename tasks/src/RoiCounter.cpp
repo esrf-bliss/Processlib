@@ -20,8 +20,8 @@
 // You should have received a copy of the GNU General Public License
 // along with this program; if not, see <http://www.gnu.org/licenses/>.
 //###########################################################################
-#include "ProcessExceptions.h"
-#include "RoiCounter.h"
+#include "processlib/ProcessExceptions.h"
+#include "processlib/RoiCounter.h"
 using namespace Tasks;
 #ifndef __unix
 #define _USE_MATH_DEFINES
@@ -294,7 +294,11 @@ template<class INPUT> static void _get_average_std_with_mask(const Data& aData,
       for(int i = 0;i < width;++i,++aLinePt,++aMaskLinePt)
 	{
 	  if(*aMaskLinePt)
-	    aSum += double(*aLinePt);
+	    {
+	      aSum += double(*aLinePt);
+	      if(*aLinePt > aMax) aMax = *aLinePt;
+	      else if(*aLinePt < aMin) aMin = *aLinePt;
+	    }
 	  else
 	    --usedSize;
 	}
@@ -330,6 +334,9 @@ template<class INPUT> static void _get_average_std_with_mask(const Data& aData,
     }
   else
     aResult.std = 0.;
+
+  aResult.minValue = aMin;
+  aResult.maxValue = aMax;
 }
 
 template<class INPUT> static void _lut_get_average_std(const Data& data,
@@ -354,7 +361,7 @@ template<class INPUT> static void _lut_get_average_std(const Data& data,
   aMin = aMax = 0.;
   double aSum = 0.;
   double aWeight = 0.;
-  int cId;
+  int cId = 0;
   bool continueFlag = true;
   while(continueFlag && nbItems)
     {
@@ -446,7 +453,7 @@ template<class INPUT> static void _mask_get_average_std(const Data& data,
   aMin = aMax = INPUT(0);
   long long aSum = 0;
   int aNbPixel = 0;
-  int cId;
+  int cId = 0;
   bool continueFlag = true;
   while(continueFlag && nbItems)
     {
@@ -549,12 +556,12 @@ void RoiCounterTask::_check_roi_with_data_size(Data& data)
       break;
     case ARC:
     case MASK:
-      if(_mask.dimensions.size() != data.dimensions.size())
+      if(_lut.dimensions.size() != data.dimensions.size())
 	throw ProcessException("RoiLutCounter mask and data must have the same dimension");
-      if(_mask.dimensions[0] + _x > data.dimensions[0])
+      if(_lut.dimensions[0] + _x > data.dimensions[0])
 	throw ProcessException("RoiLutCounter mask width + origin go outside of the data bounding box");
-      if(_mask.dimensions.size() > 1 && 
-	 _mask.dimensions[1] + _y > data.dimensions[1])
+      if(_lut.dimensions.size() > 1 && 
+	 _lut.dimensions[1] + _y > data.dimensions[1])
 	throw ProcessException("RoiLutCounter mask height + origin got outside of the data bounding box");
       break;
     default:

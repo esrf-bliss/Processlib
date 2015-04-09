@@ -23,7 +23,7 @@
 #ifndef __PTHREAD_CANCELLING_H__
 #define __PTHREAD_CANCELLING_H__
 #include <Windows.h>
-#include "Compatibility.h"
+#include "processlib/Compatibility.h"
 
 #ifdef __cplusplus
 extern "C"{

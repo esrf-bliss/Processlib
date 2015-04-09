@@ -20,20 +20,19 @@
 // You should have received a copy of the GNU General Public License
 // along with this program; if not, see <http://www.gnu.org/licenses/>.
 //###########################################################################
-#ifndef __BACKGROUNDSUBSTRACTION__H_
-#define __BACKGROUNDSUBSTRACTION__H_
-#include "LinkTask.h"
+#include "processlib/LinkTask.h"
 namespace Tasks
 {
-  class DLL_EXPORT BackgroundSubstraction : public LinkTask
+  class DLL_EXPORT SoftRoi : public LinkTask
   {
   public:
-    BackgroundSubstraction();
-    BackgroundSubstraction(const BackgroundSubstraction&);
-    void setBackgroundImageData(Data &aData);
+    SoftRoi();
+    SoftRoi(const SoftRoi&);
     virtual Data process(Data&);
+    void setRoi(int x1,int x2,
+		int y1,int y2);
   private:
-    mutable Data _backgroundImageData;
+    int _x1,_x2;
+    int _y1,_y2;
   };
 }
-#endif

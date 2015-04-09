@@ -20,10 +20,10 @@
 // You should have received a copy of the GNU General Public License
 // along with this program; if not, see <http://www.gnu.org/licenses/>.
 //###########################################################################
-#include "TaskMgr.h"
-#include "LinkTask.h"
-#include "SinkTask.h"
-#include "PoolThreadMgr.h"
+#include "processlib/TaskMgr.h"
+#include "processlib/LinkTask.h"
+#include "processlib/SinkTask.h"
+#include "processlib/PoolThreadMgr.h"
 
 //Class TaskMgr::TaskLinkWrap
 class TaskLinkWrap : public TaskMgr::TaskWrap

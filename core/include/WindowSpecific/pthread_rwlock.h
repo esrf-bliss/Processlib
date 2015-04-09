@@ -23,7 +23,7 @@
 #ifndef __PTHREAD_RWLOCK_H__
 #define __PTHREAD_RWLOCK_H__
 #include <Windows.h>
-#include "Compatibility.h"
+#include "processlib/Compatibility.h"
 
 #ifndef PTHREAD_WIN_XP_SYNC
 typedef SRWLOCK pthread_rwlock_t;

@@ -24,7 +24,7 @@
 #define __PTHREAD_THREAD_H__
 #include <Windows.h>
 #include <setjmp.h>
-#include "Compatibility.h"
+#include "processlib/Compatibility.h"
 
 #define PTHREAD_ONCE_INIT 0
 

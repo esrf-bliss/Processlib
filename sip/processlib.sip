@@ -75,10 +75,15 @@ sipRes = sipCpp;
 struct Data
 {
 %TypeHeaderCode
-#include <Data.h>
-#include <PoolThreadMgr.h>
+#include "processlib/Data.h"
+#include "processlib/PoolThreadMgr.h"
 #include <sstream>
-#include "numpy/npy_3kcompat.h"
+#include "numpy/numpyconfig.h"
+#if (defined(NPY_API_VERSION) && NPY_API_VERSION >= 0x00000004 && PY_VERSION_HEX >= 0x03000000)
+#define NO_IMPORT_ARRAY
+#define PY_ARRAY_UNIQUE_SYMBOL _LimaNumPy
+ #include "numpy/npy_3kcompat.h"
+#endif
 #include "data_header_iterator.h"
 %End
 
@@ -357,7 +362,7 @@ extern "C"
 class TaskEventCallback
 {
 %TypeHeaderCode
-#include <TaskEventCallback.h>
+#include "processlib/TaskEventCallback.h"
 %End
  public:
   TaskEventCallback();
@@ -377,7 +382,7 @@ class TaskEventCallback
 class LinkTask
 {
 %TypeHeaderCode
-#include <LinkTask.h>
+#include "processlib/LinkTask.h"
 %End
  public:
   LinkTask(bool = true);
@@ -398,7 +403,7 @@ class LinkTask
 class SinkTaskBase
 {
 %TypeHeaderCode
-#include <SinkTask.h>
+#include "processlib/SinkTask.h"
 %End
 public:
   virtual void process(Data&);
@@ -417,7 +422,7 @@ protected:
 class TaskMgr
 {
 %TypeHeaderCode
-#include <TaskMgr.h>
+#include "processlib/TaskMgr.h"
 %End
 public:
   class EventCallback
@@ -440,7 +445,7 @@ public:
 class PoolThreadMgr
 {
 %TypeHeaderCode
-#include <PoolThreadMgr.h>
+#include "processlib/PoolThreadMgr.h"
 %End
 
  public:

@@ -23,7 +23,7 @@
 #ifndef __BPM_H__
 #define __BPM_H__
 #ifndef WITHOUT_GSL
-#include "SinkTask.h"
+#include "processlib/SinkTask.h"
 
 namespace Tasks
 {

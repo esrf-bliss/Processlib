@@ -23,7 +23,7 @@
 #ifndef __ROI2SPECTRUM_H
 #define __ROI2SPECTRUM_H
 
-#include "SinkTask.h"
+#include "processlib/SinkTask.h"
 
 namespace Tasks
 {

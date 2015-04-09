@@ -25,7 +25,7 @@ namespace Tasks
  class BpmManager
   {	
 %TypeHeaderCode
-#include <Bpm.h>
+#include "processlib/Bpm.h"
 %End
     public:
     enum ErrorCode {OK,NO_MORE_AVAILABLE,TIMEDOUT};
@@ -50,7 +50,7 @@ namespace Tasks
   class BpmResult
     {
 %TypeHeaderCode
-#include <Bpm.h>
+#include "processlib/Bpm.h"
 %End
     public:
       BpmResult();
@@ -92,7 +92,7 @@ namespace Tasks
  class BpmTask : SinkTaskBase
   {
 %TypeHeaderCode
-#include <Bpm.h>
+#include "processlib/Bpm.h"
 %End
   public:
     BpmTask(Tasks::BpmManager &);

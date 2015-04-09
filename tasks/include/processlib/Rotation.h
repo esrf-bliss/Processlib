@@ -20,32 +20,18 @@
 // You should have received a copy of the GNU General Public License
 // along with this program; if not, see <http://www.gnu.org/licenses/>.
 //###########################################################################
-#ifndef __unix
-#pragma warning(disable:4251)
-#endif
-
-#include <pthread.h>
-#include <map>
-#include <string>
-
-#include "Compatibility.h"
-
-/** @brief this class manage error message in thread safe maner
- */
-class DLL_EXPORT GslErrorMgr
+#include "processlib/LinkTask.h"
+namespace Tasks
 {
-  typedef std::map<pthread_t,std::string> ErrorMessageType;
-  typedef std::map<pthread_t,int>	  ErrnoType;
- public:
-  static inline GslErrorMgr& get() throw() {return GslErrorMgr::_errorMgr;}
-  const char* lastErrorMsg() const;
-  int   lastErrno() const;
-  void	resetErrorMsg();
- private:
-  ErrorMessageType	_errorMessage;
-  ErrnoType		_lastGslErrno;
-  static GslErrorMgr	_errorMgr;
-
-  GslErrorMgr(); 
-  static void _error_handler(const char*,const char *,int,int);
-};
+  class DLL_EXPORT Rotation : public LinkTask
+  {
+  public:
+    enum Type {R_90,R_180,R_270};
+    Rotation();
+    Rotation(const Rotation&);
+    virtual Data process(Data&);
+    void setType(Type);
+  private:
+    Type m_type;
+  };
+}

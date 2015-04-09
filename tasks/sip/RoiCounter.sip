@@ -25,7 +25,7 @@ namespace Tasks
   class RoiCounterManager
    {
 %TypeHeaderCode
-#include <RoiCounter.h>
+#include "processlib/RoiCounter.h"
 %End
     public:
     enum ErrorCode {OK,NOT_MANAGED,NO_MORE_AVAILABLE,TIMEDOUT};
@@ -51,7 +51,7 @@ namespace Tasks
   struct RoiCounterResult
   {
 %TypeHeaderCode
-#include <RoiCounter.h>
+#include "processlib/RoiCounter.h"
 %End
     double                       sum;
     double                       average;
@@ -73,7 +73,7 @@ sipRes = tmpString.c_str();
   class RoiCounterTask : SinkTaskBase
   {
 %TypeHeaderCode
-#include <RoiCounter.h>
+#include "processlib/RoiCounter.h"
 %End
   public:
     enum type {UNDEF,SQUARE,ARC,LUT,MASK};

@@ -20,8 +20,8 @@
 // You should have received a copy of the GNU General Public License
 // along with this program; if not, see <http://www.gnu.org/licenses/>.
 //###########################################################################
-#include "PoolThreadMgr.h"
-#include "TaskEventCallback.h"
+#include "processlib/PoolThreadMgr.h"
+#include "processlib/TaskEventCallback.h"
 
 TaskEventCallback::TaskEventCallback() : _refCounter(1)
 {

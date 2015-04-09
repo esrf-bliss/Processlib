@@ -20,53 +20,54 @@
 // You should have received a copy of the GNU General Public License
 // along with this program; if not, see <http://www.gnu.org/licenses/>.
 //###########################################################################
-#include "Data.h"
-#include "SinkTaskMgr.h"
-#include "TaskEventCallback.h"
+#include <pthread.h>
+#include "processlib/Data.h"
+#include "processlib/TaskEventCallback.h"
 
-#ifndef __SINKTASK_H
-#define __SINKTASK_H
+#ifndef __LINKTASK_H
+#define __LINKTASK_H
 
-class DLL_EXPORT SinkTaskBase
+class DLL_EXPORT LinkTask
 {
 public:
-  SinkTaskBase();
-  SinkTaskBase(const SinkTaskBase &aTask);
-  
-
-  //@brief start the processing of this SinkTask
-  virtual void process(Data&) {};
+  LinkTask();
+  LinkTask(bool aProcessingInPlaceFlag);
+  LinkTask(const LinkTask &aLinkTask);
+      
+  //@brief start the processing of this LinkTask
+  virtual Data process(Data &aData) {return aData;}
 
   void setEventCallback(TaskEventCallback *aEventCbk);
+
+  /* @brief tell the task that the destination buffer of
+   * process is the same as the source.
+   * @param aFlag
+   * - if true the src and dest buffer will be the same, no other allocation
+   * - else the destination buffer will be allocated
+   *
+   * @warning if the src and dest are the same buffer,
+   * the task can't be process in paralelle with other
+   * because it will smashed the data source
+   */
+  void setProcessingInPlace(bool aFlag) 
+  {_processingInPlaceFlag = aFlag;}
+
   TaskEventCallback* getEventCallback() {return _eventCbkPt;}
 
   void ref();
   void unref();
-  
-  // @brief only use for debuging purpose
+
   int getRefCounter() const;
+
 protected:
-  virtual ~SinkTaskBase();
+
+  virtual ~LinkTask();
+
+  bool _processingInPlaceFlag;
+  TaskEventCallback *_eventCbkPt;
 
   mutable pthread_mutex_t _lock;
-
 private:
-  TaskEventCallback	*_eventCbkPt;
-  int			_refCounter;
+  int		  _refCounter;
 };
-
-template<class T>
-class SinkTask : public SinkTaskBase
-{
-public:
-  SinkTask(SinkTaskMgr<T> &aMgr) : _mgr(aMgr) {aMgr.ref();};
-  SinkTask(const SinkTask &aTask) : SinkTaskBase(aTask),_mgr(aTask._mgr) 
-    {
-      _mgr.ref();
-    }
-  virtual ~SinkTask() {_mgr.unref();}
-protected:
-  SinkTaskMgr<T>	&_mgr;
-};
-
 #endif

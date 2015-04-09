@@ -20,24 +20,17 @@
 // You should have received a copy of the GNU General Public License
 // along with this program; if not, see <http://www.gnu.org/licenses/>.
 //###########################################################################
-#include "LinkTask.h"
+#include "processlib/LinkTask.h"
 namespace Tasks
 {
-  class DLL_EXPORT Flip : public LinkTask
+  class DLL_EXPORT FlatfieldCorrection : public LinkTask
   {
   public:
-    enum FLIP_MODE {
-      FLIP_NONE,
-      FLIP_X,
-      FLIP_Y,
-      FLIP_ALL
-    };
-    Flip();
-    Flip(const Flip&);
-    void setFlip(FLIP_MODE);
- 
-   virtual Data process(Data&);
+    FlatfieldCorrection();
+    FlatfieldCorrection(const FlatfieldCorrection&);
+    void setFlatFieldImageData(Data &aData,bool normalize = true);
+    virtual Data process(Data&);
   private:
-    FLIP_MODE _mode;
+    Data _flatFieldImage;
   };
 }

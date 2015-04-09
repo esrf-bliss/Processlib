@@ -20,17 +20,20 @@
 // You should have received a copy of the GNU General Public License
 // along with this program; if not, see <http://www.gnu.org/licenses/>.
 //###########################################################################
-#include "LinkTask.h"
+#ifndef __BACKGROUNDSUBSTRACTION__H_
+#define __BACKGROUNDSUBSTRACTION__H_
+#include "processlib/LinkTask.h"
 namespace Tasks
 {
-  class DLL_EXPORT FlatfieldCorrection : public LinkTask
+  class DLL_EXPORT BackgroundSubstraction : public LinkTask
   {
   public:
-    FlatfieldCorrection();
-    FlatfieldCorrection(const FlatfieldCorrection&);
-    void setFlatFieldImageData(Data &aData,bool normalize = true);
+    BackgroundSubstraction();
+    BackgroundSubstraction(const BackgroundSubstraction&);
+    void setBackgroundImageData(Data &aData);
     virtual Data process(Data&);
   private:
-    Data _flatFieldImage;
+    mutable Data _backgroundImageData;
   };
 }
+#endif

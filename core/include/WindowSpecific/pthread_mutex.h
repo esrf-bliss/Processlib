@@ -24,7 +24,7 @@
 #define __PTHREAD_MUTEX_H__
 
 #include <Windows.h>
-#include "Compatibility.h"
+#include "processlib/Compatibility.h"
 
 #ifdef __cplusplus
 extern "C"{

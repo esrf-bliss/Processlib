@@ -20,8 +20,8 @@
 // You should have received a copy of the GNU General Public License
 // along with this program; if not, see <http://www.gnu.org/licenses/>.
 //###########################################################################
-#include "Data.h"
-#include "PoolThreadMgr.h"
+#include "processlib/Data.h"
+#include "processlib/PoolThreadMgr.h"
 #include <sstream>
 
 struct Data::HeaderContainer::HeaderHolder

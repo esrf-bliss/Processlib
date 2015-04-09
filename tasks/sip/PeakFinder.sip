@@ -25,7 +25,7 @@ namespace Tasks
   class PeakFinderManager
    {
 %TypeHeaderCode
-#include <PeakFinder.h>
+#include "processlib/PeakFinder.h"
 %End
     public:
     enum ErrorCode {OK,NOT_MANAGED,NO_MORE_AVAILABLE,TIMEDOUT};
@@ -51,7 +51,7 @@ namespace Tasks
   struct PeakFinderResult
   {
 %TypeHeaderCode
-#include <PeakFinder.h>
+#include "processlib/PeakFinder.h"
 %End
     double                       x_peak;
     double                       y_peak;
@@ -70,7 +70,7 @@ sipRes = tmpString.c_str();
   class PeakFinderTask : SinkTaskBase
   {
 %TypeHeaderCode
-#include <PeakFinder.h>
+#include "processlib/PeakFinder.h"
 %End
   public:
     enum ComputingMode {MAXIMUM,CM};

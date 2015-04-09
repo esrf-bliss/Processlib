@@ -20,18 +20,24 @@
 // You should have received a copy of the GNU General Public License
 // along with this program; if not, see <http://www.gnu.org/licenses/>.
 //###########################################################################
-#include "LinkTask.h"
+#include "processlib/LinkTask.h"
 namespace Tasks
 {
-  class DLL_EXPORT Rotation : public LinkTask
+  class DLL_EXPORT Flip : public LinkTask
   {
   public:
-    enum Type {R_90,R_180,R_270};
-    Rotation();
-    Rotation(const Rotation&);
-    virtual Data process(Data&);
-    void setType(Type);
+    enum FLIP_MODE {
+      FLIP_NONE,
+      FLIP_X,
+      FLIP_Y,
+      FLIP_ALL
+    };
+    Flip();
+    Flip(const Flip&);
+    void setFlip(FLIP_MODE);
+ 
+   virtual Data process(Data&);
   private:
-    Type m_type;
+    FLIP_MODE _mode;
   };
 }
