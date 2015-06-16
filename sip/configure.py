@@ -92,7 +92,11 @@ if platform.system() == 'Windows':
     else:
         makefile.extra_lib_dirs = ['..\\build\\msvc\\9.0\\libprocesslib\\Release']
 else:
-    makefile.extra_cxxflags = ['-pthread','-I../core/include','-I../tasks/include','-I' + numpy.get_include()]
+    makefile.extra_cxxflags = ['-pthread']
+    makefile.extra_include_dirs = ['../core/include',
+                                   '../tasks/include',
+                                   config.sip_inc_dir,
+                                   numpy.get_include()]
     makefile.extra_libs = ['pthread','processlib']
     makefile.extra_lib_dirs = ['../build']
 
