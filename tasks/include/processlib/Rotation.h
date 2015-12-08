@@ -20,6 +20,9 @@
 // You should have received a copy of the GNU General Public License
 // along with this program; if not, see <http://www.gnu.org/licenses/>.
 //###########################################################################
+#ifndef PROCESSLIB_ROTATION_H
+#define PROCESSLIB_ROTATION_H
+
 #include "processlib/LinkTask.h"
 namespace Tasks
 {
@@ -35,3 +38,5 @@ namespace Tasks
     Type m_type;
   };
 }
+
+#endif
