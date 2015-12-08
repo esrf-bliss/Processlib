@@ -1,4 +1,3 @@
-
 set(processlib_srcs 
     core/src/GslErrorMgr.cpp
     core/src/PoolThreadMgr.cpp
@@ -35,3 +34,14 @@ TARGET_LINK_LIBRARIES(processlib gsl gslcblas)
 SET_TARGET_PROPERTIES(processlib PROPERTIES VERSION ${processlib_ver} SOVERSION 1)
 INSTALL(TARGETS processlib
         LIBRARY DESTINATION lib)
+
+if(CMAKE_SYSTEM_NAME EQUAL "Windows")
+    if(CMAKE_SIZEOF_VOID_P EQUAL 8)
+        set(SIP_DISABLE_FEATURES "BPM_SUPPORT")
+    endif()
+endif()
+
+set(SIP_INCLUDES "${CMAKE_CURRENT_SOURCE_DIR}/tasks/sip")
+ADD_SIP_PYTHON_MODULE(processlib sip/processlib.sip)
+TARGET_INCLUDE_DIRECTORIES(python_module_processlib PRIVATE ${PYTHON_INCLUDE_DIRS} ${CMAKE_CURRENT_SOURCE_DIR}/sip)
+TARGET_LINK_LIBRARIES(python_module_processlib processlib)
