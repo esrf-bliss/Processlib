@@ -464,3 +464,18 @@ class PoolThreadMgr
   bool wait(double timeout = -1.);
   void quit();
 };
+
+%Feature BPM_SUPPORT
+%Include BackgroundSubstraction.sip
+%Include Binning.sip
+%If (BPM_SUPPORT)
+%Include Bpm.sip
+%End
+%Include FlatfieldCorrection.sip
+%Include Flip.sip
+%Include Mask.sip
+%Include PeakFinder.sip
+%Include Roi2Spectrum.sip
+%Include RoiCounter.sip
+%Include Rotation.sip
+%Include SoftRoi.sip
