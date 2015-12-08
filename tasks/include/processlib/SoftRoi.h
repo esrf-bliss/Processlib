@@ -20,6 +20,8 @@
 // You should have received a copy of the GNU General Public License
 // along with this program; if not, see <http://www.gnu.org/licenses/>.
 //###########################################################################
+#ifndef PROCESSLIB_SOFTROI_H
+#define PROCESSLIB_SOFTROI_H
 #include "processlib/LinkTask.h"
 namespace Tasks
 {
@@ -36,3 +38,4 @@ namespace Tasks
     int _y1,_y2;
   };
 }
+#endif
