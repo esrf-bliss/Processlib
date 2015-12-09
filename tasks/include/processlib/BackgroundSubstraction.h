@@ -31,9 +31,12 @@ namespace Tasks
     BackgroundSubstraction();
     BackgroundSubstraction(const BackgroundSubstraction&);
     void setBackgroundImageData(Data &aData);
+    void setOffset(int value);
+    void getOffset(int& value) const;
     virtual Data process(Data&);
   private:
     mutable Data _backgroundImageData;
+    int _offset;
   };
 }
 #endif

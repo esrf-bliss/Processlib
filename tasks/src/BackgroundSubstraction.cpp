@@ -23,6 +23,7 @@
 #ifdef __SSE2__
 #include <emmintrin.h>
 #endif
+#include <limits>
 #include "processlib/ProcessExceptions.h"
 #include "processlib/BackgroundSubstraction.h"
 #include "processlib/Stat.h"
@@ -72,6 +73,25 @@ void _substract_in_place<unsigned short>(void *source,int aSize,void *background
     }
 }
 #endif
+template<class INPUT>
+static void _substract_in_place_offset(void *src,int aSize,void *background,int offset)
+{
+  INPUT *aSrcPt,*aBackPt;
+  aSrcPt = (INPUT*)src;
+  aBackPt = (INPUT*)background;
+  INPUT maxValue = std::numeric_limits<INPUT>::max();
+  maxValue -= offset;
+
+  for(int i = aSize / sizeof(INPUT);i;--i,++aSrcPt,++aBackPt)
+    {
+      INPUT srcValue = *aSrcPt >= maxValue ? std::numeric_limits<INPUT>::max() : 
+					     *aSrcPt + offset;
+      if(srcValue > *aBackPt)
+	*aSrcPt = srcValue - *aBackPt;
+      else
+	*aSrcPt = INPUT(0);
+    }
+}
 
 template<class INPUT>
 static void _substract(void *src,void *dst,int aSize,void *background)
@@ -120,12 +140,37 @@ void _substract<unsigned short>(void *source,void *dst,int aSize,void *backgroun
 }
 #endif
 
-BackgroundSubstraction::BackgroundSubstraction() : LinkTask()
+template<class INPUT>
+static void _substract_offset(void *src,void *dst,int aSize,void *background,
+			      int offset)
+{
+  INPUT *aSrcPt,*aBackPt,*aDestPt;
+  aSrcPt = (INPUT*)src;
+  aBackPt = (INPUT*)background;
+  aDestPt = (INPUT*)dst;
+  INPUT maxValue = std::numeric_limits<INPUT>::max();
+  maxValue -= offset;
+  for(int i = aSize / sizeof(INPUT);i;--i,++aSrcPt,++aBackPt,++aDestPt)
+    {
+      INPUT srcValue = *aSrcPt >= maxValue ? std::numeric_limits<INPUT>::max() : 
+					     *aSrcPt + offset;
+      if(srcValue > *aBackPt)
+	*aDestPt = srcValue - *aBackPt;
+      else
+	*aDestPt = INPUT(0);
+    }
+}
+
+BackgroundSubstraction::BackgroundSubstraction() : 
+  LinkTask(),
+  _offset(0)
 {
 }
 
 BackgroundSubstraction::BackgroundSubstraction(const BackgroundSubstraction &aBackgroundSubstraction) :
-  LinkTask(aBackgroundSubstraction),_backgroundImageData(aBackgroundSubstraction._backgroundImageData)
+  LinkTask(aBackgroundSubstraction),
+  _backgroundImageData(aBackgroundSubstraction._backgroundImageData),
+  _offset(aBackgroundSubstraction._offset)
 {
 }
 
@@ -140,6 +185,16 @@ void BackgroundSubstraction::setBackgroundImageData(Data &aData)
     _backgroundImageData.setData(aData);
 }
 
+void BackgroundSubstraction::setOffset(int value)
+{
+  _offset = value;
+}
+
+void BackgroundSubstraction::getOffset(int& value) const
+{
+  value = _offset;
+}
+
 Data BackgroundSubstraction::process(Data &aData) 
 {
   if(aData.type == _backgroundImageData.type &&
@@ -148,54 +203,110 @@ Data BackgroundSubstraction::process(Data &aData)
       Stat aStat(aData,"Background substraction");
       if(_processingInPlaceFlag)
 	{
-	  switch(aData.type)
+	  if(_offset > 0)
 	    {
-	    case Data::INT8:
-	      _substract_in_place<char>(aData.data(),aData.size(),
-					 _backgroundImageData.data());break;
-	    case Data::UINT8:
-	      _substract_in_place<unsigned char>(aData.data(),aData.size(),
-						  _backgroundImageData.data());break;
-	    case Data::INT16:
-	      _substract_in_place<short>(aData.data(),aData.size(),
-					  _backgroundImageData.data());break;
-	    case Data::UINT16:
-	      _substract_in_place<unsigned short>(aData.data(),aData.size(),
-						   _backgroundImageData.data());break;
-	    case Data::INT32:
-	      _substract_in_place<int>(aData.data(),aData.size(),
-					_backgroundImageData.data());break;
-	    case Data::UINT32:
-	      _substract_in_place<unsigned int>(aData.data(),aData.size(),
-						 _backgroundImageData.data());break;
-	    default: break;
+	      switch(aData.type)
+		{
+		case Data::INT8:
+		  _substract_in_place_offset<char>(aData.data(),aData.size(),
+						   _backgroundImageData.data(),_offset);break;
+		case Data::UINT8:
+		  _substract_in_place_offset<unsigned char>(aData.data(),aData.size(),
+							    _backgroundImageData.data(),_offset);break;
+		case Data::INT16:
+		  _substract_in_place_offset<short>(aData.data(),aData.size(),
+						    _backgroundImageData.data(),_offset);break;
+		case Data::UINT16:
+		  _substract_in_place_offset<unsigned short>(aData.data(),aData.size(),
+							     _backgroundImageData.data(),_offset);break;
+		case Data::INT32:
+		  _substract_in_place_offset<int>(aData.data(),aData.size(),
+						  _backgroundImageData.data(),_offset);break;
+		case Data::UINT32:
+		  _substract_in_place_offset<unsigned int>(aData.data(),aData.size(),
+							   _backgroundImageData.data(),_offset);break;
+		default: break;
+		}
+	    }
+	  else
+	    {
+	      switch(aData.type)
+		{
+		case Data::INT8:
+		  _substract_in_place<char>(aData.data(),aData.size(),
+					    _backgroundImageData.data());break;
+		case Data::UINT8:
+		  _substract_in_place<unsigned char>(aData.data(),aData.size(),
+						     _backgroundImageData.data());break;
+		case Data::INT16:
+		  _substract_in_place<short>(aData.data(),aData.size(),
+					     _backgroundImageData.data());break;
+		case Data::UINT16:
+		  _substract_in_place<unsigned short>(aData.data(),aData.size(),
+						      _backgroundImageData.data());break;
+		case Data::INT32:
+		  _substract_in_place<int>(aData.data(),aData.size(),
+					   _backgroundImageData.data());break;
+		case Data::UINT32:
+		  _substract_in_place<unsigned int>(aData.data(),aData.size(),
+						    _backgroundImageData.data());break;
+		default: break;
+		}
 	    }
 	  return aData;
 	}
       else
 	{
 	  Data aNewData = aData.copyHeader(aData.type);	// get a new data buffer
-	  switch(aData.type)
+	  if(_offset > 0)
 	    {
-	    case Data::INT8:
-	      _substract<char>(aData.data(),aNewData.data(),aData.size(),
-			       _backgroundImageData.data());break;
-	    case Data::UINT8:
-	      _substract<unsigned char>(aData.data(),aNewData.data(),aData.size(),
-					_backgroundImageData.data());break;
-	    case Data::INT16:
-	      _substract<short>(aData.data(),aNewData.data(),aData.size(),
-				_backgroundImageData.data());break;
-	    case Data::UINT16:
-	      _substract<unsigned short>(aData.data(),aNewData.data(),aData.size(),
-					 _backgroundImageData.data());break;
-	    case Data::INT32:
-	      _substract<int>(aData.data(),aNewData.data(),aData.size(),
-			      _backgroundImageData.data());break;
-	    case Data::UINT32:
-	      _substract<unsigned int>(aData.data(),aNewData.data(),aData.size(),
-				       _backgroundImageData.data());break;
-	    default: break;
+	      switch(aData.type)
+		{
+		case Data::INT8:
+		  _substract_offset<char>(aData.data(),aNewData.data(),aData.size(),
+					  _backgroundImageData.data(),_offset);break;
+		case Data::UINT8:
+		  _substract_offset<unsigned char>(aData.data(),aNewData.data(),aData.size(),
+						   _backgroundImageData.data(),_offset);break;
+		case Data::INT16:
+		  _substract_offset<short>(aData.data(),aNewData.data(),aData.size(),
+					   _backgroundImageData.data(),_offset);break;
+		case Data::UINT16:
+		  _substract_offset<unsigned short>(aData.data(),aNewData.data(),aData.size(),
+						    _backgroundImageData.data(),_offset);break;
+		case Data::INT32:
+		  _substract_offset<int>(aData.data(),aNewData.data(),aData.size(),
+					 _backgroundImageData.data(),_offset);break;
+		case Data::UINT32:
+		  _substract_offset<unsigned int>(aData.data(),aNewData.data(),aData.size(),
+						  _backgroundImageData.data(),_offset);break;
+		default: break;
+		}
+	    }
+	  else
+	    {
+	      switch(aData.type)
+		{
+		case Data::INT8:
+		  _substract<char>(aData.data(),aNewData.data(),aData.size(),
+				   _backgroundImageData.data());break;
+		case Data::UINT8:
+		  _substract<unsigned char>(aData.data(),aNewData.data(),aData.size(),
+					    _backgroundImageData.data());break;
+		case Data::INT16:
+		  _substract<short>(aData.data(),aNewData.data(),aData.size(),
+				    _backgroundImageData.data());break;
+		case Data::UINT16:
+		  _substract<unsigned short>(aData.data(),aNewData.data(),aData.size(),
+					     _backgroundImageData.data());break;
+		case Data::INT32:
+		  _substract<int>(aData.data(),aNewData.data(),aData.size(),
+				  _backgroundImageData.data());break;
+		case Data::UINT32:
+		  _substract<unsigned int>(aData.data(),aNewData.data(),aData.size(),
+					   _backgroundImageData.data());break;
+		default: break;
+		}
 	    }
 	  return aNewData;
 	}

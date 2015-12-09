@@ -29,6 +29,8 @@ namespace Tasks
 %End
   public:
     void setBackgroundImageData(Data &aData);
+    void setOffset(int value);
+    void getOffset(int& value /Out/) const;
     virtual Data process(Data&);
   };
 };
