@@ -19,7 +19,7 @@
 	<dependencies>
         <dependency>
             <groupId>org.gnu</groupId>
-            <artifactId>GSL-${aol}-static-release</artifactId>
+            <artifactId>GSL-${aol}-shared-release</artifactId>
         </dependency>
     </dependencies>
 	
