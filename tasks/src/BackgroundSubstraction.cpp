@@ -31,6 +31,11 @@
 #include "processlib/BackgroundSubstraction.h"
 #include "processlib/Stat.h"
 
+// workaround to avoid a name conflict
+#ifdef max
+#undef max
+#endif
+
 using namespace Tasks;
 
 template<class INPUT>

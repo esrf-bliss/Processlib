@@ -6,4 +6,5 @@
 ~*
 \#*\#
 *target*
-*.pyc
+/hs_err_pid20041.log
+/hs_err_pid2430.log
