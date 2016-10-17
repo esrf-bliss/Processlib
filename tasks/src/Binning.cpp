@@ -53,7 +53,7 @@ inline void _default_binning(Data &aSrcData,Data &aDstData,
 	{
 	  unsigned long long result = aLineDstPt[columnId / xFactor];
 	  result += aLineSrcPt[columnId];
-	  if(result  > MAX_VALUE)
+	  if(result  > (unsigned long long)MAX_VALUE)
 	    aLineDstPt[columnId / xFactor] = MAX_VALUE;
 	  else
 	    aLineDstPt[columnId / xFactor] = (INPUT) result;
@@ -78,7 +78,7 @@ static void _binning2x2(Data &aSrcData,Data &aDstData,int Factor)
 	{
 	  unsigned long long result = *aSrcFirstLinePt + *(aSrcFirstLinePt + 1) +
 	    *aSrcSecondLinePt + *(aSrcSecondLinePt + 1);
-	  if(result > MAX_VALUE)
+	  if(result > (unsigned long long)MAX_VALUE)
 	    *aDstPt = MAX_VALUE;
 	  else
 	    *aDstPt = INPUT(result);
@@ -134,6 +134,8 @@ Data Binning::process(Data &aData)
 		  _binning2x2<unsigned short>(aData,aNewData,mXFactor);break;
 		case Data::UINT32:
 		  _binning2x2<unsigned int>(aData,aNewData,mXFactor);break;
+		case Data::INT32:
+		  _binning2x2<int>(aData,aNewData,mXFactor);break;
 		default:
 		  throw ProcessException("Binning : Data type not managed");
 		  break;
@@ -142,7 +144,7 @@ Data Binning::process(Data &aData)
 	  else			// DEFAULT case is not optimized
 	    {
 	      int newWidth = aNewData.dimensions[0] / mXFactor;
-		int newHeight = aNewData.dimensions[1] / mYFactor;
+	      int newHeight = aNewData.dimensions[1] / mYFactor;
 	      int aNewSize = aData.depth() * newWidth * newHeight;
 	      Buffer *aNewBuffer = new Buffer(aNewSize);
 	      aNewData.setBuffer(aNewBuffer);
@@ -159,6 +161,8 @@ Data Binning::process(Data &aData)
 		  _default_binning<unsigned short>(aData,aNewData,mXFactor,mYFactor);break;
 		case Data::UINT32:
 		  _default_binning<unsigned int>(aData,aNewData,mXFactor,mYFactor);break;
+		case Data::INT32:
+		  _default_binning<int>(aData,aNewData,mXFactor,mYFactor);break;
 		default:
 		  throw ProcessException("Binning : Data type not managed");
 		  break;

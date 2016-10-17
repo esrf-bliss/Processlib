@@ -106,6 +106,6 @@ Data SoftRoi::process(Data &aData)
 	    memcpy(aDst,aSrcPt,cropSize);
 	  return aNewData;
 	}
-    } 
-  return Data();		// ERROR
+    }
+  throw ProcessException("SoftRoi : Invalid Region Of Interest");
 }
