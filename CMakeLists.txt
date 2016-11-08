@@ -22,6 +22,9 @@ set(processlib_srcs
 file(STRINGS "VERSION" processlib_ver)
 add_library(processlib SHARED
             ${processlib_srcs})
+IF(WIN32)
+    INCLUDE_DIRECTORIES("${CMAKE_CURRENT_SOURCE_DIR}/core/include/WindowSpecific")
+ENDIF()
 TARGET_INCLUDE_DIRECTORIES(processlib PUBLIC "${CMAKE_CURRENT_SOURCE_DIR}/core/include")
 TARGET_INCLUDE_DIRECTORIES(processlib PUBLIC "${CMAKE_CURRENT_SOURCE_DIR}/tasks/include")
 if(THREADS_HAVE_PTHREAD_ARG)
