@@ -32,8 +32,13 @@ if(CMAKE_THREAD_LIBS_INIT)
 endif()
 TARGET_LINK_LIBRARIES(processlib gsl gslcblas)
 SET_TARGET_PROPERTIES(processlib PROPERTIES VERSION ${processlib_ver} SOVERSION 1)
-INSTALL(TARGETS processlib
-        LIBRARY DESTINATION lib)
+if(WIN32)
+    INSTALL(TARGETS processlib
+            DESTINATION lib)
+else()
+    INSTALL(TARGETS processlib
+            LIBRARY DESTINATION lib)
+endif()
 
 if(CMAKE_SYSTEM_NAME EQUAL "Windows")
     if(CMAKE_SIZEOF_VOID_P EQUAL 8)
