@@ -25,6 +25,17 @@ set(processlib_srcs
     tasks/src/Rotation.cpp
     tasks/src/PeakFinder.cpp
     )
+IF(WIN32)
+    list(APPEND processlib_srcs core/src/WindowSpecific/pthread_cancelling.cpp
+                                core/src/WindowSpecific/pthread_cond.cpp
+                                core/src/WindowSpecific/pthread_key.cpp
+                                core/src/WindowSpecific/pthread_mutex.cpp
+                                core/src/WindowSpecific/pthread_rwlock.cpp
+                                core/src/WindowSpecific/pthread_thread.cpp
+                                core/src/WindowSpecific/stdio_compat.cpp
+                                core/src/WindowSpecific/time_compat.cpp
+				)
+ENDIF()
 
 file(STRINGS "VERSION" processlib_ver)
 add_library(processlib SHARED
