@@ -117,8 +117,13 @@ TaskMgr::Task::~Task()
     (*i)->unref();
 }
 
-TaskMgr::TaskMgr() : _PendingLinkTask(NULL),_initStageFlag(false),
-		     _eventCBK(NULL) {}
+TaskMgr::TaskMgr(int priority) : 
+_PendingLinkTask(NULL),_initStageFlag(false),
+_eventCBK(NULL),
+_priority(priority),
+_sub_priority(0)
+{
+}
 
 TaskMgr::TaskMgr(const TaskMgr &aMgr) : _eventCBK(aMgr._eventCBK)
 {
@@ -264,6 +269,7 @@ void TaskMgr::_goToNextStage()
   else
     {
       _initStageFlag = false;
+      ++_sub_priority;
       PoolThreadMgr::get().addProcess(this,false); // Re insert in the Poll
     }
 }

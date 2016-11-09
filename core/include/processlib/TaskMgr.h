@@ -58,7 +58,7 @@ public:
     virtual void process() = 0;
     virtual void error(const std::string &errMsg) = 0;
   protected:
-    TaskWrap(TaskMgr &aMgr) : _Mgr(aMgr) {};
+  TaskWrap(TaskMgr &aMgr) : _Mgr(aMgr) {};
 
     inline void _endLinkTask(LinkTask *aFinnishedTask) 
       {_Mgr._endLinkTask(aFinnishedTask);}
@@ -72,7 +72,7 @@ public:
   };
   friend class TaskWrap;
   
-  TaskMgr();
+  TaskMgr(int priority = 0);
   TaskMgr(const TaskMgr&);
   ~TaskMgr();
 
@@ -83,6 +83,8 @@ public:
 		   std::pair<int,SinkTaskBase*>&);
   void setEventCallback(EventCallback *);
   TaskWrap* next();
+  std::pair<int,int> priority() const
+  {return std::pair<int,int>(_priority,_sub_priority);}
   //@brief do all the task synchronously
   void syncProcess();
 private:
@@ -93,6 +95,8 @@ private:
   Data       			_currentData;
   Data       			_nextData;
   EventCallback*		_eventCBK;
+  int				_priority;
+  int				_sub_priority;
 
   void _endLinkTask(LinkTask *aFinnishedTask);
   void _endSinkTask(SinkTaskBase *aFinnishedTask);

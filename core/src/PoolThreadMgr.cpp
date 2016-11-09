@@ -81,17 +81,17 @@ void PoolThreadMgr::setThreadWaitOnQuit(bool wait_on_quit)
 void PoolThreadMgr::addProcess(TaskMgr *aProcess,bool aFlag) 
 {
   Lock aLock(&_lock,aFlag);
-  _processQueue.push_back(aProcess);
+  _processQueue.insert(QueueType::value_type(aProcess->priority(),aProcess));
   pthread_cond_broadcast(&_cond);
 }
 
 void PoolThreadMgr::removeProcess(TaskMgr *aProcess,bool aFlag)
 {
   Lock aLock(&_lock,aFlag);
-  for(std::list<TaskMgr*>::iterator i = _processQueue.begin();
+  for(QueueType::iterator i = _processQueue.begin();
       i != _processQueue.end();++i)
     {
-      if(*i == aProcess)
+      if(i->second == aProcess)
        {
          _processQueue.erase(i);
          break;
@@ -157,9 +157,9 @@ void PoolThreadMgr::abort()
   Lock aLock(&_lock);
   _suspendFlag = true;
   while(_runningThread) pthread_cond_wait(&_cond,&_lock);
-  for(std::list<TaskMgr*>::iterator i = _processQueue.begin();
+  for(QueueType::iterator i = _processQueue.begin();
       i != _processQueue.end();++i)
-    delete *i;
+    delete i->second;
   _processQueue.clear();
   _suspendFlag = false;
 }
@@ -225,7 +225,8 @@ void* PoolThreadMgr::_run(void *arg)
 
       if(!processMgrPt->_processQueue.empty())
 	{
-	  TaskMgr *processPt = processMgrPt->_processQueue.front();
+	  QueueType::iterator i = processMgrPt->_processQueue.begin();
+	  TaskMgr *processPt = i->second;
 	  TaskMgr::TaskWrap *aNextTask = processPt->next();
 	  aLock.unLock();
 	  try

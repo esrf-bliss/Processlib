@@ -431,7 +431,7 @@ public:
     virtual void error(Data&,const char*);
   };
 
-  TaskMgr();
+  TaskMgr(int priority=0);
   TaskMgr(const TaskMgr&);
   ~TaskMgr();
 

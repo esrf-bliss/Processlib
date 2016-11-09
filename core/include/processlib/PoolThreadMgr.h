@@ -27,7 +27,7 @@
 #pragma warning(disable:4251)
 #endif
 
-#include <list>
+#include <map>
 #include <vector>
 #include <pthread.h>
 
@@ -39,6 +39,8 @@ struct Data;
 class DLL_EXPORT PoolThreadMgr
 {
 public:
+  typedef std::pair<int,int> TaskPriority;
+
   PoolThreadMgr();
   ~PoolThreadMgr();
   static PoolThreadMgr& get() throw();
@@ -82,12 +84,25 @@ public:
   };
 
 private:
+  struct cmp
+  {
+    bool operator()(const TaskPriority& a,
+		    const TaskPriority& b)
+    {
+      if(a.first == b.first)
+	return b.second < a.second;
+      else
+	return b.first < a.first;
+    }
+  };
+  typedef std::multimap<TaskPriority,TaskMgr*,cmp> QueueType;
+
   pthread_mutex_t                    _lock;
   pthread_cond_t                     _cond;
   volatile bool                      _stopFlag;
   volatile bool			     _suspendFlag;
   volatile int			     _runningThread;
-  std::list<TaskMgr*>   _processQueue;
+  QueueType                          _processQueue;
   std::vector<pthread_t>             _threadID;
   TaskMgr		             *_taskMgr;
   bool				      _threadWaitOnQuit;
