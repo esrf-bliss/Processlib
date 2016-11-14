@@ -439,7 +439,7 @@ public:
   void addSinkTask(int aStage,SinkTaskBase*);
   void setInputData(Data &);
   void setEventCallback(TaskMgr::EventCallback *);
-  void syncProcess();
+  Data syncProcess();
 };
 
 class PoolThreadMgr

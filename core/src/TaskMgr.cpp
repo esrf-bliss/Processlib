@@ -280,7 +280,7 @@ void TaskMgr::_callError(Data &aData,const char *msg)
     _eventCBK->error(aData,msg);
 }
 
-void TaskMgr::syncProcess()
+Data TaskMgr::syncProcess()
 {
   for(StageTask::iterator aStageTask = _Tasks.begin();
       aStageTask != _Tasks.end();++aStageTask)
@@ -307,4 +307,5 @@ void TaskMgr::syncProcess()
       delete aStageTaskPt;
     }
   _Tasks.clear();
+  return _currentData;
 }

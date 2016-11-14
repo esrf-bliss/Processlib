@@ -86,7 +86,7 @@ public:
   std::pair<int,int> priority() const
   {return std::pair<int,int>(_priority,_sub_priority);}
   //@brief do all the task synchronously
-  void syncProcess();
+  Data syncProcess();
 private:
   StageTask			_Tasks;
   LinkTask		       *_PendingLinkTask;
