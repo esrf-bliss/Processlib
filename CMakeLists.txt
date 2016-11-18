@@ -1,3 +1,10 @@
+IF (WIN32)  # GSL is installed in exotic folders on Windows
+    SET(GSL_INCLUDE_DIR "/usr/include" CACHE PATH "Path to GSL includes")
+    SET(GSL_LIB_DIR "/usr/lib" CACHE PATH "Path to GSL lib folder")
+    include_directories(${GSL_INCLUDE_DIR})
+    link_directories(${GSL_LIB_DIR})
+ENDIF()
+
 set(processlib_srcs 
     core/src/GslErrorMgr.cpp
     core/src/PoolThreadMgr.cpp
