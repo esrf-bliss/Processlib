@@ -82,6 +82,7 @@ void PoolThreadMgr::addProcess(TaskMgr *aProcess,bool aFlag)
 {
   Lock aLock(&_lock,aFlag);
   _processQueue.insert(QueueType::value_type(aProcess->priority(),aProcess));
+  aProcess->_pool = this;
   pthread_cond_broadcast(&_cond);
 }
 

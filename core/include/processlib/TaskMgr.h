@@ -29,9 +29,11 @@
 
 class LinkTask;
 class SinkTaskBase;
+class PoolThreadMgr;
 
 class DLL_EXPORT TaskMgr
 {
+  friend class PoolThreadMgr;
   struct Task
   {
     Task() : _linkTask(NULL) {}
@@ -97,6 +99,7 @@ private:
   EventCallback*		_eventCBK;
   int				_priority;
   int				_sub_priority;
+  PoolThreadMgr*		_pool;
 
   void _endLinkTask(LinkTask *aFinnishedTask);
   void _endSinkTask(SinkTaskBase *aFinnishedTask);
