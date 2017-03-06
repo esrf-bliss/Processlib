@@ -131,15 +131,46 @@ void SinkTaskMgr<Result>::resetHistory(bool lockFlag)
 template<class Result>
 void SinkTaskMgr<Result>::getHistory(std::list<Result> & anHistory,int fromFrameNumber) const
 {
+  bool sort_needed = false;
   PoolThreadMgr::Lock aLock(&_lock);
-  typename FrameResultList::const_iterator i;
-  for(i = _historyResult.begin();
-      i != _historyResult.end();++i)
+  if(fromFrameNumber > _currentFrameNumber) return; // not yet available
+  else if (fromFrameNumber < 0) fromFrameNumber = 0;
+
+  int current_index = _currentFrameNumber % _historyResult.size();
+  int from_index = fromFrameNumber % _historyResult.size();
+  if(_currentFrameNumber - fromFrameNumber >= _historyResult.size()) // return all history
     {
-      if(i->frameNumber >= fromFrameNumber)
-	anHistory.push_back(*i);
+      from_index = 0;
+      current_index = _historyResult.size() - 1;
+      sort_needed = true;
     }
-  anHistory.sort(_history_sort<Result>);
+  typename FrameResultList::const_iterator i;
+  typename FrameResultList::const_iterator end;
+  if(from_index <= current_index)
+    {
+      i = _historyResult.begin() + from_index;
+      end = _historyResult.begin() + current_index + 1;
+      for(;i != end;++i)
+	if(i->frameNumber >= fromFrameNumber)
+	  anHistory.push_back(*i);
+    }
+  else
+    {
+      i = _historyResult.begin() + from_index;
+      end = _historyResult.end();
+      for(;i != end;++i)
+	if(i->frameNumber >= fromFrameNumber)
+	  anHistory.push_back(*i);
+
+      i = _historyResult.begin();
+      end = _historyResult.begin() + current_index + 1;
+      for(;i != end;++i)
+	if(i->frameNumber >= fromFrameNumber)
+	  anHistory.push_back(*i);
+    }
+  aLock.unLock();
+  if(sort_needed)
+    anHistory.sort(_history_sort<Result>);
 }
 
 /** @brief set the number of result keeped in history.
