@@ -151,22 +151,40 @@ void SinkTaskMgr<Result>::getHistory(std::list<Result> & anHistory,int fromFrame
       i = _historyResult.begin() + from_index;
       end = _historyResult.begin() + current_index + 1;
       for(;i != end;++i)
-	if(i->frameNumber >= fromFrameNumber)
-	  anHistory.push_back(*i);
+	{
+	  if(i->frameNumber >= fromFrameNumber)
+	    anHistory.push_back(*i);
+	  else if(!sort_needed)
+	    break;
+	}
     }
   else
     {
+      bool continue_flag = true;
       i = _historyResult.begin() + from_index;
       end = _historyResult.end();
       for(;i != end;++i)
-	if(i->frameNumber >= fromFrameNumber)
-	  anHistory.push_back(*i);
-
-      i = _historyResult.begin();
-      end = _historyResult.begin() + current_index + 1;
-      for(;i != end;++i)
-	if(i->frameNumber >= fromFrameNumber)
-	  anHistory.push_back(*i);
+	{
+	  if(i->frameNumber >= fromFrameNumber)
+	    anHistory.push_back(*i);
+	  else if(!sort_needed)
+	    {
+	      continue_flag = false;
+	      break;
+	    }
+	}
+      if(continue_flag)
+	{
+	  i = _historyResult.begin();
+	  end = _historyResult.begin() + current_index + 1;
+	  for(;i != end;++i)
+	    {
+	      if(i->frameNumber >= fromFrameNumber)
+		anHistory.push_back(*i);
+	      else if(!sort_needed)
+		break;
+	    }
+	}
     }
   aLock.unLock();
   if(sort_needed)
