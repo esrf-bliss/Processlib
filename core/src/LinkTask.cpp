@@ -54,16 +54,12 @@ LinkTask::~LinkTask()
 }
 void LinkTask::setEventCallback(TaskEventCallback *aEventCbk)
 {
-  if(_eventCbkPt)
-    {
-      _eventCbkPt->unref();
-      _eventCbkPt = NULL;
-    }
+  PoolThreadMgr::Lock aLock(&_lock);
   if(aEventCbk)
-    {
       aEventCbk->ref();
-      _eventCbkPt = aEventCbk;
-    }
+  if(_eventCbkPt)
+      _eventCbkPt->unref();
+  _eventCbkPt = aEventCbk;
 }
 
 void LinkTask::ref()
