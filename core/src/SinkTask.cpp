@@ -47,16 +47,12 @@ SinkTaskBase::~SinkTaskBase()
 
 void SinkTaskBase:: setEventCallback(TaskEventCallback *aEventCbk)
 {
-  if(_eventCbkPt)
-    {
-      _eventCbkPt->unref();
-      _eventCbkPt = NULL;
-    }
+  PoolThreadMgr::Lock aLock(&_lock);
   if(aEventCbk)
-    {
       aEventCbk->ref();
-      _eventCbkPt = aEventCbk;
-    }
+  if(_eventCbkPt)
+      _eventCbkPt->unref();
+  _eventCbkPt = aEventCbk;
 }
 
 void SinkTaskBase::ref()

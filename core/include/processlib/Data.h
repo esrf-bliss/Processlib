@@ -144,9 +144,7 @@ struct DLL_EXPORT Data
   }
   void setData(Data &aData)
   {
-    if(buffer) buffer->unref();
-    if(aData.buffer) aData.buffer->ref();
-    buffer = aData.buffer;
+    setBuffer(aData.buffer);
     type = aData.type;
     dimensions = aData.dimensions;
   }
