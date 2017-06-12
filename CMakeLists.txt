@@ -87,7 +87,12 @@ if(CMAKE_SYSTEM_NAME EQUAL "Windows")
     endif()
 endif()
 
-CONFIGURE_FILE(${CMAKE_SOURCE_DIR}/third-party/Processlib/sip/processlib.sip sip/processlib.sip)
+    IF(SIP_VERSION_STR VERSION_LESS "4.12")
+	CONFIGURE_FILE(${CMAKE_SOURCE_DIR}/third-party/Processlib/sip/processlib_before_4_12.sip sip/processlib.sip)
+    ELSE()
+	CONFIGURE_FILE(${CMAKE_SOURCE_DIR}/third-party/Processlib/sip/processlib.sip sip/processlib.sip)
+    ENDIF()
+
 set(SIP_INCLUDES "${CMAKE_CURRENT_SOURCE_DIR}/tasks/sip")
 ADD_SIP_PYTHON_MODULE(processlib "${CMAKE_CURRENT_BINARY_DIR}/sip/processlib.sip")
 TARGET_INCLUDE_DIRECTORIES(python_module_processlib PRIVATE ${PYTHON_INCLUDE_DIRS} ${CMAKE_CURRENT_SOURCE_DIR}/sip)
