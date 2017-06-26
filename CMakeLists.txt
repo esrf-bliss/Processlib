@@ -1,3 +1,27 @@
+############################################################################
+# This file is part of LImA, a Library for Image Acquisition
+#
+# Copyright (C) : 2009-2017
+# European Synchrotron Radiation Facility
+# BP 220, Grenoble 38043
+# FRANCE
+#
+# Contact: lima@esrf.fr
+#
+# This is free software; you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation; either version 3 of the License, or
+# (at your option) any later version.
+#
+# This software is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with this program; if not, see <http://www.gnu.org/licenses/>.
+############################################################################
+
 IF (WIN32)  # GSL is installed in exotic folders on Windows, this paths are based on wid00limande and wid15perkin2
     IF(${CMAKE_SYSTEM_PROCESSOR} STREQUAL "AMD64")
 		SET(GSL_INCLUDE_DIR "C:/Program Files/gsl-1.15-dev-win64/include" CACHE PATH "Path to GSL includes")
@@ -86,14 +110,17 @@ if(CMAKE_SYSTEM_NAME EQUAL "Windows")
         set(SIP_DISABLE_FEATURES "BPM_SUPPORT")
     endif()
 endif()
-IF(SIP_VERSION_STR VERSION_LESS "4.12")
- 	CONFIGURE_FILE(${CMAKE_SOURCE_DIR}/third-party/Processlib/sip/processlib_before_4_12.sip sip/processlib.sip)
-ELSE()
- 	CONFIGURE_FILE(${CMAKE_SOURCE_DIR}/third-party/Processlib/sip/processlib.sip sip/processlib.sip)
-ENDIF()
 
-CONFIGURE_FILE(${CMAKE_SOURCE_DIR}/third-party/Processlib/sip/processlib.sip sip/processlib.sip)
-set(SIP_INCLUDES "${CMAKE_CURRENT_SOURCE_DIR}/tasks/sip")
-ADD_SIP_PYTHON_MODULE(processlib "${CMAKE_CURRENT_BINARY_DIR}/sip/processlib.sip")
-TARGET_INCLUDE_DIRECTORIES(python_module_processlib PRIVATE ${PYTHON_INCLUDE_DIRS} ${CMAKE_CURRENT_SOURCE_DIR}/sip)
-TARGET_LINK_LIBRARIES(python_module_processlib processlib)
+if(COMPILE_SIP)
+	IF(SIP_VERSION_STR VERSION_LESS "4.12")
+		CONFIGURE_FILE(${CMAKE_SOURCE_DIR}/third-party/Processlib/sip/processlib_before_4_12.sip sip/processlib.sip)
+	ELSE()
+		CONFIGURE_FILE(${CMAKE_SOURCE_DIR}/third-party/Processlib/sip/processlib.sip sip/processlib.sip)
+	ENDIF()
+
+	CONFIGURE_FILE(${CMAKE_SOURCE_DIR}/third-party/Processlib/sip/processlib.sip sip/processlib.sip)
+	set(SIP_INCLUDES "${CMAKE_CURRENT_SOURCE_DIR}/tasks/sip")
+	ADD_SIP_PYTHON_MODULE(processlib "${CMAKE_CURRENT_BINARY_DIR}/sip/processlib.sip")
+	TARGET_INCLUDE_DIRECTORIES(python_module_processlib PRIVATE ${PYTHON_INCLUDE_DIRS} ${CMAKE_CURRENT_SOURCE_DIR}/sip)
+	TARGET_LINK_LIBRARIES(python_module_processlib processlib)
+endif()
