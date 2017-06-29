@@ -1,9 +1,42 @@
-IF (WIN32)  # GSL is installed in exotic folders on Windows
-    SET(GSL_INCLUDE_DIR "/usr/include" CACHE PATH "Path to GSL includes")
-    SET(GSL_LIB_DIR "/usr/lib" CACHE PATH "Path to GSL lib folder")
+###########################################################################
+# This file is part of LImA, a Library for Image Acquisition
+#
+# Copyright (C) : 2009-2017
+# European Synchrotron Radiation Facility
+# CS40220 38043 Grenoble Cedex 9
+# FRANCE
+#
+# Contact: lima@esrf.fr
+#
+# This is free software; you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation; either version 3 of the License, or
+# (at your option) any later version.
+#
+# This software is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with this program; if not, see <http://www.gnu.org/licenses/>.
+############################################################################
+
+
+option(PROCESSLIB_ENABLE_PYTHON "compile python binding code?" ON)
+# If processlib is subdired from Lima it must follow Lima policy for python option
+if(LIMA_ENABLE_PYTHON)
+  set(PROCESSLIB_ENABLE_PYTHON ON)
+else()
+  set(PROCESSLIB_ENABLE_PYTHON OFF)
+endif()
+
+if (WIN32)  # GSL is installed in exotic folders on Windows
+    set(GSL_INCLUDE_DIR "/usr/include" CACHE PATH "Path to GSL includes")
+    set(GSL_LIB_DIR "/usr/lib" CACHE PATH "Path to GSL lib folder")
     include_directories(${GSL_INCLUDE_DIR})
     link_directories(${GSL_LIB_DIR})
-ENDIF()
+endif()
 
 set(processlib_srcs 
     core/src/GslErrorMgr.cpp
@@ -25,7 +58,7 @@ set(processlib_srcs
     tasks/src/Rotation.cpp
     tasks/src/PeakFinder.cpp
     )
-IF(WIN32)
+if(WIN32)
     list(APPEND processlib_srcs core/src/WindowSpecific/pthread_cancelling.cpp
                                 core/src/WindowSpecific/pthread_cond.cpp
                                 core/src/WindowSpecific/pthread_key.cpp
@@ -35,42 +68,43 @@ IF(WIN32)
                                 core/src/WindowSpecific/stdio_compat.cpp
                                 core/src/WindowSpecific/time_compat.cpp
 				)
-ENDIF()
+endif()
 
 file(STRINGS "VERSION" processlib_ver)
 add_library(processlib SHARED
             ${processlib_srcs})
-IF(WIN32)
+if(WIN32)
     set(CMAKE_FIND_LIBRARY_SUFFIXES .a)
-    INCLUDE_DIRECTORIES("${CMAKE_CURRENT_SOURCE_DIR}/core/include/WindowSpecific")
-ENDIF()
-TARGET_INCLUDE_DIRECTORIES(processlib PUBLIC "${CMAKE_CURRENT_SOURCE_DIR}/core/include")
-TARGET_INCLUDE_DIRECTORIES(processlib PUBLIC "${CMAKE_CURRENT_SOURCE_DIR}/tasks/include")
+    include_directories("${CMAKE_CURRENT_SOURCE_DIR}/core/include/WindowSpecific")
+endif()
+target_include_directories(processlib PUBLIC "${CMAKE_CURRENT_SOURCE_DIR}/core/include")
+target_include_directories(processlib PUBLIC "${CMAKE_CURRENT_SOURCE_DIR}/tasks/include")
 if(THREADS_HAVE_PTHREAD_ARG)
     target_compile_options(PUBLIC processlib "-pthread")
 endif()
 if(CMAKE_THREAD_LIBS_INIT)
     target_link_libraries(processlib "${CMAKE_THREAD_LIBS_INIT}")
 endif()
-IF(WIN32)
-    FIND_LIBRARY(GSL libgsl ${GSL_LIB_DIR})
-    FIND_LIBRARY(GSLCBLAS libgslcblas ${GSL_LIB_DIR})
-    TARGET_LINK_LIBRARIES(processlib ${GSL} ${GSLCBLAS})
-ELSE()
-    TARGET_LINK_LIBRARIES(processlib gsl gslcblas)
-ENDIF()
-IF(WIN32)
-	TARGET_COMPILE_DEFINITIONS(processlib PRIVATE LIBPROCESSLIB_EXPORTS)
-ENDIF()
-SET_TARGET_PROPERTIES(processlib PROPERTIES VERSION ${processlib_ver} SOVERSION 1)
 if(WIN32)
-	SET_TARGET_PROPERTIES(processlib PROPERTIES PREFIX "lib")
+    find_library(GSL libgsl ${GSL_LIB_DIR})
+    find_library(GSLCBLAS libgslcblas ${GSL_LIB_DIR})
+    target_link_libraries(processlib ${GSL} ${GSLCBLAS})
+else()
+    target_link_libraries(processlib gsl gslcblas)
 endif()
 if(WIN32)
-    INSTALL(TARGETS processlib
+    target_compile_definitions(processlib PRIVATE LIBPROCESSLIB_EXPORTS)
+endif()
+
+set_target_properties(processlib PROPERTIES VERSION ${processlib_ver} SOVERSION 1)
+if(WIN32)
+    set_target_properties(processlib PROPERTIES PREFIX "lib")
+endif()
+if(WIN32)
+    install(TARGETS processlib
             DESTINATION lib)
 else()
-    INSTALL(TARGETS processlib
+    install(TARGETS processlib
             LIBRARY DESTINATION lib)
 endif()
 
@@ -80,8 +114,10 @@ if(CMAKE_SYSTEM_NAME EQUAL "Windows")
     endif()
 endif()
 
-CONFIGURE_FILE(${CMAKE_SOURCE_DIR}/third-party/Processlib/sip/processlib.sip sip/processlib.sip)
-set(SIP_INCLUDES "${CMAKE_CURRENT_SOURCE_DIR}/tasks/sip")
-ADD_SIP_PYTHON_MODULE(processlib "${CMAKE_CURRENT_BINARY_DIR}/sip/processlib.sip")
-TARGET_INCLUDE_DIRECTORIES(python_module_processlib PRIVATE ${PYTHON_INCLUDE_DIRS} ${CMAKE_CURRENT_SOURCE_DIR}/sip)
-TARGET_LINK_LIBRARIES(python_module_processlib processlib)
+if(PROCESSLIB_ENABLE_PYTHON)
+  configure_file(${CMAKE_SOURCE_DIR}/third-party/Processlib/sip/processlib.sip sip/processlib.sip)
+  set(SIP_INCLUDES "${CMAKE_CURRENT_SOURCE_DIR}/tasks/sip")
+  add_sip_python_module(processlib "${CMAKE_CURRENT_BINARY_DIR}/sip/processlib.sip")
+  target_include_directories(python_module_processlib PRIVATE ${PYTHON_INCLUDE_DIRS} ${CMAKE_CURRENT_SOURCE_DIR}/sip)
+  target_link_libraries(python_module_processlib processlib)
+endif()
