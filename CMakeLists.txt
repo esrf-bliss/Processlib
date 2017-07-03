@@ -216,7 +216,11 @@ endif()
 # SIP generates binding code for python
 #--------------------------------------------------------------------------------
 if(PROCESSLIB_ENABLE_PYTHON)
-  configure_file(${CMAKE_CURRENT_SOURCE_DIR}/sip/processlib.sip sip/processlib.sip)
+  if(SIP_VERSION_STR VERSION_LESS "4.12")
+    configure_file(${CMAKE_CURRENT_SOURCE_DIR}/sip/processlib_before_4_12.sip sip/processlib.sip)
+  else()
+    configure_file(${CMAKE_CURRENT_SOURCE_DIR}/sip/processlib.sip sip/processlib.sip)
+  endif()
   set(SIP_INCLUDES "${CMAKE_CURRENT_SOURCE_DIR}/tasks/sip")
   add_sip_python_module(processlib "${CMAKE_CURRENT_BINARY_DIR}/sip/processlib.sip")
   target_include_directories(python_module_processlib PRIVATE ${PYTHON_INCLUDE_DIRS} ${CMAKE_CURRENT_SOURCE_DIR}/sip)
