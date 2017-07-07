@@ -121,11 +121,18 @@ endif(NOT PROCESSLIB_EXTERNALLY_CONFIGURED)
 
 
 
-if (WIN32)  # GSL is installed in exotic folders on Windows
-    set(GSL_INCLUDE_DIR "/usr/include" CACHE PATH "Path to GSL includes")
-    set(GSL_LIB_DIR "/usr/lib" CACHE PATH "Path to GSL lib folder")
-    include_directories(${GSL_INCLUDE_DIR})
-    link_directories(${GSL_LIB_DIR})
+if (WIN32)  # GSL is installed in exotic folders on Windows, this paths are based on wid00limande and wid15perkin2
+    if(${CMAKE_SYSTEM_PROCESSOR} STREQUAL "AMD64")
+		set(GSL_INCLUDE_DIR "C:/Program Files/gsl-1.15-dev-win64/include" CACHE PATH "Path to GSL includes")
+		set(GSL_LIB_DIR "C:/Program Files/gsl-1.15-dev-win64//lib" CACHE PATH "Path to GSL lib folder")
+		include_directories(${GSL_INCLUDE_DIR})
+		link_directories(${GSL_LIB_DIR})
+	else()
+		set(GSL_INCLUDE_DIR "C:/Program Files/GnuWin32/include" CACHE PATH "Path to GSL includes")
+		set(GSL_LIB_DIR "C:/Program Files/GnuWin32/lib" CACHE PATH "Path to GSL lib folder")
+		include_directories(${GSL_INCLUDE_DIR})
+		link_directories(${GSL_LIB_DIR})
+	endif()
 endif()
 
 set(processlib_srcs 
