@@ -22,12 +22,14 @@
 //###########################################################################
 #ifndef __STDIO_COMPAT_H__
 #define __STDIO_COMPAT_H__
+#include <math.h>
 
 #ifndef snprintf
 #define snprintf sprintf_s
 #endif
+#ifndef NAN
 #define NAN NAN_func()
 double NAN_func();
-double round(double a);
+#endif
 
 #endif
