@@ -25,6 +25,8 @@
 
 #include <Windows.h>
 #include "processlib/Compatibility.h"
+#include <math.h>
+#include <errno.h>
 
 #ifdef __cplusplus
 extern "C"{
@@ -60,7 +62,9 @@ struct timespec
 
   DLL_EXPORT int pthread_mutex_timedlock(pthread_mutex_t *m, struct timespec *ts);
 
+#ifndef ETIMEDOUT
 #define ETIMEDOUT	110
+#endif
 #define PTHREAD_MUTEX_NORMAL 0
 #define PTHREAD_MUTEX_ERRORCHECK 1
 #define PTHREAD_MUTEX_RECURSIVE 2
@@ -69,8 +73,9 @@ struct timespec
 #define PTHREAD_MUTEX_PRIVATE 0
 #define PTHREAD_PRIO_MULT 32
 
+#ifndef ENOTSUP
 #define ENOTSUP		134
-
+#endif
 #define pthread_mutex_getprioceiling(M, P) ENOTSUP
 #define pthread_mutex_setprioceiling(M, P) ENOTSUP
 
