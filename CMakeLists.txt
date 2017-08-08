@@ -121,17 +121,24 @@ endif(NOT PROCESSLIB_EXTERNALLY_CONFIGURED)
 
 
 
-if (WIN32)  # GSL is installed from binary packages found at https://code.google.com/archive/p/oscats/downloads
+if (WIN32)
+  # GSL is available from binary packages at https://code.google.com/archive/p/oscats/downloads for win64
+  # and at gnuwin32 site for win32
+  # but now safe from http://ftp.esrf.fr/dist/bliss/lima
     if(${CMAKE_GENERATOR} MATCHES "Win64$")
-		set(GSL_INCLUDE_DIR "C:/Program Files/gsl-1.15-dev-win64/include" CACHE PATH "Path to GSL includes")
-		set(GSL_LIB_DIR "C:/Program Files/gsl-1.15-dev-win64/lib" CACHE PATH "Path to GSL lib folder")
+		set(GSL_INCLUDE_DIR "C:/Program Files/gsl-1.15-win64/include" CACHE PATH "Path to GSL includes")
+		set(GSL_LIB_DIR "C:/Program Files/gsl-1.15-win64/lib" CACHE PATH "Path to GSL lib folder")
 		include_directories(${GSL_INCLUDE_DIR})
 		link_directories(${GSL_LIB_DIR})
 	else()
-		set(GSL_INCLUDE_DIR "C:/Program Files/gsl-1.15-dev-win32/include" CACHE PATH "Path to GSL includes")
-		set(GSL_LIB_DIR "C:/Program Files/gsl-1.15-dev-win32/lib" CACHE PATH "Path to GSL lib folder")
+		set(GSL_INCLUDE_DIR "C:/Program Files/gsl-1.8-win32/include" CACHE PATH "Path to GSL includes")
+		set(GSL_LIB_DIR "C:/Program Files/gsl-1.8-win32/lib" CACHE PATH "Path to GSL lib folder")
 		include_directories(${GSL_INCLUDE_DIR})
 		link_directories(${GSL_LIB_DIR})
+		# GSL static libs are not SAFESH so force the option in case cmake enable it by default (Visual Studio 12)
+		set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} /SAFESEH:NO")
+		set(CMAKE_SHARED_LINKER_FLAGS "${CMAKE_SHARED_LINKER_FLAGS} /SAFESEH:NO")
+		set(CMAKE_MODULE_LINKER_FLAGS "${CMAKE_MODULE_LINKER_FLAGS} /SAFESEH:NO")
 	endif()
    message("GSL_LIB_DIR = " ${GSL_LIB_DIR})
 endif()
