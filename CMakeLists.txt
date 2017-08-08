@@ -122,7 +122,7 @@ endif(NOT PROCESSLIB_EXTERNALLY_CONFIGURED)
 
 
 if (WIN32)  # GSL is installed from binary packages found at https://code.google.com/archive/p/oscats/downloads
-    if(${CMAKE_SYSTEM_PROCESSOR} STREQUAL "AMD64")
+    if(${CMAKE_GENERATOR} MATCHES "Win64$")
 		set(GSL_INCLUDE_DIR "C:/Program Files/gsl-1.15-dev-win64/include" CACHE PATH "Path to GSL includes")
 		set(GSL_LIB_DIR "C:/Program Files/gsl-1.15-dev-win64/lib" CACHE PATH "Path to GSL lib folder")
 		include_directories(${GSL_INCLUDE_DIR})
