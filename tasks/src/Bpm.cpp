@@ -51,6 +51,13 @@ template<class INPUT> static inline INPUT min(INPUT a,INPUT b)
   return a < b ? a : b;
 }
 #endif
+
+// oldest windows C++ (VStudio 2008) does not provide round() func with math.h, so wrap it with local function 
+#ifdef __unix
+#define ROUND(a) round(a)
+#else
+#define ROUND(a) win_specific_round(a)
+#endif
 /** @brief Calculate the image projections in X and Y and
  *  the integrated pixel intensity on the image.
  */
@@ -93,7 +100,7 @@ void BpmTask::_tune_projection(const Data &aSrc,
   INPUT *aSrcPt = (INPUT*)aBufferPt->data;
   
   // X tuning profile
-  int tuning_margin = (int)round((aResult.beam_fwhm_y * (mFwhmTunningExtension - 1)) / 2.);
+  int tuning_margin = (int)ROUND((aResult.beam_fwhm_y * (mFwhmTunningExtension - 1)) / 2.);
   int fwhm_min = max(mBorderExclusion,aResult.beam_fwhm_min_y_index - tuning_margin);
   int fwhm_max = min(aResult.beam_fwhm_max_y_index + tuning_margin,
 		     aSrc.dimensions[1] - 1 - mBorderExclusion);
@@ -105,7 +112,7 @@ void BpmTask::_tune_projection(const Data &aSrc,
     }
 
   // Y tuning profile
-  tuning_margin = (int)round((aResult.beam_fwhm_x * (mFwhmTunningExtension - 1)) / 2.);
+  tuning_margin = (int)ROUND((aResult.beam_fwhm_x * (mFwhmTunningExtension - 1)) / 2.);
   fwhm_min = max(mBorderExclusion,aResult.beam_fwhm_min_x_index - tuning_margin);
   fwhm_max = min(aResult.beam_fwhm_max_x_index + tuning_margin,
 		 aSrc.dimensions[0] - 1 - mBorderExclusion);
@@ -550,7 +557,7 @@ BpmTask::BpmTask(const BpmTask &aTask) :
       aResult.beam_fwhm_max_##XorY##_index = max_index; \
       if(mRoiAutomatic) \
 	{ \
-	  int AOI_margin = (int)round(((max_index - min_index) * (mAoiExtension - 1)) / 2.); \
+	  int AOI_margin = (int)ROUND(((max_index - min_index) * (mAoiExtension - 1)) / 2.); \
 	  min_index = max(mBorderExclusion,min_index - AOI_margin); \
 	  max_index = min(max_index + AOI_margin,WidthorHeight - 1 - mBorderExclusion); \
 	  aResult.AOI_min_##XorY = min_index; \
@@ -593,7 +600,7 @@ BpmTask::BpmTask(const BpmTask &aTask) :
 						       aResult.mBackgroundLevelTune##XorY, \
 						       min_index,max_index); \
  \
-  int AOI_margin = (int)round((aResult.beam_fwhm_##XorY * (mAoiExtension - 1)) / 2.); \
+  int AOI_margin = (int)ROUND((aResult.beam_fwhm_##XorY * (mAoiExtension - 1)) / 2.); \
   min_index = max(mBorderExclusion,min_index - AOI_margin); \
   max_index = min(max_index + AOI_margin,WidthorHeight - 1 - mBorderExclusion); \
 	       \
