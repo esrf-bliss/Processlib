@@ -94,17 +94,10 @@ if (NOT PROCESSLIB_EXTERNALLY_CONFIGURED)
     set(PYTHON_SITE_PACKAGES_DIR ${_PYTHON_SITE_PACKAGES_DIR} CACHE PATH "where should python modules be installed?")
     
     if(WIN32)
-      if("${PYTHON_VERSION_MINOR}" STREQUAL "6")
-	set(NUMPY_INCLUDE_DIR "C:/Python26/Lib/site-packages/numpy/core/include" CACHE PATH "Path to NumPy include folder")
-        set(NUMPY_LIB_DIR "C:/Python26/Lib/site-packages/numpy/core/lib" CACHE PATH "Path to NumPy lib folder")
+        set(NUMPY_INCLUDE_DIR "${_PYTHON_SITE_PACKAGES_DIR}/numpy/core/include" CACHE PATH "Path to NumPy include folder")
+        set(NUMPY_LIB_DIR "${_PYTHON_SITE_PACKAGES_DIR}/numpy/core/lib" CACHE PATH "Path to NumPy lib folder")
         include_directories(${NUMPY_INCLUDE_DIR})
         link_directories(${NUMPY_LIB_DIR})
-      else() #assuming other version is 2.7
-        set(NUMPY_INCLUDE_DIR "C:/Python27/Lib/site-packages/numpy/core/include" CACHE PATH "Path to NumPy include folder")
-        set(NUMPY_LIB_DIR "C:/Python27/Lib/site-packages/numpy/lib" CACHE PATH "Path to NumPy lib folder")
-        include_directories(${NUMPY_INCLUDE_DIR})
-        link_directories(${NUMPY_LIB_DIR})
-      endif()
     endif()
     if(!${SIP_FOUND})
       message(FATAL_ERROR "sip executable not found, cannot build python extensions")
@@ -125,7 +118,8 @@ if (WIN32)
   # GSL is available from binary packages at https://code.google.com/archive/p/oscats/downloads for win64
   # and at gnuwin32 site for win32
   # but now safe from http://ftp.esrf.fr/dist/bliss/lima
-    if(${CMAKE_GENERATOR} MATCHES "Win64$")
+  #    if(${CMAKE_GENERATOR} MATCHES "Win64$")
+  if(CMAKE_SIZEOF_VOID_P EQUAL 8)
 		set(GSL_INCLUDE_DIR "C:/Program Files/gsl-1.15-win64/include" CACHE PATH "Path to GSL includes")
 		set(GSL_LIB_DIR "C:/Program Files/gsl-1.15-win64/lib" CACHE PATH "Path to GSL lib folder")
 		include_directories(${GSL_INCLUDE_DIR})
@@ -214,11 +208,12 @@ else()
             LIBRARY DESTINATION lib)
 endif()
 
-if(CMAKE_SYSTEM_NAME EQUAL "Windows")
-    if(CMAKE_SIZEOF_VOID_P EQUAL 8)
-        set(SIP_DISABLE_FEATURES "BPM_SUPPORT")
-    endif()
-endif()
+# did not know why logilab disabled bpm for win64
+#if(CMAKE_SYSTEM_NAME EQUAL "Windows")
+#    if(CMAKE_SIZEOF_VOID_P EQUAL 8)
+#        set(SIP_DISABLE_FEATURES "BPM_SUPPORT")
+#    endif()
+#endif()
 
 #--------------------------------------------------------------------------------
 # SIP generates binding code for python
