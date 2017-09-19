@@ -706,6 +706,7 @@ void BpmTask::process(Data &aInputSrc)
       aResult.beam_fwhm_min_y_index += _RoiY1;
       aResult.beam_fwhm_max_y_index += _RoiY1;
     }
+  aResult.timestamp = aInputSrc.timestamp;
   _mgr.setResult(aResult);
 }
 
