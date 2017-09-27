@@ -55,7 +55,8 @@ namespace Tasks
       mBackgroundLevely(0.),
       mBackgroundLevelTunex(0.),
       mBackgroundLevelTuney(0.),
-      errorCode(BpmManager::OK)
+      errorCode(BpmManager::OK),
+      timestamp(-1.)
 	{}
 
     explicit BpmResult(BpmManager::ErrorCode code) : errorCode(code) {}
@@ -91,6 +92,7 @@ namespace Tasks
     double		mBackgroundLevelTuney;
 
     BpmManager::ErrorCode	errorCode;
+    double		timestamp;
   private:
       
     void _setAOI(const int aRoi[])

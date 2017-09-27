@@ -33,6 +33,26 @@ namespace Tasks
     BpmManager(int = 4);
 
     Tasks::BpmResult	getResult(double = 0.,int = -1) const;
+    SIP_PYOBJECT getHistory(int fromFrameNumber = 0) const;
+%MethodCode
+std::list<Tasks::BpmResult> results;
+sipCpp->getHistory(results,a0);
+sipRes = PyList_New(results.size());
+int index = 0;
+for(std::list<Tasks::BpmResult>::iterator i = results.begin();
+    i != results.end();++i,++index)
+  {
+    Tasks::BpmResult *cpp_result = new Tasks::BpmResult(*i);
+    PyObject *py_result = sipConvertFromType(cpp_result,sipType_Tasks_BpmResult,Py_None);
+    if(!py_result)
+      {
+	Py_DECREF(sipRes);
+	delete cpp_result;
+	return NULL;
+      }
+    PyList_SetItem(sipRes,index,py_result);
+  }
+%End
     void	resizeHistory(int aSize);
     void  resetHistory();
     int	  historySize() const;
@@ -85,6 +105,7 @@ namespace Tasks
       double		mBackgroundLevelTuney;
 
       Tasks::BpmManager::ErrorCode errorCode;
+      double		timestamp;
     };
 
  

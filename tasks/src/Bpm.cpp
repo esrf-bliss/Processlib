@@ -673,6 +673,8 @@ void BpmTask::process(Data &aInputSrc)
       PROCESS(short,int);break;
     case Data::INT32:
       PROCESS(int,long long);break;
+    case Data::UINT32:
+      PROCESS(unsigned int,long long);break;
     default:
       {
 	char aBuffer[256];
@@ -706,6 +708,7 @@ void BpmTask::process(Data &aInputSrc)
       aResult.beam_fwhm_min_y_index += _RoiY1;
       aResult.beam_fwhm_max_y_index += _RoiY1;
     }
+  aResult.timestamp = aInputSrc.timestamp;
   _mgr.setResult(aResult);
 }
 
