@@ -47,12 +47,17 @@ typedef int pthread_mutexattr_t;
 
 #define PTHREAD_MUTEX_INITIALIZER {(PRTL_CRITICAL_SECTION_DEBUG)-1,-1,0,0,0,0}
 
+/* MSC 14 2015 provides this struct */
+#if _MSC_VER < 1900
 struct timespec
 {
 	/* long long in windows is the same as long in unix for 64bit */
 	long long tv_sec;
 	long long tv_nsec;
 };
+#else
+#include <time.h>
+#endif
 
   unsigned long long _pthread_time_in_ms(void);
 

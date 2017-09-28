@@ -38,7 +38,7 @@
 #define ctime_r(rTime,buffer) ctime_s(buffer,sizeof(buffer),rTime)
 #define localtime_r(timep,result) localtime_s(result,timep)
 
-struct timezone 
+struct compat_timezone 
 {
   int  tz_minuteswest; /* minutes W of Greenwich */
   int  tz_dsttime;     /* type of dst correction */
@@ -48,7 +48,7 @@ struct timezone
 extern "C"{
 #endif
 
-  DLL_EXPORT int gettimeofday(struct timeval *tv, struct timezone *tz);
+  DLL_EXPORT int gettimeofday(struct timeval *tv, struct compat_timezone *tz);
   
 #ifdef __cplusplus
 }       //  Assume C declarations for C++

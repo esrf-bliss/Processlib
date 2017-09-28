@@ -351,7 +351,7 @@ int pthread_create(pthread_t *th, pthread_attr_t *attr, void *(* func)(void *), 
   if (attr)
     {
       tv->p_state = attr->p_state;
-      ssize = attr->s_size;
+      ssize = unsigned int(attr->s_size);
     }
 	
   /* Make sure tv->h has value of -1 */
