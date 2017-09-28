@@ -24,9 +24,12 @@
 #define __STDIO_COMPAT_H__
 #include <math.h>
 
+#if _MSC_VER < 1900
 #ifndef snprintf
 #define snprintf sprintf_s
 #endif
+#endif
+
 #ifndef NAN
 #define NAN NAN_func()
 double NAN_func();

@@ -85,7 +85,7 @@ if (NOT PROCESSLIB_EXTERNALLY_CONFIGURED)
     if(${PYTHONINTERP_FOUND})
       # python site-packages folder
       execute_process(
-	COMMAND ${PYTHON_EXECUTABLE} -c "from distutils.sysconfig import get_python_lib; print get_python_lib()"
+	COMMAND ${PYTHON_EXECUTABLE} -c "from distutils.sysconfig import get_python_lib; print (get_python_lib())"
 	OUTPUT_VARIABLE _PYTHON_SITE_PACKAGES_DIR OUTPUT_STRIP_TRAILING_WHITESPACE)
     endif()
     find_package(SIP)
@@ -116,24 +116,34 @@ endif(NOT PROCESSLIB_EXTERNALLY_CONFIGURED)
 
 if (WIN32)
   # GSL is available from binary packages at https://code.google.com/archive/p/oscats/downloads for win64
-  # and at gnuwin32 site for win32
-  # but now safe from http://ftp.esrf.fr/dist/bliss/lima
-  #    if(${CMAKE_GENERATOR} MATCHES "Win64$")
-  if(CMAKE_SIZEOF_VOID_P EQUAL 8)
-		set(GSL_INCLUDE_DIR "C:/Program Files/gsl-1.15-win64/include" CACHE PATH "Path to GSL includes")
-		set(GSL_LIB_DIR "C:/Program Files/gsl-1.15-win64/lib" CACHE PATH "Path to GSL lib folder")
-		include_directories(${GSL_INCLUDE_DIR})
-		link_directories(${GSL_LIB_DIR})
+  # and at gnuwin32 site for win32 compiled with msvc2008
+  # for msvc2015 binary packages are from https://www.bruot.org/hp/libraries/
+  # but now safe from http://ftp.esrf.fr/dist/bliss/lima/GSL-windows.zip
+ 	if (${CMAKE_GENERATOR} MATCHES "(2008|2010|2013)")
+		if (${CMAKE_GENERATOR} MATCHES "Win64$")
+			set(GSL_VERSION "gsl-win64-msvc2008")
+		else()
+			set(GSL_VERSION "gsl-win32-msvc2008")
+			# GSL static libs are not SAFESH so force the option in case cmake enable it by default (Visual Studio 12 2013)
+			set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} /SAFESEH:NO")
+			set(CMAKE_SHARED_LINKER_FLAGS "${CMAKE_SHARED_LINKER_FLAGS} /SAFESEH:NO")
+			set(CMAKE_MODULE_LINKER_FLAGS "${CMAKE_MODULE_LINKER_FLAGS} /SAFESEH:NO")
+		endif()
+	elseif (${CMAKE_GENERATOR} MATCHES "2015")
+		if (${CMAKE_GENERATOR} MATCHES "Win64$")
+			set(GSL_VERSION "gsl-win64-msvc2015")
+		else()
+			set(GSL_VERSION "gsl-win32-msvc2015")
+		endif()
 	else()
-		set(GSL_INCLUDE_DIR "C:/Program Files/gsl-1.8-win32/include" CACHE PATH "Path to GSL includes")
-		set(GSL_LIB_DIR "C:/Program Files/gsl-1.8-win32/lib" CACHE PATH "Path to GSL lib folder")
-		include_directories(${GSL_INCLUDE_DIR})
-		link_directories(${GSL_LIB_DIR})
-		# GSL static libs are not SAFESH so force the option in case cmake enable it by default (Visual Studio 12)
-		set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} /SAFESEH:NO")
-		set(CMAKE_SHARED_LINKER_FLAGS "${CMAKE_SHARED_LINKER_FLAGS} /SAFESEH:NO")
-		set(CMAKE_MODULE_LINKER_FLAGS "${CMAKE_MODULE_LINKER_FLAGS} /SAFESEH:NO")
+		message(FATAL_ERROR "This compiler is not supported: " ${CMAKE_GENERATOR})
 	endif()
+	
+	set(GSL_INCLUDE_DIR "C:/Program Files/GSL-windows/${GSL_VERSION}/include" CACHE PATH "Path to GSL includes")
+	set(GSL_LIB_DIR "C:/Program Files/GSL-windows/${GSL_VERSION}/lib" CACHE PATH "Path to GSL lib folder")
+	include_directories(${GSL_INCLUDE_DIR})
+	link_directories(${GSL_LIB_DIR})
+
    message("GSL_LIB_DIR = " ${GSL_LIB_DIR})
 endif()
 

@@ -88,7 +88,7 @@ unsigned long long _pthread_rel_time_in_ms(const struct timespec *ts)
 	if (t1 < t2) return 1;
 	return t1 - t2;
 }
-#define ETIMEDOUT	110
+
 int pthread_mutex_timedlock(pthread_mutex_t *m, struct timespec *ts)
 {
 	unsigned long long t, ct;
@@ -132,7 +132,6 @@ int pthread_mutex_timedlock(pthread_mutex_t *m, struct timespec *ts)
 #define PTHREAD_MUTEX_PRIVATE 0
 #define PTHREAD_PRIO_MULT 32
 
-#define ENOTSUP		134
 
 #define pthread_mutex_getprioceiling(M, P) ENOTSUP
 #define pthread_mutex_setprioceiling(M, P) ENOTSUP
