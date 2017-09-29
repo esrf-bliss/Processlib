@@ -182,7 +182,7 @@ void TaskMgr::getLastTask(std::pair<int,LinkTask*> &aLastLink,
   aLastLink.first = -1,aLastLink.second = NULL;
   aLastSink.first = -1,aLastSink.second = NULL;
 
-  for(int i = _Tasks.size() - 1;
+  for(int i = int(_Tasks.size()) - 1;
       i >= 0 && (aLastSink.first < 0 || aLastLink.first < 0);--i)
     {
       Task *aTaskPt = _Tasks[i];
@@ -221,7 +221,7 @@ TaskMgr::TaskWrap* TaskMgr::next()
       aTaskPt = _Tasks.front();
     }
   if(!_initStageFlag)
-      _initStageFlag = true,_nbPendingSinkTask = aTaskPt->_sinkTaskQueue.size();
+      _initStageFlag = true,_nbPendingSinkTask = int(aTaskPt->_sinkTaskQueue.size());
 
   if(aTaskPt->_linkTask)		// first linked task
     {
