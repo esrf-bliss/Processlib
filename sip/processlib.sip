@@ -277,7 +277,7 @@ PyArrayObject *tmpObject = (PyArrayObject*)PyArray_ContiguousFromObject(sipPy,NP
 if(!tmpObject) sipErr=1;
 else
  {
-    switch(tmpObject->descr->type_num)
+    switch(PyArray_TYPE(tmpObject))
     {
      case NPY_BYTE:
 	sipCpp->type = Data::INT8;break;
