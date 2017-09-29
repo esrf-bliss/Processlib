@@ -141,7 +141,7 @@ void SinkTaskMgr<Result>::getHistory(std::list<Result> & anHistory,int fromFrame
   if(_currentFrameNumber - fromFrameNumber >= _historyResult.size()) // return all history
     {
       from_index = 0;
-      current_index = _historyResult.size() - 1;
+      current_index = int(_historyResult.size()) - 1;
       sort_needed = true;
     }
   typename FrameResultList::const_iterator i;
@@ -207,7 +207,7 @@ template<class Result>
 int SinkTaskMgr<Result>::historySize() const
 {
   PoolThreadMgr::Lock aLock(&_lock);
-  return _historyResult.size();
+  return int(_historyResult.size());
 }
 
 template<class Result>
