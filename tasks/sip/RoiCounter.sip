@@ -61,12 +61,9 @@ namespace Tasks
     int                          frameNumber;
     Tasks::RoiCounterManager::ErrorCode errorCode;
 
-const char* __repr__();
-%MethodCode
-std::stringstream str;
-str << *sipCpp;
-const std::string& tmpString = str.str();
-sipRes = tmpString.c_str();
+    SIP_PYOBJECT __repr__();
+%MethodCode 
+    LIMA_REPR_CODE
 %End
   };
   

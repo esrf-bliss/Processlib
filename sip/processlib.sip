@@ -130,7 +130,7 @@ if(!result.second)
  }
 %End
 
-const char* __repr__();
+SIP_PYOBJECT __repr__() const;
 %MethodCode
 std::stringstream str;
 str << "{";
@@ -146,7 +146,11 @@ if(str.str().size() > 1)
   str.seekp (-1, str.end);
 str << "}";
 const std::string& tmpString = str.str();
-sipRes = tmpString.c_str();
+#if PY_VERSION_HEX >= 0x03000000
+sipRes = PyUnicode_FromString(tmpString.c_str());
+#else
+sipRes = PyString_FromString(tmpString.c_str());
+#endif
 %End
 
 const char* __str__();
@@ -349,12 +353,9 @@ extern "C"
 
   Data mask() const;
 
-  const char* __repr__();
+  SIP_PYOBJECT __repr__() const;
 %MethodCode
-	std::ostringstream str;
-	str << *sipCpp;	
-	const std::string& tmpString = str.str();
-	sipRes = tmpString.c_str();
+  LIMA_REPR_CODE
 %End
 };
 
