@@ -53,8 +53,6 @@ public:
   void suspend(bool);
   bool wait(double timeout = -1.);
   void quit();
-  // Necessary when forked
-  void setThreadWaitOnQuit(bool wait_on_quit);
 
   class Lock
   {
@@ -105,10 +103,15 @@ private:
   QueueType                          _processQueue;
   std::vector<pthread_t>             _threadID;
   TaskMgr		             *_taskMgr;
-  bool				      _threadWaitOnQuit;
 
   static void* _run(void*);
   void _createProcessThread(int aNumber);
+
+#ifdef __unix
+  static void atfork_prepare();
+  static void atfork_parent();
+  static void atfork_child();
+#endif
 };
 
 #endif

@@ -48,28 +48,23 @@ PoolThreadMgr::PoolThreadMgr()
   _suspendFlag = false;
   _runningThread = 0;
   _taskMgr = NULL;
-  _threadWaitOnQuit = true;
+
+#ifdef __unix
+  int ret = pthread_atfork(atfork_prepare, atfork_parent, atfork_child);
+  if (ret != 0)
+    throw ProcessException("Cannot register pthread_atfork handlers");
+#endif
+
   _createProcessThread(NB_DEFAULT_THREADS);
 }
 
 PoolThreadMgr::~PoolThreadMgr()
 {
 #ifdef __unix
-  if (_threadWaitOnQuit)
-    quit();
+  quit();
 #endif
   pthread_mutex_destroy(&_lock);
   pthread_cond_destroy(&_cond);
-}
-
-/** @brief enable/disable waiting for threads to finish on quit (Unix).
- *  This is necessary when the process is forked, and default threads do not
- *  exist on the child process
- *  @param wait_on_quit if false do not wait for threads on quit (default true)
-*/
-void PoolThreadMgr::setThreadWaitOnQuit(bool wait_on_quit)
-{
-  _threadWaitOnQuit = wait_on_quit;
 }
 
 /** @brief add a process in the process queue.
@@ -271,3 +266,40 @@ PoolThreadMgr& PoolThreadMgr::get() throw()
   return *_processMgrPt;
 }
 
+#ifdef __unix
+
+/** @brief preparation of thread-related tasks before fork
+ *
+ *  this will be called just before fork: must lock the mutex(es)
+ *  to avoid corruption of states after fork (in child)
+ */
+void PoolThreadMgr::atfork_prepare()
+{
+  pthread_mutex_t& lock = _processMgrPt->_lock;
+  while (pthread_mutex_lock(&lock));
+}
+
+/** @brief cleanup of thread-related tasks after fork in parent
+ *
+ *  this will be called after fork in parent: must release the mutex(es)
+ */
+void PoolThreadMgr::atfork_parent()
+{
+  pthread_mutex_t& lock = _processMgrPt->_lock;
+  pthread_mutex_unlock(&lock);
+}
+
+/** @brief cleanup of thread-related tasks after fork in child
+ *
+ *  this will be called after fork in child: must release the mutex(es)
+ *  and erase all the thread IDs, which no longer exist in new process
+ */
+void PoolThreadMgr::atfork_child()
+{
+  pthread_mutex_t& lock = _processMgrPt->_lock;
+  pthread_mutex_unlock(&lock);
+  std::vector<pthread_t>& thread_list = _processMgrPt->_threadID;
+  thread_list.clear();
+}
+
+#endif // __unix
