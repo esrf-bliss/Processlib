@@ -207,7 +207,9 @@ else()
     find_library(GSLCBLAS gslcblas)
 endif()
 target_link_libraries(processlib ${GSL} ${GSLCBLAS})
-      
+message("GSL is ${GSL}")
+message("GSLCBLAS is ${GSLCBLAS}")
+
 if(WIN32)
     target_compile_definitions(processlib PRIVATE LIBPROCESSLIB_EXPORTS)
     set_target_properties(processlib PROPERTIES PREFIX "lib")
