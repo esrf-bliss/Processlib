@@ -144,9 +144,11 @@ if (WIN32)
 	include_directories(${GSL_INCLUDE_DIR})
 	link_directories(${GSL_LIB_DIR})
 
-   message("GSL_LIB_DIR = " ${GSL_LIB_DIR})
+	message("GSL_LIB_DIR = " ${GSL_LIB_DIR})
+else()
+        find_path(GSL_INCLUDE_DIR gsl/gsl_errno.h)
 endif()
-
+  
 set(processlib_srcs 
     core/src/GslErrorMgr.cpp
     core/src/PoolThreadMgr.cpp
@@ -203,13 +205,16 @@ if(WIN32)
     find_library(GSL libgsl ${GSL_LIB_DIR})
     find_library(GSLCBLAS libgslcblas ${GSL_LIB_DIR})
 else()
-    find_library(GSL gsl)
-    find_library(GSLCBLAS gslcblas)
+    find_library(LIB_GSL gsl)
+    find_library(LIB_GSLCBLAS gslcblas)
 endif()
-target_link_libraries(processlib ${GSL} ${GSLCBLAS})
-message("GSL is ${GSL}")
-message("GSLCBLAS is ${GSLCBLAS}")
-
+include (FindPackageHandleStandardArgs)
+find_package_handle_standard_args(GSL DEFAULT_MSG LIB_GSL GSL_INCLUDE_DIR)	
+if(${GSL_FOUND})
+  target_link_libraries(processlib ${LIB_GSL} ${LIB_GSLCBLAS})
+  target_include_directories(processlib PUBLIC ${GSL_INCLUDE_DIR})
+endif()
+  
 if(WIN32)
     target_compile_definitions(processlib PRIVATE LIBPROCESSLIB_EXPORTS)
     set_target_properties(processlib PROPERTIES PREFIX "lib")
