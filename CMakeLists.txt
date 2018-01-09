@@ -72,9 +72,6 @@ if (NOT PROCESSLIB_EXTERNALLY_CONFIGURED)
   # Threads lib required
   #--------------------------------------------------------------------------------
   find_package(Threads REQUIRED)
-  if(UNIX)
-    #set(CMAKE_SHARED_LINKER_FLAGS "-Wl,--no-undefined")
-  endif()
 
   #--------------------------------------------------------------------------------
   # Enable python binding code compilation using sip generator
