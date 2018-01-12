@@ -445,6 +445,11 @@ class PoolThreadMgr
   bool wait(double timeout = -1.);
   void quit();
 };
+
+%UnitCode
+#include <lima_repr_attr.cpp>
+%End
+
 %Feature BPM_SUPPORT
 %Include BackgroundSubstraction.sip
 %Include Binning.sip
