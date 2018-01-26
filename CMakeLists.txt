@@ -216,12 +216,18 @@ if(WIN32)
     target_compile_definitions(processlib PRIVATE LIBPROCESSLIB_EXPORTS)
     set_target_properties(processlib PROPERTIES PREFIX "lib")
 endif()
+
+# Tell CMake where to install libs and includes
+# For  Unix sue GNU standard installation directories to manage linux distro specificities (lib64 or lib/<multiarch-tuple> ....)
 if(WIN32)
     install(TARGETS processlib
-            DESTINATION lib)
+            DESTINATION lib
+            PUBLIC_HEADER DESTINATION include)
 else()
+    include(GNUInstallDirs)
     install(TARGETS processlib
-            LIBRARY DESTINATION lib)
+            LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR}
+            PUBLIC_HEADER DESTINATION ${CMAKE_INSTALL_INCLUDEDIR})
 endif()
 
 # did not know why logilab disabled bpm for win64
