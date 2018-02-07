@@ -65,7 +65,7 @@ include(ProcesslibTools)
 # If Processlib is used as a standalone library set here everything required
 #--------------------------------------------------------------------------------
 if (NOT PROCESSLIB_EXTERNALLY_CONFIGURED)
-  cmake_minimum_required(VERSION 2.8)
+  cmake_minimum_required(VERSION 3.0)
   project (processlib)
   
   #--------------------------------------------------------------------------------
@@ -82,7 +82,7 @@ if (NOT PROCESSLIB_EXTERNALLY_CONFIGURED)
     if(${PYTHONINTERP_FOUND})
       # python site-packages folder
       execute_process(
-	COMMAND ${PYTHON_EXECUTABLE} -c "from distutils.sysconfig import get_python_lib; print (get_python_lib())"
+	COMMAND ${PYTHON_EXECUTABLE} -c "from distutils.sysconfig import get_python_lib; print (get_python_lib(True))"
 	OUTPUT_VARIABLE _PYTHON_SITE_PACKAGES_DIR OUTPUT_STRIP_TRAILING_WHITESPACE)
     endif()
     find_package(SIP)
@@ -216,18 +216,12 @@ if(WIN32)
     target_compile_definitions(processlib PRIVATE LIBPROCESSLIB_EXPORTS)
     set_target_properties(processlib PROPERTIES PREFIX "lib")
 endif()
-
-# Tell CMake where to install libs and includes
-# For  Unix sue GNU standard installation directories to manage linux distro specificities (lib64 or lib/<multiarch-tuple> ....)
 if(WIN32)
     install(TARGETS processlib
-            DESTINATION lib
-            PUBLIC_HEADER DESTINATION include)
+            DESTINATION lib)
 else()
-    include(GNUInstallDirs)
     install(TARGETS processlib
-            LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR}
-            PUBLIC_HEADER DESTINATION ${CMAKE_INSTALL_INCLUDEDIR})
+            LIBRARY DESTINATION lib)
 endif()
 
 # did not know why logilab disabled bpm for win64
