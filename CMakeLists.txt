@@ -220,8 +220,9 @@ if(WIN32)
     install(TARGETS processlib
             DESTINATION lib)
 else()
+    include(GNUInstallDirs)
     install(TARGETS processlib
-            LIBRARY DESTINATION lib)
+            LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR})
 endif()
 
 # did not know why logilab disabled bpm for win64
