@@ -79,6 +79,7 @@ inline static void _flip_x_inplace_template(INPUT *aSrcPt,int width, int height)
       }
 }
 #ifndef __unix
+#if _MSC_VER < 1900
 typedef signed char int8_t;
 typedef signed short int16_t;
 typedef signed long int32_t;
@@ -86,6 +87,7 @@ typedef unsigned char uint8_t;
 typedef unsigned short uint16_t;
 typedef unsigned long uint32_t; 
 typedef unsigned long long uint64_t; 
+#endif
 #endif
 static void _flip_x_inplace(Data &aSrcData)
 {

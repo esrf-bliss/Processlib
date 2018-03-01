@@ -28,10 +28,9 @@ double NAN_func()
   return *(double*)nan;
 }
 
-double round(double a) 
+double win_specific_round(double a)
 {
   int returnVal;
   returnVal = int(a + 0.5);
   return (double)returnVal;
 }
-

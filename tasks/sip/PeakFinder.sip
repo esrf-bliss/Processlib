@@ -58,12 +58,9 @@ namespace Tasks
     int                          frameNumber;
     Tasks::PeakFinderManager::ErrorCode errorCode;
 
-const char* __repr__();
+SIP_PYOBJECT __repr__() const;
 %MethodCode
-std::stringstream str;
-str << *sipCpp;
-const std::string& tmpString = str.str();
-sipRes = tmpString.c_str();
+LIMA_REPR_CODE
 %End
   };
   

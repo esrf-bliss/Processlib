@@ -102,7 +102,7 @@ void PoolThreadMgr::removeProcess(TaskMgr *aProcess,bool aFlag)
 void PoolThreadMgr::setNumberOfThread(int nbThread) 
 {
   if(int(_threadID.size()) <= nbThread)
-    _createProcessThread(nbThread - _threadID.size());
+    _createProcessThread(nbThread - int(_threadID.size()));
   else
     {
       quit();

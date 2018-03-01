@@ -78,11 +78,10 @@ struct Data
 #include "processlib/Data.h"
 #include "processlib/PoolThreadMgr.h"
 #include <sstream>
+#define NPY_NO_DEPRECATED_API NPY_1_7_API_VERSION
 #include "numpy/numpyconfig.h"
 #if (defined(NPY_API_VERSION) && NPY_API_VERSION >= 0x00000004 && PY_VERSION_HEX >= 0x03000000)
-#define NO_IMPORT_ARRAY
-#define PY_ARRAY_UNIQUE_SYMBOL _LimaNumPy
- #include "numpy/npy_3kcompat.h"
+#include "numpy/npy_3kcompat.h"
 #endif
 #include "data_header_iterator.h"
 %End
@@ -131,7 +130,7 @@ if(!result.second)
  }
 %End
 
-const char* __repr__();
+SIP_PYOBJECT __repr__() const;
 %MethodCode
 std::stringstream str;
 str << "{";
@@ -147,7 +146,11 @@ if(str.str().size() > 1)
   str.seekp (-1, str.end);
 str << "}";
 const std::string& tmpString = str.str();
-sipRes = tmpString.c_str();
+#if PY_VERSION_HEX >= 0x03000000
+sipRes = PyUnicode_FromString(tmpString.c_str());
+#else
+sipRes = PyString_FromString(tmpString.c_str());
+#endif
 %End
 
 const char* __str__();
@@ -278,7 +281,7 @@ PyArrayObject *tmpObject = (PyArrayObject*)PyArray_ContiguousFromObject(sipPy,NP
 if(!tmpObject) sipErr=1;
 else
  {
-    switch(tmpObject->descr->type_num)
+    switch(PyArray_TYPE(tmpObject))
     {
      case NPY_BYTE:
 	sipCpp->type = Data::INT8;break;
@@ -322,6 +325,7 @@ if(!sipErr)
 
 %TypeCode
 #define PY_ARRAY_UNIQUE_SYMBOL _ProcessLibNumpyArray
+#define NPY_NO_DEPRECATED_API NPY_1_7_API_VERSION 
 #include "numpy/arrayobject.h"
 #include <iostream>
 using namespace std;
@@ -349,12 +353,9 @@ extern "C"
 
   Data mask() const;
 
-  const char* __repr__();
+  SIP_PYOBJECT __repr__() const;
 %MethodCode
-	std::ostringstream str;
-	str << *sipCpp;	
-	const std::string& tmpString = str.str();
-	sipRes = tmpString.c_str();
+  LIMA_REPR_CODE
 %End
 };
 
@@ -464,3 +465,22 @@ class PoolThreadMgr
   bool wait(double timeout = -1.);
   void quit();
 };
+
+%UnitCode
+#include <lima_repr_attr.cpp>
+%End
+
+%Feature BPM_SUPPORT
+%Include BackgroundSubstraction.sip
+%Include Binning.sip
+%If (BPM_SUPPORT)
+%Include Bpm.sip
+%End
+%Include FlatfieldCorrection.sip
+%Include Flip.sip
+%Include Mask.sip
+%Include PeakFinder.sip
+%Include Roi2Spectrum.sip
+%Include RoiCounter.sip
+%Include Rotation.sip
+%Include SoftRoi.sip

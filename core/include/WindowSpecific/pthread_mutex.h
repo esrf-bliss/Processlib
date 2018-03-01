@@ -25,6 +25,8 @@
 
 #include <Windows.h>
 #include "processlib/Compatibility.h"
+#include <math.h>
+#include <errno.h>
 
 #ifdef __cplusplus
 extern "C"{
@@ -45,12 +47,17 @@ typedef int pthread_mutexattr_t;
 
 #define PTHREAD_MUTEX_INITIALIZER {(PRTL_CRITICAL_SECTION_DEBUG)-1,-1,0,0,0,0}
 
+/* MSC 14 2015 provides this struct */
+#if _MSC_VER < 1900
 struct timespec
 {
 	/* long long in windows is the same as long in unix for 64bit */
 	long long tv_sec;
 	long long tv_nsec;
 };
+#else
+#include <time.h>
+#endif
 
   unsigned long long _pthread_time_in_ms(void);
 
@@ -60,7 +67,9 @@ struct timespec
 
   DLL_EXPORT int pthread_mutex_timedlock(pthread_mutex_t *m, struct timespec *ts);
 
+#ifndef ETIMEDOUT
 #define ETIMEDOUT	110
+#endif
 #define PTHREAD_MUTEX_NORMAL 0
 #define PTHREAD_MUTEX_ERRORCHECK 1
 #define PTHREAD_MUTEX_RECURSIVE 2
@@ -69,8 +78,9 @@ struct timespec
 #define PTHREAD_MUTEX_PRIVATE 0
 #define PTHREAD_PRIO_MULT 32
 
+#ifndef ENOTSUP
 #define ENOTSUP		134
-
+#endif
 #define pthread_mutex_getprioceiling(M, P) ENOTSUP
 #define pthread_mutex_setprioceiling(M, P) ENOTSUP
 

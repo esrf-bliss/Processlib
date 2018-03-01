@@ -28,7 +28,7 @@
 #define PTHREAD_CANCEL_DEFERRED 0
 #define PTHREAD_CANCEL_ASYNCHRONOUS 0x02
 
-#define PTHREAD_CANCELED ((void *) 0xDEADBEEF)
+#define PTHREAD_CANCELED ((void *) int(0xDEADBEEF))
 #include "stdio_compat.h"
 #include "time_compat.h"
 #include "pthread_mutex.h"

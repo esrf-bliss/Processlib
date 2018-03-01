@@ -1,11 +1,12 @@
 //###########################################################################
-// This file is part of ProcessLib, a submodule of LImA project the
-// Library for Image Acquisition
+// This file is part of LImA, a Library for Image Acquisition
 //
-// Copyright (C) : 2009-2011
+// Copyright (C) : 2009-2017
 // European Synchrotron Radiation Facility
-// BP 220, Grenoble 38043
+// CS40220 38043 Grenoble Cedex 9 
 // FRANCE
+//
+// Contact: lima@esrf.fr
 //
 // This is free software; you can redistribute it and/or modify
 // it under the terms of the GNU General Public License as published by
@@ -20,23 +21,26 @@
 // You should have received a copy of the GNU General Public License
 // along with this program; if not, see <http://www.gnu.org/licenses/>.
 //###########################################################################
-#ifndef PROCESSLIB_ROTATION_H
-#define PROCESSLIB_ROTATION_H
 
-#include "processlib/LinkTask.h"
-namespace Tasks
-{
-  class DLL_EXPORT Rotation : public LinkTask
-  {
-  public:
-    enum Type {R_90,R_180,R_270};
-    Rotation();
-    Rotation(const Rotation&);
-    virtual Data process(Data&);
-    void setType(Type);
-  private:
-    Type m_type;
-  };
-}
+#include <Python.h>
+// __repr__ attr for both python 2 (string) and 3 (unicode)
+// to be included in sip class definition using %include 
+
+//	SIP_PYOBJECT __repr__() const /TypeHint="str"/;
+
+#ifndef LIMA_REPR_CODE
+#if PY_VERSION_HEX >= 0x03000000
+#define LIMA_REPR_CODE \
+	std::ostringstream str; \
+	str << *sipCpp;	\
+	const std::string& tmpString = str.str(); \
+	sipRes = PyUnicode_FromString(tmpString.c_str());
+#else
+#define LIMA_REPR_CODE \
+	std::ostringstream str; \
+	str << *sipCpp;	\
+	const std::string& tmpString = str.str(); \
+	sipRes = PyString_FromString(tmpString.c_str());
+#endif
 
 #endif

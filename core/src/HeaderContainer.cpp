@@ -153,7 +153,7 @@ const char * Data::HeaderContainer::get(const char *key,
 int Data::HeaderContainer::size() const
 {
   _header->lock();
-  int aReturnSize = _header->header.size();
+  int aReturnSize = int(_header->header.size());
   _header->unlock();
   return aReturnSize;
 }

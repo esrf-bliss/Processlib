@@ -22,7 +22,7 @@
 //###########################################################################
 #include <time_compat.h>
 
-int gettimeofday(struct timeval *tv, struct timezone *tz)
+int gettimeofday(struct timeval *tv, struct compat_timezone *tz)
 {
   FILETIME ft;
   unsigned __int64 t = 0;
