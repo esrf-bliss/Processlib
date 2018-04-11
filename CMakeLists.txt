@@ -140,8 +140,6 @@ if (WIN32)
 	set(LIB_GSL_DIR "C:/Program Files/GSL-windows/${GSL_VERSION}/lib" CACHE PATH "Path to GSL lib folder")
 	include_directories(${LIB_GSL_INCLUDE_DIR})
 	link_directories(${LIB_GSL_DIR})
-
-	message("LIB_GSL_DIR = " ${LIB_GSL_DIR})
 else()
         find_path(LIB_GSL_INCLUDE_DIR gsl/gsl_errno.h)
 endif()
