@@ -176,12 +176,17 @@ if(WIN32)
 				)
 endif()
 
+file(GLOB core_incs "core/include/processlib/*.h")
+file(GLOB tasks_incs "tasks/include/processlib/*.h")
+
 #--------------------------------------------------------------------------------
 # Add the library processlib definition
 #--------------------------------------------------------------------------------
 file(STRINGS "VERSION" processlib_ver)
 add_library(processlib SHARED
-            ${processlib_srcs})
+            ${processlib_srcs}
+            ${core_incs}
+            ${tasks_incs})
 processlib_set_library_soversion(processlib "VERSION")
 	  
 if(WIN32)

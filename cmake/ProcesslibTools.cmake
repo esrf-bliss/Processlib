@@ -44,7 +44,7 @@ function(processlib_run_python_tests test_src)
         string(REPLACE ";" "\;" ESCAPED_PATH "$ENV{PATH}")
         set_tests_properties(${file} PROPERTIES ENVIRONMENT "PATH=${ESCAPED_PATH}\;$<SHELL_PATH:$<TARGET_FILE_DIR:processlib>>;PYTHONPATH=$<SHELL_PATH:${CMAKE_BINARY_DIR}/python>\;$<SHELL_PATH:$<TARGET_FILE_DIR:python_module_processlib>>")
     else()
-        set_tests_properties(${file} PROPERTIES ENVIRONMENT "PYTHONPATH=$<SHELL_PATH:${CMAKE_BINARY_DIR}/python>$<SHELL_PATH:$<TARGET_FILE_DIR:python_module_processlib>>")
+        set_tests_properties(${file} PROPERTIES ENVIRONMENT "PYTHONPATH=$<SHELL_PATH:${CMAKE_BINARY_DIR}/python>:$<SHELL_PATH:$<TARGET_FILE_DIR:python_module_processlib>>")
     endif()
 	endforeach(file)
 

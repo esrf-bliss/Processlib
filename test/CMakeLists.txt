@@ -20,7 +20,8 @@
 # along with this program; if not, see <http://www.gnu.org/licenses/>.
 ############################################################################
 
-add_test(test_background_substraction test_background_substraction.cpp)
+add_executable(test_background_substraction test_background_substraction.cpp)
+add_test(NAME test_background_substraction COMMAND test_background_substraction)
 
 set(python_test_src BpmTest CallBackTest ProcessTest RoiCounterTest)
 
