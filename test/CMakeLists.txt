@@ -21,6 +21,10 @@
 ############################################################################
 
 #set(python_test_src BpmTest CallBackTest ProcessTest RoiCounterTest)
+
+add_test(test_background_substraction test_background_substraction.cpp)
+
+
 set(python_test_src CallBackTest ProcessTest RoiCounterTest)
 
 processlib_run_python_tests("${python_test_src}")
