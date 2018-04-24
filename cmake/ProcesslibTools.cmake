@@ -31,3 +31,21 @@ function(processlib_set_library_soversion lib_name version_file)
     set_target_properties(${lib_name} PROPERTIES VERSION "${version}" SOVERSION "${soversion}")
   
 endfunction()
+
+
+function(processlib_run_python_tests test_src)
+
+	foreach(file ${test_src})
+    add_test(NAME ${file}
+      COMMAND ${PYTHON_EXECUTABLE}
+        ${CMAKE_CURRENT_SOURCE_DIR}/${file}.py)
+    if(WIN32)
+        # Add the dlls to the %PATH%
+        string(REPLACE ";" "\;" ESCAPED_PATH "$ENV{PATH}")
+        set_tests_properties(${file} PROPERTIES ENVIRONMENT "PATH=${ESCAPED_PATH}\;$<SHELL_PATH:$<TARGET_FILE_DIR:processlib>>;PYTHONPATH=$<SHELL_PATH:${CMAKE_BINARY_DIR}/python>\;$<SHELL_PATH:$<TARGET_FILE_DIR:python_module_processlib>>")
+    else()
+        set_tests_properties(${file} PROPERTIES ENVIRONMENT "PYTHONPATH=$<SHELL_PATH:${CMAKE_BINARY_DIR}/python>$<SHELL_PATH:$<TARGET_FILE_DIR:python_module_processlib>>")
+    endif()
+	endforeach(file)
+
+endfunction()

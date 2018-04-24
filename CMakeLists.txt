@@ -77,8 +77,8 @@ if (NOT PROCESSLIB_EXTERNALLY_CONFIGURED)
   # Enable python binding code compilation using sip generator
   #--------------------------------------------------------------------------------
   if(PROCESSLIB_ENABLE_PYTHON)
-    find_package(PythonInterp 2.6)
-    find_package(PythonLibs 2.6)
+    find_package(PythonInterp)
+    find_package(PythonLibs)
     if(${PYTHONINTERP_FOUND})
       # python site-packages folder
       execute_process(
@@ -242,4 +242,21 @@ if(PROCESSLIB_ENABLE_PYTHON)
   add_sip_python_module(processlib "${CMAKE_CURRENT_BINARY_DIR}/sip/processlib.sip")
   target_include_directories(python_module_processlib PRIVATE ${PYTHON_INCLUDE_DIRS} ${CMAKE_CURRENT_SOURCE_DIR}/sip)
   target_link_libraries(python_module_processlib processlib)
+endif()
+
+
+#--------------------------------------------------------------------------------
+#Compile tests
+#--------------------------------------------------------------------------------
+option(PROCESSLIB_ENABLE_TESTS "compile test directories ?" OFF)
+
+#--------------------------------------------------------------------------------
+#TESTS, run ctest or make test
+#--------------------------------------------------------------------------------
+if(PROCESSLIB_ENABLE_TESTS)
+  enable_testing()
+endif()
+
+if(PROCESSLIB_ENABLE_TESTS)
+  add_subdirectory(test)
 endif()
