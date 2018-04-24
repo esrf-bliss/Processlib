@@ -36,7 +36,7 @@ class Ev(processlib.TaskEventCallback) :
 
     def finished(self,data) :
         end = time.time()
-        print '%s : Frame %d finished' % (self.__name,data.frameNumber)
+        print('%s : Frame %d finished' % (self.__name,data.frameNumber))
 
 TaskMgr = processlib.TaskMgr();
 
@@ -72,7 +72,7 @@ class PyLinkTask(processlib.LinkTask) :
     def __init__(self) :
         processlib.LinkTask.__init__(self)
     def process(self,data) :
-        print data.buffer
+        print(data.buffer)
         return data
 
 pyTask = PyLinkTask()
@@ -90,7 +90,7 @@ for i in range(10) :
     TaskMgr.setInputData(SrcData)
     poolThreadMgr.addProcess(TaskMgr)
 
-print "Before quit" 
+print("Before quit")
 poolThreadMgr.quit()
-print "After quit"
+print("After quit")
 
