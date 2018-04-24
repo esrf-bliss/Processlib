@@ -20,11 +20,11 @@
 # along with this program; if not, see <http://www.gnu.org/licenses/>.
 ############################################################################
 
-#set(python_test_src BpmTest CallBackTest ProcessTest RoiCounterTest)
-
 add_test(test_background_substraction test_background_substraction.cpp)
 
+set(python_test_src BpmTest CallBackTest ProcessTest RoiCounterTest)
 
-set(python_test_src CallBackTest ProcessTest RoiCounterTest)
+configure_file(crl8_0.edf crl8_0.edf COPYONLY)
 
 processlib_run_python_tests("${python_test_src}")
+

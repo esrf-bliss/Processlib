@@ -36,7 +36,7 @@ import processlib
 import EdfFile
 import time
 import numpy
-from scipy import optimize
+#from scipy import optimize
 
 f = EdfFile.EdfFile('crl8_0.edf')
 beam = f.GetData(0)
@@ -44,55 +44,55 @@ beam = f.GetData(0)
 lines = beam.sum(axis=0)
 column = beam.sum(axis=1)
 
-lFile = file('line.txt','w')
-for i,x in enumerate(lines) :
-    lFile.write('%s %s\n' % (str(i),str(x)))
+#lFile = file('line.txt','w')
+#for i,x in enumerate(lines) :
+#    lFile.write('%s %s\n' % (str(i),str(x)))
 
 
-cFile = file('column.txt','w')
-for i,x in enumerate(column):
-    cFile.write('%s %s\n' % (str(i),str(x)))
+#cFile = file('column.txt','w')
+#for i,x in enumerate(column):
+#    cFile.write('%s %s\n' % (str(i),str(x)))
 
 
-s = time.time()
-p1,sucess = optimize.leastsq(errfunc,
-                             [0.,1.,1.],
-                             args = (numpy.arange(lines.shape[0]),lines))
-e = time.time()
-print('x', -p1[1] / (2 * p1[2]), e - s)
+#s = time.time()
+#p1,sucess = optimize.leastsq(errfunc,
+#                             [0.,1.,1.],
+#                             args = (numpy.arange(lines.shape[0]),lines))
+#e = time.time()
+#print('x', -p1[1] / (2 * p1[2]), e - s)
 
 
-maxVal = lines.max()
-indMax = lines.argmax()
-noiseVal = lines[0]
+#maxVal = lines.max()
+#indMax = lines.argmax()
+#noiseVal = lines[0]
 
-s = time.time()
-p3,sucess = optimize.leastsq(errfuncGauss,
-                             [maxVal - noiseVal,indMax,1,noiseVal],
-                             args = (numpy.arange(lines.shape[0]),lines))
-e = time.time()
-print('x gauss', p3[1], e - s)
+#s = time.time()
+#p3,sucess = optimize.leastsq(errfuncGauss,
+#                             [maxVal - noiseVal,indMax,1,noiseVal],
+#                             args = (numpy.arange(lines.shape[0]),lines))
+#e = time.time()
+#print('x gauss', p3[1], e - s)
 
 
-s = time.time()
-p2,sucess = optimize.leastsq(errfunc,
-                             [0.,1.,1.],
-                             args = (numpy.arange(column.shape[0]),column))
-e = time.time()
+#s = time.time()
+#p2,sucess = optimize.leastsq(errfunc,
+#                             [0.,1.,1.],
+#                             args = (numpy.arange(column.shape[0]),column))
+#e = time.time()
 
-print('y', -p2[1] / (2 * p2[2]), e - s)
+#print('y', -p2[1] / (2 * p2[2]), e - s)
 
-maxVal = column.max()
-indMax = column.argmax()
-noiseVal = column[0]
+#maxVal = column.max()
+#indMax = column.argmax()
+#noiseVal = column[0]
 
-s = time.time()
-p4,sucess = optimize.leastsq(errfuncGauss,
-                             [maxVal - noiseVal,indMax,1,noiseVal],
-                             args = (numpy.arange(column.shape[0]),column))
-e = time.time()
+#s = time.time()
+#p4,sucess = optimize.leastsq(errfuncGauss,
+#                             [maxVal - noiseVal,indMax,1,noiseVal],
+#                             args = (numpy.arange(column.shape[0]),column))
+#e = time.time()
 
-print('y gauss', p4, p4[1], e - s)
+#print('y gauss', p4, p4[1], e - s)
 
 BpmMgr = processlib.Tasks.BpmManager()
 BpmTask = processlib.Tasks.BpmTask(BpmMgr)
