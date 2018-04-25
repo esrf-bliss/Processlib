@@ -673,7 +673,7 @@ void BpmTask::process(Data &aInputSrc)
     case Data::UINT8:
       PROCESS(unsigned char,int);break;
     case Data::INT8:
-      PROCESS(char,int);break;
+      PROCESS(char, int);break;
     case Data::UINT16:
       PROCESS(unsigned short,int);break;
     case Data::INT16:

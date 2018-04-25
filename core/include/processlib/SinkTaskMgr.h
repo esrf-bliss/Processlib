@@ -63,7 +63,7 @@ public:
   void ref();
   void unref();
 
-protected:
+//protected:
   virtual ~SinkTaskMgr();
 
 private:

@@ -114,10 +114,15 @@ macro(ADD_SIP_PYTHON_MODULE MODULE_NAME MODULE_SIP)
     set_target_properties(${_logical_name} PROPERTIES PREFIX "" OUTPUT_NAME ${_child_module_name})
     
     if (WIN32)
+      set_target_properties(${_logical_name} PROPERTIES DEBUG_POSTFIX "_d")
       set_target_properties(${_logical_name} PROPERTIES SUFFIX ".pyd")
       set_target_properties(${_logical_name} PROPERTIES IMPORT_SUFFIX ".dll")
     endif (WIN32)
 
-    install(TARGETS ${_logical_name} DESTINATION "${PYTHON_SITE_PACKAGES_DIR}/${_parent_module_path}")
+    if(WIN32)
+      install(TARGETS ${_logical_name} RUNTIME DESTINATION "${PYTHON_SITE_PACKAGES_DIR}/${_parent_module_path}")
+    else()
+     install(TARGETS ${_logical_name} LIBRARY DESTINATION "${PYTHON_SITE_PACKAGES_DIR}/${_parent_module_path}")
+    endif()
 
 endmacro(ADD_SIP_PYTHON_MODULE)

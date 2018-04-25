@@ -32,20 +32,36 @@ function(processlib_set_library_soversion lib_name version_file)
   
 endfunction()
 
+function(processlib_run_tests test_src)
+
+    set(_test_src ${test_src} ${ARGN} )
+    foreach(test_case ${_test_src})
+        add_executable(${test_case} ${test_case}.cpp)
+        target_link_libraries(${test_case} processlib)
+        add_test(NAME ${test_case} COMMAND ${test_case})
+        if(WIN32)
+            # Add the dlls to the %PATH%
+            string(REPLACE ";" "\;" ESCAPED_PATH "$ENV{PATH}")
+            set_tests_properties(${test_case} PROPERTIES ENVIRONMENT "PATH=${ESCAPED_PATH}\;$<SHELL_PATH:$<TARGET_FILE_DIR:processlib>>")
+        endif(WIN32)
+    endforeach(test_case)
+
+endfunction()
 
 function(processlib_run_python_tests test_src)
 
-	foreach(file ${test_src})
-    add_test(NAME ${file}
-      COMMAND ${PYTHON_EXECUTABLE}
-        ${CMAKE_CURRENT_SOURCE_DIR}/${file}.py)
-    if(WIN32)
-        # Add the dlls to the %PATH%
-        string(REPLACE ";" "\;" ESCAPED_PATH "$ENV{PATH}")
-        set_tests_properties(${file} PROPERTIES ENVIRONMENT "PATH=${ESCAPED_PATH}\;$<SHELL_PATH:$<TARGET_FILE_DIR:processlib>>;PYTHONPATH=$<SHELL_PATH:${CMAKE_BINARY_DIR}/python>\;$<SHELL_PATH:$<TARGET_FILE_DIR:python_module_processlib>>")
-    else()
-        set_tests_properties(${file} PROPERTIES ENVIRONMENT "PYTHONPATH=$<SHELL_PATH:${CMAKE_BINARY_DIR}/python>:$<SHELL_PATH:$<TARGET_FILE_DIR:python_module_processlib>>")
-    endif()
-	endforeach(file)
+    set(_test_src ${test_src} ${ARGN} )
+    foreach(test_case ${_test_src})
+        add_test(NAME ${test_case}
+          COMMAND ${PYTHON_EXECUTABLE}
+            ${CMAKE_CURRENT_SOURCE_DIR}/${test_case}.py)
+        if(WIN32)
+            # Add the dlls to the %PATH%
+            string(REPLACE ";" "\;" ESCAPED_PATH "$ENV{PATH}")
+            set_tests_properties(${test_case} PROPERTIES ENVIRONMENT "PATH=${ESCAPED_PATH}\;$<SHELL_PATH:$<TARGET_FILE_DIR:processlib>>;PYTHONPATH=$<SHELL_PATH:${CMAKE_BINARY_DIR}/python>\;$<SHELL_PATH:$<TARGET_FILE_DIR:python_module_processlib>>")
+        else()
+            set_tests_properties(${test_case} PROPERTIES ENVIRONMENT "PYTHONPATH=$<SHELL_PATH:${CMAKE_BINARY_DIR}/python>:$<SHELL_PATH:$<TARGET_FILE_DIR:python_module_processlib>>")
+        endif()
+    endforeach(test_case)
 
 endfunction()

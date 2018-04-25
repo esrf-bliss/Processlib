@@ -21,16 +21,16 @@
 # along with this program; if not, see <http://www.gnu.org/licenses/>.
 ############################################################################
 #!/usr/bin/env python
-def parab(p,x) :
-    return p[0] + p[1] * x + p[2] * (x * x)
+#def parab(p,x) :
+#    return p[0] + p[1] * x + p[2] * (x * x)
 
-errfunc = lambda p,x,y: parab(p,x) - y
+#errfunc = lambda p,x,y: parab(p,x) - y
 
 
-def gauss(p,x) :
-    return (p[0] * numpy.exp((-(x - p[1]) ** 2) / p[2])) + p[3]
+#def gauss(p,x) :
+#    return (p[0] * numpy.exp((-(x - p[1]) ** 2) / p[2])) + p[3]
 
-errfuncGauss = lambda p,x,y: gauss(p,x) - y
+#errfuncGauss = lambda p,x,y: gauss(p,x) - y
 
 import processlib
 import EdfFile
@@ -99,7 +99,6 @@ BpmTask = processlib.Tasks.BpmTask(BpmMgr)
 
 beamData = processlib.Data()
 beamData.frameNumber = 1
-
 beamData.buffer = beam
 
 BpmTask.mEnableX = True

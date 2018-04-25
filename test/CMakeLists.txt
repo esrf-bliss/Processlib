@@ -20,12 +20,13 @@
 # along with this program; if not, see <http://www.gnu.org/licenses/>.
 ############################################################################
 
-add_executable(test_background_substraction test_background_substraction.cpp)
-add_test(NAME test_background_substraction COMMAND test_background_substraction)
-
-set(python_test_src BpmTest CallBackTest ProcessTest RoiCounterTest)
-
+# Copy tests input files
 configure_file(crl8_0.edf crl8_0.edf COPYONLY)
 
-processlib_run_python_tests("${python_test_src}")
+# Build and run cpp tests
+set (test_src test_data test_background_substraction test_bpm test_process)
+processlib_run_tests(${test_src})
 
+# Build and run python tests
+set(python_test_src BpmTest CallBackTest ProcessTest RoiCounterTest)
+processlib_run_python_tests(${python_test_src})

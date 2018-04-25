@@ -38,8 +38,9 @@
 
 #ifndef __DATA_H
 #define __DATA_H
-struct DLL_EXPORT Buffer
+class DLL_EXPORT Buffer
 {
+public:
   class DLL_EXPORT Callback
   {
   public:
@@ -80,6 +81,10 @@ struct DLL_EXPORT Buffer
 #else
 	_aligned_free(data);
 #endif
+#if !defined(NDEBUG)
+	data = NULL;
+#endif
+
 	pthread_mutex_unlock(&_lock);
 	delete this;
       }
@@ -92,11 +97,16 @@ struct DLL_EXPORT Buffer
     ++refcount;
     pthread_mutex_unlock(&_lock);
   }
+
   Ownership		owner;
-  volatile int          refcount;
   void			*data;
+
+private:
+  volatile int          refcount;  
   pthread_mutex_t	_lock;
   Callback*		callback;
+
+  friend std::ostream& operator<<(std::ostream &os, const Buffer &aBuffer);
 };
 struct DLL_EXPORT Data
 {
