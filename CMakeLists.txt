@@ -67,6 +67,10 @@ include(ProcesslibTools)
 if (NOT PROCESSLIB_EXTERNALLY_CONFIGURED)
   cmake_minimum_required(VERSION 2.8)
   project (processlib)
+
+  # Enable C++11 and later
+  set(CMAKE_CXX_STANDARD 11)
+  set(CMAKE_CXX_STANDARD_REQUIRED ON)
   
   #--------------------------------------------------------------------------------
   # Threads lib required
