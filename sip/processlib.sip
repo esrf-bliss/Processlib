@@ -344,12 +344,6 @@ extern "C"
 #endif
 }
 %End
-  SIP_PYOBJECT refcount();
-%MethodCode
-  Py_BEGIN_ALLOW_THREADS
-  sipRes = PyLong_FromLong(sipCpp->buffer ? sipCpp->buffer->refcount : 0);
-  Py_END_ALLOW_THREADS
-%End
 
   Data mask() const;
 
