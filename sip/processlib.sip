@@ -30,6 +30,12 @@ extern "C" { void processlib_import_array();}
 #endif
 %End
 
+%ModuleCode
+  void sipDelayedDtors(const sipDelayedDtor *dd_list)
+  {
+  }
+%End
+
 %PostInitialisationCode
 processlib_import_array();
 %End
@@ -437,7 +443,8 @@ public:
   Data syncProcess();
 };
 
-class PoolThreadMgr
+
+class PoolThreadMgr /DelayDtor/
 {
 %TypeHeaderCode
 #include "processlib/PoolThreadMgr.h"
@@ -448,9 +455,9 @@ class PoolThreadMgr
   
   void addProcess(TaskMgr *,bool = true);
 %MethodCode
- Py_BEGIN_ALLOW_THREADS
- sipCpp->addProcess(new TaskMgr(*a0));
- Py_END_ALLOW_THREADS
+  Py_BEGIN_ALLOW_THREADS
+  sipCpp->addProcess(new TaskMgr(*a0));
+  Py_END_ALLOW_THREADS
 %End
   void setNumberOfThread(int);
   void setTaskMgr(const TaskMgr *);
@@ -458,6 +465,9 @@ class PoolThreadMgr
   void suspend(bool);
   bool wait(double timeout = -1.);
   void quit();
+
+ private:
+  PoolThreadMgr(const PoolThreadMgr& other);
 };
 
 %UnitCode
