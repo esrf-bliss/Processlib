@@ -32,12 +32,12 @@
 //Static variable
 static const int NB_DEFAULT_THREADS = 2;
 
-static PoolThreadMgr *_processMgrPt = NULL;
-static pthread_once_t _init = PTHREAD_ONCE_INIT;
-static void _processMgrInit()
-{
-  _processMgrPt = new PoolThreadMgr();
-}
+//static PoolThreadMgr *_processMgrPt = NULL;
+//static pthread_once_t _init = PTHREAD_ONCE_INIT;
+//static void _processMgrInit()
+//{
+//  _processMgrPt = new PoolThreadMgr();
+//}
 
 PoolThreadMgr::PoolThreadMgr()
 {
@@ -60,9 +60,9 @@ PoolThreadMgr::PoolThreadMgr()
 
 PoolThreadMgr::~PoolThreadMgr()
 {
-#ifdef __unix
+//#ifdef __unix
   quit();
-#endif
+//#endif
   pthread_mutex_destroy(&_lock);
   pthread_cond_destroy(&_cond);
 }
@@ -223,22 +223,32 @@ void* PoolThreadMgr::_run(void *arg)
 	{
 	  QueueType::iterator i = processMgrPt->_processQueue.begin();
 	  TaskMgr *processPt = i->second;
-	  TaskMgr::TaskWrap *aNextTask = processPt->next();
-	  aLock.unLock();
-	  try
-	    {
-	      aNextTask->process();
-	    }
-	  catch(ProcessException &exp)
-	    {
-	      aNextTask->error(exp.getErrMsg());
-	    }
-	  catch(...)
-	    {
-	      aNextTask->error("Unknowed exception!");
-	    }
-	  aLock.lock();
-	  delete aNextTask;
+	  // If no more tasks in this process
+	  if (processPt->_Tasks.empty())
+	  {
+		  // Remove it from queue
+		  processMgrPt->_processQueue.erase(i);
+		delete processPt;
+	  }
+	  else
+	  {
+		  TaskMgr::TaskWrap *aNextTask = processPt->next();
+		  aLock.unLock();
+		  try
+			{
+			  aNextTask->process();
+			}
+		  catch(ProcessException &exp)
+			{
+			  aNextTask->error(exp.getErrMsg());
+			}
+		  catch(...)
+			{
+			  aNextTask->error("Unknowed exception!");
+			}
+		  aLock.lock();
+		  delete aNextTask;
+	  }
 	}
       else break;		// stop
     }
@@ -258,12 +268,16 @@ void PoolThreadMgr::_createProcessThread(int aNumber)
 
 PoolThreadMgr& PoolThreadMgr::get() throw()
 {
-#ifdef WIN32
-  _pthread_once_raw(&_init,_processMgrInit);
-#else
-  pthread_once(&_init,_processMgrInit);
-#endif
-  return *_processMgrPt;
+	// Guaranteed destruction singleton
+	static PoolThreadMgr mgr;
+	return mgr;
+
+//#ifdef WIN32
+//  _pthread_once_raw(&_init,_processMgrInit);
+//#else
+//  pthread_once(&_init,_processMgrInit);
+//#endif
+//  return *_processMgrPt;
 }
 
 #ifdef __unix

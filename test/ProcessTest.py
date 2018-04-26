@@ -53,4 +53,14 @@ TaskMgr.addSinkTask(1,RCTask);
 #And finnaly set the chain task for all input images
 poolThreadMgr = processlib.PoolThreadMgr.get()
 poolThreadMgr.setNumberOfThread(2)
-poolThreadMgr.setTaskMgr(TaskMgr)
+
+#Old way never used
+#poolThreadMgr.setTaskMgr(TaskMgr)
+
+inputImg = numpy.ones((2048,2048),dtype = numpy.ushort)
+inputData = processlib.Data()
+inputData.buffer
+TaskMgr.setInputData(inputData)
+poolThreadMgr.addProcess(TaskMgr)
+
+poolThreadMgr.wait(5)

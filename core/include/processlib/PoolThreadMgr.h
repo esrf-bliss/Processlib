@@ -43,6 +43,11 @@ public:
 
   PoolThreadMgr();
   ~PoolThreadMgr();
+
+  // Singleton should be noncopyable
+  PoolThreadMgr(PoolThreadMgr const&) = delete;
+  void operator=(PoolThreadMgr const&) = delete;
+
   static PoolThreadMgr& get() throw();
 
   void addProcess(TaskMgr *aProcess,bool lock = true);
