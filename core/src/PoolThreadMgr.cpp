@@ -32,13 +32,6 @@
 //Static variable
 static const int NB_DEFAULT_THREADS = 2;
 
-//static PoolThreadMgr *_processMgrPt = NULL;
-//static pthread_once_t _init = PTHREAD_ONCE_INIT;
-//static void _processMgrInit()
-//{
-//  _processMgrPt = new PoolThreadMgr();
-//}
-
 PoolThreadMgr::PoolThreadMgr()
 {
   pthread_mutex_init(&_lock,NULL);
@@ -289,7 +282,7 @@ PoolThreadMgr& PoolThreadMgr::get() throw()
  */
 void PoolThreadMgr::atfork_prepare()
 {
-  pthread_mutex_t& lock = _processMgrPt->_lock;
+  pthread_mutex_t& lock = PoolThreadMgr::get()._lock;
   while (pthread_mutex_lock(&lock));
 }
 
@@ -299,7 +292,7 @@ void PoolThreadMgr::atfork_prepare()
  */
 void PoolThreadMgr::atfork_parent()
 {
-  pthread_mutex_t& lock = _processMgrPt->_lock;
+  pthread_mutex_t& lock = PoolThreadMgr::get()._lock;
   pthread_mutex_unlock(&lock);
 }
 
@@ -310,9 +303,9 @@ void PoolThreadMgr::atfork_parent()
  */
 void PoolThreadMgr::atfork_child()
 {
-  pthread_mutex_t& lock = _processMgrPt->_lock;
+  pthread_mutex_t& lock = PoolThreadMgr::get()._lock;
   pthread_mutex_unlock(&lock);
-  std::vector<pthread_t>& thread_list = _processMgrPt->_threadID;
+  std::vector<pthread_t>& thread_list = PoolThreadMgr::get()._threadID;
   thread_list.clear();
 }
 
