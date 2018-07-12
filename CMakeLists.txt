@@ -22,7 +22,7 @@
 # along with this program; if not, see <http://www.gnu.org/licenses/>.
 ############################################################################
 
-# README -- README --README -- README --README -- README --README -- README  
+# README -- README --README -- README --README -- README --README -- README
 # To include Processlib as a sub-project within another project (e.g LIMA)
 # set PROCESSLIB_EXTERNALLY_CONFIGURED to ON and supply value for following variables...
 #
@@ -56,7 +56,7 @@ if (PROCESSLIB_EXTERNALLY_CONFIGURED)
 endif()
 
 #--------------------------------------------------------------------------------
-# cmake/ directory contains tools 
+# cmake/ directory contains tools
 #--------------------------------------------------------------------------------
 set(CMAKE_MODULE_PATH ${CMAKE_CURRENT_SOURCE_DIR}/cmake ${CMAKE_MODULE_PATH})
 include(ProcesslibTools)
@@ -67,7 +67,7 @@ include(ProcesslibTools)
 if (NOT PROCESSLIB_EXTERNALLY_CONFIGURED)
   cmake_minimum_required(VERSION 2.8)
   project (processlib)
-  
+
   #--------------------------------------------------------------------------------
   # Threads lib required
   #--------------------------------------------------------------------------------
@@ -77,74 +77,37 @@ if (NOT PROCESSLIB_EXTERNALLY_CONFIGURED)
   # Enable python binding code compilation using sip generator
   #--------------------------------------------------------------------------------
   if(PROCESSLIB_ENABLE_PYTHON)
-    find_package(PythonInterp 2.6)
-    find_package(PythonLibs 2.6)
+    find_package(PythonInterp)
+    find_package(PythonLibs)
     if(${PYTHONINTERP_FOUND})
       # python site-packages folder
       execute_process(
-	COMMAND ${PYTHON_EXECUTABLE} -c "from distutils.sysconfig import get_python_lib; print (get_python_lib())"
-	OUTPUT_VARIABLE _PYTHON_SITE_PACKAGES_DIR OUTPUT_STRIP_TRAILING_WHITESPACE)
+        COMMAND ${PYTHON_EXECUTABLE} -c "from distutils.sysconfig import get_python_lib; print (get_python_lib())"
+        OUTPUT_VARIABLE _PYTHON_SITE_PACKAGES_DIR OUTPUT_STRIP_TRAILING_WHITESPACE)
     endif()
     find_package(SIP)
     include(SIPMacros)
-    
+
     set(PYTHON_SITE_PACKAGES_DIR ${_PYTHON_SITE_PACKAGES_DIR} CACHE PATH "where should python modules be installed?")
-    
-    if(WIN32)
-        set(NUMPY_INCLUDE_DIR "${_PYTHON_SITE_PACKAGES_DIR}/numpy/core/include" CACHE PATH "Path to NumPy include folder")
-        set(NUMPY_LIB_DIR "${_PYTHON_SITE_PACKAGES_DIR}/numpy/core/lib" CACHE PATH "Path to NumPy lib folder")
-        include_directories(${NUMPY_INCLUDE_DIR})
-        link_directories(${NUMPY_LIB_DIR})
-    endif()
-    if(!${SIP_FOUND})
-      message(FATAL_ERROR "sip executable not found, cannot build python extensions")
+
+    find_package(NumPy)
+    if(${NUMPY_FOUND})
+      include_directories(${NUMPY_INCLUDE_DIRS})
+      link_directories(${NUMPY_LIBRARIES})
+    else()
+        message(FATAL_ERROR "NumPy not found, cannot build python extensions")
     endif()
     if(WIN32)
       set(SIP_TAGS WIN32_PLATFORM)
     elseif(UNIX)
       set(SIP_TAGS POSIX_PLATFORM)
     endif(WIN32)
-    set(SIP_EXTRA_OPTIONS -e -g)    
+    set(SIP_EXTRA_OPTIONS -e -g)
   endif()
-  
+
 endif(NOT PROCESSLIB_EXTERNALLY_CONFIGURED)
 
-
-
-if (WIN32)
-  # GSL is available from binary packages at https://code.google.com/archive/p/oscats/downloads for win64
-  # and at gnuwin32 site for win32 compiled with msvc2008
-  # for msvc2015 binary packages are from https://www.bruot.org/hp/libraries/
-  # but now safe from http://ftp.esrf.fr/dist/bliss/lima/GSL-windows.zip
- 	if (${CMAKE_GENERATOR} MATCHES "(2008|2010|2013)")
-		if (${CMAKE_GENERATOR} MATCHES "Win64$")
-			set(GSL_VERSION "gsl-win64-msvc2008")
-		else()
-			set(GSL_VERSION "gsl-win32-msvc2008")
-			# GSL static libs are not SAFESH so force the option in case cmake enable it by default (Visual Studio 12 2013)
-			set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} /SAFESEH:NO")
-			set(CMAKE_SHARED_LINKER_FLAGS "${CMAKE_SHARED_LINKER_FLAGS} /SAFESEH:NO")
-			set(CMAKE_MODULE_LINKER_FLAGS "${CMAKE_MODULE_LINKER_FLAGS} /SAFESEH:NO")
-		endif()
-	elseif (${CMAKE_GENERATOR} MATCHES "2015|2017")
-		if (${CMAKE_GENERATOR} MATCHES "Win64$")
-			set(GSL_VERSION "gsl-win64-msvc2015")
-		else()
-			set(GSL_VERSION "gsl-win32-msvc2015")
-		endif()
-	else()
-		message(FATAL_ERROR "This compiler is not supported: " ${CMAKE_GENERATOR})
-	endif()
-	
-	set(LIB_GSL_INCLUDE_DIR "C:/Program Files/GSL-windows/${GSL_VERSION}/include" CACHE PATH "Path to GSL includes")
-	set(LIB_GSL_DIR "C:/Program Files/GSL-windows/${GSL_VERSION}/lib" CACHE PATH "Path to GSL lib folder")
-	include_directories(${LIB_GSL_INCLUDE_DIR})
-	link_directories(${LIB_GSL_DIR})
-else()
-        find_path(LIB_GSL_INCLUDE_DIR gsl/gsl_errno.h)
-endif()
-  
-set(processlib_srcs 
+set(processlib_srcs
     core/src/GslErrorMgr.cpp
     core/src/PoolThreadMgr.cpp
     core/src/TaskEventCallback.cpp
@@ -176,6 +139,8 @@ if(WIN32)
 				)
 endif()
 
+find_package(GSL REQUIRED)
+
 #--------------------------------------------------------------------------------
 # Add the library processlib definition
 #--------------------------------------------------------------------------------
@@ -183,7 +148,10 @@ file(STRINGS "VERSION" processlib_ver)
 add_library(processlib SHARED
             ${processlib_srcs})
 processlib_set_library_soversion(processlib "VERSION")
-	  
+
+target_link_libraries(processlib GSL::gsl GSL::gslcblas)
+target_include_directories(processlib PUBLIC ${GSL_INCLUDE_DIRS})
+
 if(WIN32)
     set(CMAKE_FIND_LIBRARY_SUFFIXES .a)
     include_directories("${CMAKE_CURRENT_SOURCE_DIR}/core/include/WindowSpecific")
@@ -196,38 +164,31 @@ endif()
 if(CMAKE_THREAD_LIBS_INIT)
     target_link_libraries(processlib "${CMAKE_THREAD_LIBS_INIT}")
 endif()
-if(WIN32)
-    find_library(LIB_GSL libgsl ${LIB_GSL_DIR})
-    find_library(LIB_GSLCBLAS libgslcblas ${LIB_GSL_DIR})
-else()
-    find_library(LIB_GSL gsl)
-    find_library(LIB_GSLCBLAS gslcblas)
-endif()
-include (FindPackageHandleStandardArgs)
-find_package_handle_standard_args(GSL DEFAULT_MSG LIB_GSL LIB_GSL_INCLUDE_DIR)	
-if(${GSL_FOUND})
-  target_link_libraries(processlib ${LIB_GSL} ${LIB_GSLCBLAS})
-  target_include_directories(processlib PUBLIC ${LIB_GSL_INCLUDE_DIR})
-endif()
-  
+
 if(WIN32)
     target_compile_definitions(processlib PRIVATE LIBPROCESSLIB_EXPORTS)
     set_target_properties(processlib PROPERTIES PREFIX "lib")
 endif()
+
 if(WIN32)
     install(TARGETS processlib
-            DESTINATION lib)
+            LIBRARY DESTINATION lib
+            RUNTIME DESTINATION bin)
 else()
+    include(GNUInstallDirs)
     install(TARGETS processlib
-            LIBRARY DESTINATION lib)
+            LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR})
 endif()
 
-# did not know why logilab disabled bpm for win64
-#if(CMAKE_SYSTEM_NAME EQUAL "Windows")
-#    if(CMAKE_SIZEOF_VOID_P EQUAL 8)
-#        set(SIP_DISABLE_FEATURES "BPM_SUPPORT")
-#    endif()
-#endif()
+install(
+    DIRECTORY ${CMAKE_SOURCE_DIR}/core/include/processlib
+    DESTINATION include/processlib
+    FILES_MATCHING PATTERN "*.h")
+
+install(
+    DIRECTORY ${CMAKE_SOURCE_DIR}/tasks/include/
+    DESTINATION include
+    FILES_MATCHING PATTERN "*.h")
 
 #--------------------------------------------------------------------------------
 # SIP generates binding code for python

@@ -1,0 +1,30 @@
+before_script :
+  - conda update -y -q conda-build
+
+stages:
+  - build
+  - deploy
+
+build-conda :
+  stage: build
+  script:
+    - conda build ./conda --prefix-length=80 --output-folder=dist/ --channel=http://bcu-ci.esrf.fr/stable
+  artifacts:
+    paths:
+    - dist/
+  tags:
+    - conda
+
+deploy:
+  stage: deploy
+  environment:
+    name: production
+    url: http://bcu-ci.esrf.fr/stable
+  dependencies:
+    - build-conda
+  script:
+    - mv -f dist/linux-64/* /conda/linux-64/
+    - conda index /conda/linux-64/
+  tags:
+    - conda
+  when: manual
