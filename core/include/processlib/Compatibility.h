@@ -20,8 +20,9 @@
 // You should have received a copy of the GNU General Public License
 // along with this program; if not, see <http://www.gnu.org/licenses/>.
 //###########################################################################
-#ifndef __COMPATIBILITY_H__
-#define __COMPATIBILITY_H__
+
+#if !defined(PROCESSLIB_COMPATIBILITY_H)
+#define PROCESSLIB_COMPATIBILITY_H
 
 #ifdef WIN32
 #define DLL_EXPORT __declspec(dllexport)
@@ -35,4 +36,4 @@
 #endif
 #endif
 
-#endif /* __COMPATIBILITY_H__ */
+#endif //!defined(PROCESSLIB_COMPATIBILITY_H)

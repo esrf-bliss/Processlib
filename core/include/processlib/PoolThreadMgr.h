@@ -20,8 +20,11 @@
 // You should have received a copy of the GNU General Public License
 // along with this program; if not, see <http://www.gnu.org/licenses/>.
 //###########################################################################
-#ifndef __POOLTHREAD_H__
-#define __POOLTHREAD_H__
+
+#pragma once
+
+#if !defined(PROCESSLIB_POOLTHREAD_H)
+#define PROCESSLIB_POOLTHREAD_H
 
 #ifndef __unix
 #pragma warning(disable:4251)
@@ -62,7 +65,7 @@ public:
     {if(aLockFlag) lock();}
 
     ~Lock() {unLock();}
-    inline void lock() 
+    inline void lock()
     {
       if(!_lockFlag)
 	while(pthread_mutex_lock(_lock)) ;
@@ -114,4 +117,4 @@ private:
 #endif
 };
 
-#endif
+#endif //!defined(PROCESSLIB_POOLTHREAD_H)

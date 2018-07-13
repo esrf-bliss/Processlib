@@ -20,8 +20,11 @@
 // You should have received a copy of the GNU General Public License
 // along with this program; if not, see <http://www.gnu.org/licenses/>.
 //###########################################################################
-#ifndef __TASKMGR_H
-#define __TASKMGR_H
+
+#pragma once
+
+#if !defined(PROCESSLIB_TASKMGR_H)
+#define PROCESSLIB_TASKMGR_H
 
 #include <deque>
 #include "processlib/Data.h"
@@ -43,7 +46,7 @@ class DLL_EXPORT TaskMgr
     std::deque<SinkTaskBase*>	_sinkTaskQueue;
   };
   typedef std::deque<Task*> StageTask;
-  
+
 public:
   class EventCallback
   {
@@ -62,7 +65,7 @@ public:
   protected:
   TaskWrap(TaskMgr &aMgr) : _Mgr(aMgr) {};
 
-    inline void _endLinkTask(LinkTask *aFinnishedTask) 
+    inline void _endLinkTask(LinkTask *aFinnishedTask)
       {_Mgr._endLinkTask(aFinnishedTask);}
     inline void _endSinkTask(SinkTaskBase *aFinnishedTask)
       {_Mgr._endSinkTask(aFinnishedTask);}
@@ -73,7 +76,7 @@ public:
     TaskMgr &_Mgr;
   };
   friend class TaskWrap;
-  
+
   TaskMgr(int priority = 0);
   TaskMgr(const TaskMgr&);
   ~TaskMgr();
@@ -107,4 +110,4 @@ private:
   void _callError(Data&,const char*);
 };
 
-#endif // __TASKMGR_H
+#endif //!defined(PROCESSLIB_TASKMGR_H)

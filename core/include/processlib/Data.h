@@ -20,6 +20,12 @@
 // You should have received a copy of the GNU General Public License
 // along with this program; if not, see <http://www.gnu.org/licenses/>.
 //###########################################################################
+
+#pragma once
+
+#if !defined(PROCESSLIB_DATA_H)
+#define PROCESSLIB_DATA_H
+
 #ifndef __unix
 #pragma warning(disable:4251)
 #pragma warning(disable:4244)
@@ -36,8 +42,6 @@
 #include "processlib/Compatibility.h"
 #include "processlib/ProcessExceptions.h"
 
-#ifndef __DATA_H
-#define __DATA_H
 struct DLL_EXPORT Buffer
 {
   class DLL_EXPORT Callback
@@ -104,11 +108,11 @@ struct DLL_EXPORT Data
   {
   public:
     typedef std::map<std::string,std::string> Header;
-    
+
     HeaderContainer();
     HeaderContainer(const HeaderContainer &cnt);
     ~HeaderContainer();
-    
+
     void insert(const char *key,const char *value);
     void insertOrIncKey(const std::string &key,const std::string &value);
     void erase(const char *key);
@@ -137,7 +141,7 @@ struct DLL_EXPORT Data
   {
     *this = aData;
   }
-  ~Data() 
+  ~Data()
   {
     if(buffer)
       buffer->unref();
@@ -154,7 +158,7 @@ struct DLL_EXPORT Data
     if(buffer) buffer->unref();
     buffer = aBuffer;
   }
-  void releaseBuffer() 
+  void releaseBuffer()
   {
     if(buffer) buffer->unref();
     buffer = NULL;
@@ -163,7 +167,7 @@ struct DLL_EXPORT Data
   }
   inline void * data() {return buffer ? buffer->data : NULL;}
   inline const void * data() const {return buffer ? buffer->data : NULL;}
-  inline int size() const 
+  inline int size() const
   {
     int returnSize = depth();
     for(std::vector<int>::const_iterator i = dimensions.begin();
@@ -190,7 +194,7 @@ struct DLL_EXPORT Data
 	depth = 8;break;
       case FLOAT: depth = 4;break;
       case DOUBLE: depth = 8;break;
-      default: 
+      default:
 	depth = 0;break;
       }
     return depth;
@@ -309,7 +313,7 @@ struct DLL_EXPORT Data
       for(int i = 0;i < pixelnb;++i,++aSrcPt,++aDstPt)
 	*aDstPt = char(*aSrcPt);
     }
-  template<class OUTPUT,class INPUT> 
+  template<class OUTPUT,class INPUT>
     static void _cast(OUTPUT* dst,INPUT* src,int nbItems)
   {
     while(nbItems)
@@ -334,13 +338,13 @@ Data Data::cast(Data::TYPE aType)
 
   aReturnData.buffer = new Buffer(aReturnData.size());
   int nbItems = aReturnData.size() / aReturnData.depth();
-    
+
   switch(type)
     {
     case UINT8:
       switch(aReturnData.type)
 	{
-	case UINT16: 
+	case UINT16:
 	  Data::_cast((unsigned short*)aReturnData.data(),
 		      (unsigned char*)data(),nbItems);
 	  break;
@@ -348,7 +352,7 @@ Data Data::cast(Data::TYPE aType)
 	  Data::_cast((short*)aReturnData.data(),
 		      (unsigned char*)data(),nbItems);
 	  break;
-	case UINT32:	    
+	case UINT32:
 	  Data::_cast((unsigned int*)aReturnData.data(),
 		      (unsigned char*)data(),nbItems);
 	  break;
@@ -379,7 +383,7 @@ Data Data::cast(Data::TYPE aType)
     case INT8:
       switch(aReturnData.type)
 	{
-	case UINT16: 
+	case UINT16:
 	  Data::_cast((unsigned short*)aReturnData.data(),
 		      (char*)data(),nbItems);
 	  break;
@@ -387,7 +391,7 @@ Data Data::cast(Data::TYPE aType)
 	  Data::_cast((short*)aReturnData.data(),
 		      (char*)data(),nbItems);
 	  break;
-	case UINT32:	    
+	case UINT32:
 	  Data::_cast((unsigned int*)aReturnData.data(),
 		      (char*)data(),nbItems);
 	  break;
@@ -418,7 +422,7 @@ Data Data::cast(Data::TYPE aType)
     case UINT16:
       switch(aReturnData.type)
 	{
-	case UINT32:	    
+	case UINT32:
 	  Data::_cast((unsigned int*)aReturnData.data(),
 		      (unsigned short*)data(),nbItems);
 	  break;
@@ -449,11 +453,11 @@ Data Data::cast(Data::TYPE aType)
     case INT16:
       switch(aReturnData.type)
 	{
-	case UINT16:	    
+	case UINT16:
 	  Data::_cast((unsigned short*)aReturnData.data(),
 		      (short*)data(),nbItems);
 	  break;
-	case UINT32:	    
+	case UINT32:
 	  Data::_cast((unsigned int*)aReturnData.data(),
 		      (short*)data(),nbItems);
 	  break;
@@ -507,7 +511,7 @@ Data Data::cast(Data::TYPE aType)
     case INT32:
       switch(aReturnData.type)
 	{
-	case UINT32:	    
+	case UINT32:
 	  Data::_cast((unsigned int*)aReturnData.data(),
 		      (int*)data(),nbItems);
 	  break;
@@ -614,12 +618,12 @@ DLL_EXPORT std::ostream& operator<<(std::ostream &os,
 
 inline std::ostream& operator<<(std::ostream &os,const Buffer &aBuffer)
 {
-  const char *anOwnerShip = (aBuffer.owner == 
+  const char *anOwnerShip = (aBuffer.owner ==
 			     Buffer::MAPPED) ? "Mapped" : "Shared";
   os << "<"
      << "owner=" << anOwnerShip << ", "
      << "refcount=" << aBuffer.refcount << ", "
-     << "data=" << aBuffer.data 
+     << "data=" << aBuffer.data
      << ">";
   return os;
 }
@@ -660,5 +664,4 @@ inline std::ostream& operator<<(std::ostream &os,const Data &aData)
   return os;
 }
 
-
-#endif
+#endif //!defined(PROCESSLIB_DATA_H)

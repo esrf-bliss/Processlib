@@ -1,30 +1,64 @@
-before_script :
-  - conda update -y -q conda-build
-
 stages:
   - build
   - deploy
 
-build-conda :
+build-linux:
   stage: build
   script:
     - conda build ./conda --prefix-length=80 --output-folder=dist/ --channel=http://bcu-ci.esrf.fr/stable
   artifacts:
     paths:
-    - dist/
+      - dist/
   tags:
     - conda
+    - linux
 
-deploy:
+build-win:
+  stage: build
+  script:
+    - conda build ./conda --prefix-length=80 --output-folder=dist/ --channel=http://bcu-ci.esrf.fr/stable
+    #- docker run --mount type=bind,source="%CD%",target="C:\sources" docker-registry.esrf.fr/bcu/conda-builder-win cmd /K cd C:\sources ^& conda build ./conda --prefix-length=80 --output-folder=dist/ --channel=http://bcu-ci.esrf.fr/stable
+  artifacts:
+    paths:
+      - dist/
+  tags:
+    - conda
+    - win
+
+deploy_devel:
+  stage: deploy
+  environment:
+    name: devel/$CI_COMMIT_REF_NAME
+    url: http://bcu-ci.esrf.fr/devel
+  dependencies:
+    - build-linux
+    - build-win
+  script:
+    - cp -Rf dist/* /conda-devel/
+    - conda index /conda-devel/
+  tags:
+    - conda
+    - linux
+  only:
+    - branches
+  except:
+    - stable
+  when: manual
+
+deploy_stable:
   stage: deploy
   environment:
     name: production
     url: http://bcu-ci.esrf.fr/stable
   dependencies:
-    - build-conda
+    - build-linux
+    - build-win
   script:
-    - mv -f dist/linux-64/* /conda/linux-64/
-    - conda index /conda/linux-64/
+    - cp -Rf dist/* /conda/
+    - conda index /conda/
   tags:
     - conda
-  when: manual
+    - linux
+  only:
+    - tags
+    - stable

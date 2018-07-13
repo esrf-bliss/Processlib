@@ -19,8 +19,12 @@
 // You should have received a copy of the GNU General Public License
 // along with this program; if not, see <http://www.gnu.org/licenses/>.
 //###########################################################################
-#ifndef PROCESS_EXCEPTIONS_H
-#define PROCESS_EXCEPTIONS_H
+
+#pragma once
+
+#if !defined(PROCESSLIB_PROCESS_EXCEPTIONS_H)
+#define PROCESSLIB_PROCESS_EXCEPTIONS_H
+
 #include <string>
 
 class ProcessException
@@ -31,4 +35,5 @@ class ProcessException
  private:
   std::string m_msg;
 };
-#endif
+
+#endif //!defined(PROCESSLIB_PROCESS_EXCEPTIONS_H)

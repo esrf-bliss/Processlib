@@ -20,19 +20,22 @@
 // You should have received a copy of the GNU General Public License
 // along with this program; if not, see <http://www.gnu.org/licenses/>.
 //###########################################################################
+
+#pragma once
+
+#if !defined(PROCESSLIB_SINKTASK_H)
+#define PROCESSLIB_SINKTASK_H
+
 #include "processlib/Data.h"
 #include "processlib/SinkTaskMgr.h"
 #include "processlib/TaskEventCallback.h"
-
-#ifndef __SINKTASK_H
-#define __SINKTASK_H
 
 class DLL_EXPORT SinkTaskBase
 {
 public:
   SinkTaskBase();
   SinkTaskBase(const SinkTaskBase &aTask);
-  
+
 
   //@brief start the processing of this SinkTask
   virtual void process(Data&) {};
@@ -42,7 +45,7 @@ public:
 
   void ref();
   void unref();
-  
+
   // @brief only use for debuging purpose
   int getRefCounter() const;
 protected:
@@ -60,7 +63,7 @@ class SinkTask : public SinkTaskBase
 {
 public:
   SinkTask(SinkTaskMgr<T> &aMgr) : _mgr(aMgr) {aMgr.ref();};
-  SinkTask(const SinkTask &aTask) : SinkTaskBase(aTask),_mgr(aTask._mgr) 
+  SinkTask(const SinkTask &aTask) : SinkTaskBase(aTask),_mgr(aTask._mgr)
     {
       _mgr.ref();
     }
@@ -69,4 +72,4 @@ protected:
   SinkTaskMgr<T>	&_mgr;
 };
 
-#endif
+#endif //!defined(PROCESSLIB_SINKTASK_H)

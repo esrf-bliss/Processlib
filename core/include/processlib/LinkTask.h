@@ -20,12 +20,15 @@
 // You should have received a copy of the GNU General Public License
 // along with this program; if not, see <http://www.gnu.org/licenses/>.
 //###########################################################################
+
+#pragma once
+
+#if !defined(PROCESSLIB_LINKTASK_H)
+#define PROCESSLIB_LINKTASK_H
+
 #include <pthread.h>
 #include "processlib/Data.h"
 #include "processlib/TaskEventCallback.h"
-
-#ifndef __LINKTASK_H
-#define __LINKTASK_H
 
 class DLL_EXPORT LinkTask
 {
@@ -33,7 +36,7 @@ public:
   LinkTask();
   LinkTask(bool aProcessingInPlaceFlag);
   LinkTask(const LinkTask &aLinkTask);
-      
+
   //@brief start the processing of this LinkTask
   virtual Data process(Data &aData) {return aData;}
 
@@ -49,7 +52,7 @@ public:
    * the task can't be process in paralelle with other
    * because it will smashed the data source
    */
-  void setProcessingInPlace(bool aFlag) 
+  void setProcessingInPlace(bool aFlag)
   {_processingInPlaceFlag = aFlag;}
 
   TaskEventCallback* getEventCallback() {return _eventCbkPt;}
@@ -70,4 +73,5 @@ protected:
 private:
   int		  _refCounter;
 };
-#endif
+
+#endif //!defined(PROCESSLIB_LINKTASK_H)

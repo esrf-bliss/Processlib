@@ -19,7 +19,7 @@
 # The behaviour of the ADD_SIP_PYTHON_MODULE macro can be controlled by a
 # number of variables:
 #
-# SIP_INCLUDES - List of directories which SIP will scan through when looking
+# SIP_INCLUDE_DIRS - List of directories which SIP will scan through when looking
 #     for included .sip files. (Corresponds to the -I option for SIP.)
 #
 # SIP_TAGS - List of tags to define when running SIP. (Corresponds to the -t
@@ -35,7 +35,7 @@
 # SIP_EXTRA_OPTIONS - Extra command line options which should be passed on to
 #     SIP.
 
-set(SIP_INCLUDES)
+set(SIP_INCLUDE_DIRS)
 set(SIP_TAGS)
 set(SIP_CONCAT_PARTS 8)
 set(SIP_DISABLE_FEATURES)
@@ -61,10 +61,10 @@ macro(ADD_SIP_PYTHON_MODULE MODULE_NAME MODULE_SIP)
 
     file(MAKE_DIRECTORY ${_module_path})    # Output goes in this dir.
 
-    set(_sip_includes)
-    foreach (_inc ${SIP_INCLUDES})
+    set(_SIP_INCLUDE_DIRS)
+    foreach (_inc ${SIP_INCLUDE_DIRS})
         get_filename_component(_abs_inc ${_inc} ABSOLUTE)
-        list(APPEND _sip_includes -I ${_abs_inc})
+        list(APPEND _SIP_INCLUDE_DIRS -I ${_abs_inc})
     endforeach (_inc )
 
     set(_sip_tags)
@@ -96,10 +96,10 @@ macro(ADD_SIP_PYTHON_MODULE MODULE_NAME MODULE_SIP)
         endforeach(filename ${_sip_output_files})
     endif(NOT WIN32)
     add_custom_command(
-        OUTPUT ${_sip_output_files} 
+        OUTPUT ${_sip_output_files}
         COMMAND ${CMAKE_COMMAND} -E echo ${message}
-        COMMAND ${TOUCH_COMMAND} ${_sip_output_files} 
-        COMMAND ${SIP_EXECUTABLE} ${_sip_tags} ${_sip_x} ${SIP_EXTRA_OPTIONS} -j ${SIP_CONCAT_PARTS} -c ${_module_path} ${_sip_includes} ${_abs_module_sip}
+        COMMAND ${TOUCH_COMMAND} ${_sip_output_files}
+        COMMAND ${SIP_EXECUTABLE} ${_sip_tags} ${_sip_x} ${SIP_EXTRA_OPTIONS} -j ${SIP_CONCAT_PARTS} -c ${_module_path} ${_SIP_INCLUDE_DIRS} ${_abs_module_sip}
         COMMAND ${PYTHON_EXECUTABLE} ${CMAKE_SOURCE_DIR}/cmake/checksipexc.py ${_sip_output_files}
         DEPENDS ${_abs_module_sip} ${SIP_EXTRA_FILES_DEPEND}
     )
@@ -112,12 +112,14 @@ macro(ADD_SIP_PYTHON_MODULE MODULE_NAME MODULE_SIP)
     target_link_libraries(${_logical_name} ${PYTHON_LIBRARY})
     target_link_libraries(${_logical_name} ${EXTRA_LINK_LIBRARIES})
     set_target_properties(${_logical_name} PROPERTIES PREFIX "" OUTPUT_NAME ${_child_module_name})
-    
+
     if (WIN32)
       set_target_properties(${_logical_name} PROPERTIES SUFFIX ".pyd")
-      set_target_properties(${_logical_name} PROPERTIES IMPORT_SUFFIX ".dll")
     endif (WIN32)
 
-    install(TARGETS ${_logical_name} DESTINATION "${PYTHON_SITE_PACKAGES_DIR}/${_parent_module_path}")
+    install(TARGETS ${_logical_name}
+      LIBRARY DESTINATION "${PYTHON_SITE_PACKAGES_DIR}/${_parent_module_path}"
+      RUNTIME DESTINATION "${PYTHON_SITE_PACKAGES_DIR}/${_parent_module_path}"
+    )
 
 endmacro(ADD_SIP_PYTHON_MODULE)
