@@ -20,7 +20,7 @@
 // You should have received a copy of the GNU General Public License
 // along with this program; if not, see <http://www.gnu.org/licenses/>.
 //###########################################################################
-%Module(name=processlib,version=0)
+%Module(name=processlib)
 
 %ModuleHeaderCode
 #define NPY_NO_DEPRECATED_API NPY_1_7_API_VERSION
@@ -77,7 +77,6 @@ processlib_import_array();
 %Exception Data_Header_Iter_Stop_iteration /PyName=StopIteration/
 {
 %TypeHeaderCode
-//#include "data_header_iterator.h"
 #include <iostream>
 %End
 %RaiseCode
@@ -89,10 +88,6 @@ processlib_import_array();
 
 struct Data_HeaderContainer_itemIterator
 {
-%TypeHeaderCode
-//#include "data_header_iterator.h"
-%End
-
 public:
   Data_HeaderContainer_itemIterator(Data::HeaderContainer&);
   SIP_PYOBJECT __next__();

@@ -64,10 +64,10 @@ macro(ADD_SIP_PYTHON_MODULE MODULE_NAME MODULE_SIP)
 
     file(MAKE_DIRECTORY ${_module_path})    # Output goes in this dir.
 
-    set(_SIP_INCLUDE_DIRS)
+    set(_sip_include_dirs)
     foreach (_inc ${SIP_INCLUDE_DIRS})
         get_filename_component(_abs_inc ${_inc} ABSOLUTE)
-        list(APPEND _SIP_INCLUDE_DIRS -I ${_abs_inc})
+        list(APPEND _sip_include_dirs -I ${_abs_inc})
     endforeach (_inc )
 
     set(_sip_tags)
@@ -92,7 +92,7 @@ macro(ADD_SIP_PYTHON_MODULE MODULE_NAME MODULE_SIP)
         OUTPUT ${_sip_output_files}
         COMMAND ${CMAKE_COMMAND} -E echo ${_message}
         COMMAND ${CMAKE_COMMAND} -E touch ${_sip_output_files}
-        COMMAND ${SIP_EXECUTABLE} ${_sip_tags} ${_sip_x} ${SIP_EXTRA_OPTIONS} -j ${SIP_CONCAT_PARTS} -c ${_module_path} ${_SIP_INCLUDE_DIRS} ${_abs_module_sip}
+        COMMAND ${SIP_EXECUTABLE} ${_sip_tags} ${_sip_x} ${SIP_EXTRA_OPTIONS} -j ${SIP_CONCAT_PARTS} -c ${_module_path} ${_sip_include_dirs} ${_abs_module_sip}
         COMMAND ${PYTHON_EXECUTABLE} "${_SIPMACRO_LIST_DIR}/checksipexc.py" ${_sip_output_files}
         DEPENDS ${_abs_module_sip} ${SIP_EXTRA_FILES_DEPEND}
     )

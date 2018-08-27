@@ -200,11 +200,7 @@ endif()
 
 # SIP generated binding code for python
 if(PROCESSLIB_ENABLE_PYTHON)
-    if(SIP_VERSION_STR VERSION_LESS "4.12")
-        configure_file(${CMAKE_CURRENT_SOURCE_DIR}/sip/processlib_before_4_12.sip sip/processlib.sip)
-    else()
-        configure_file(${CMAKE_CURRENT_SOURCE_DIR}/sip/processlib.sip sip/processlib.sip)
-    endif()
+    configure_file(${CMAKE_CURRENT_SOURCE_DIR}/sip/processlib.sip sip/processlib.sip COPYONLY)
     set(SIP_INCLUDE_DIRS "${CMAKE_CURRENT_SOURCE_DIR}/tasks/sip")
     add_sip_python_module(processlib "${CMAKE_CURRENT_BINARY_DIR}/sip/processlib.sip")
     target_include_directories(python_module_processlib PRIVATE ${PYTHON_INCLUDE_DIRS} ${CMAKE_CURRENT_SOURCE_DIR}/sip)
@@ -262,18 +258,18 @@ endif()
 
 if(PROCESSLIB_ENABLE_PYTHON AND PROCESSLIB_MASTER_PROJECT)
     install(
-        FILES ${CMAKE_CURRENT_BINARY_DIR}/sip/processlib.sip
-              ${CMAKE_CURRENT_SOURCE_DIR}/tasks/sip/BackgroundSubstraction.sip
-              ${CMAKE_CURRENT_SOURCE_DIR}/tasks/sip/Binning.sip
-              ${CMAKE_CURRENT_SOURCE_DIR}/tasks/sip/Bpm.sip
-              ${CMAKE_CURRENT_SOURCE_DIR}/tasks/sip/FlatfieldCorrection.sip
-              ${CMAKE_CURRENT_SOURCE_DIR}/tasks/sip/Flip.sip
-              ${CMAKE_CURRENT_SOURCE_DIR}/tasks/sip/Mask.sip
-              ${CMAKE_CURRENT_SOURCE_DIR}/tasks/sip/PeakFinder.sip
-              ${CMAKE_CURRENT_SOURCE_DIR}/tasks/sip/Roi2Spectrum.sip
-              ${CMAKE_CURRENT_SOURCE_DIR}/tasks/sip/RoiCounter.sip
-              ${CMAKE_CURRENT_SOURCE_DIR}/tasks/sip/Rotation.sip
-              ${CMAKE_CURRENT_SOURCE_DIR}/tasks/sip/SoftRoi.sip
+        FILES sip/processlib.sip
+              tasks/sip/BackgroundSubstraction.sip
+              tasks/sip/Binning.sip
+              tasks/sip/Bpm.sip
+              tasks/sip/FlatfieldCorrection.sip
+              tasks/sip/Flip.sip
+              tasks/sip/Mask.sip
+              tasks/sip/PeakFinder.sip
+              tasks/sip/Roi2Spectrum.sip
+              tasks/sip/RoiCounter.sip
+              tasks/sip/Rotation.sip
+              tasks/sip/SoftRoi.sip
         COMPONENT devel
         DESTINATION ${SIP_INSTALL_DIR}
     )
