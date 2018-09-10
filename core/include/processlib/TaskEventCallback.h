@@ -20,11 +20,14 @@
 // You should have received a copy of the GNU General Public License
 // along with this program; if not, see <http://www.gnu.org/licenses/>.
 //###########################################################################
+
+#pragma once
+
+#if !defined(PROCESSLIB_TASKEVENTCALLBACK_H)
+#define PROCESSLIB_TASKEVENTCALLBACK_H
+
 #include "processlib/Data.h"
 #include <pthread.h>
-
-#ifndef __TASKEVENTCALLBACK_H
-#define __TASKEVENTCALLBACK_H
 
 class DLL_EXPORT TaskEventCallback
 {
@@ -33,7 +36,7 @@ class DLL_EXPORT TaskEventCallback
   virtual void started(Data &) {}
   virtual void finished(Data &) {}
   virtual void error(Data &,const char*) {}
-  
+
   void ref();
   void unref();
 
@@ -43,4 +46,5 @@ class DLL_EXPORT TaskEventCallback
   pthread_mutex_t _lock;
   int		  _refCounter;
 };
-#endif
+
+#endif //!defined(PROCESSLIB_TASKEVENTCALLBACK_H)

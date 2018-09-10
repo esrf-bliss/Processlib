@@ -22,13 +22,6 @@
 # along with this program; if not, see <http://www.gnu.org/licenses/>.
 ############################################################################
 
-# README -- README --README -- README --README -- README --README -- README
-# To include Processlib as a sub-project within another project (e.g LIMA)
-# set PROCESSLIB_EXTERNALLY_CONFIGURED to ON and supply value for following variables...
-#
-# - PROCESSLIB_EXTERNALLY_ENABLE_PYTHON:
-#   Set this "ON" to create binding codes for python
-#
 # For installation purpose one can set the following variables...
 #
 # - CMAKE_INSTALL_PREFIX:
@@ -39,75 +32,84 @@
 # default is the python installation directory, for UNIX it
 # can be /usr/lib/python2.7/dist-packages/ .
 
+cmake_minimum_required(VERSION 3.1)
 
-#--------------------------------------------------------------------------------
-# Enable/Disable python binding but depending if project is included as a
-# sub-project, see above for further instructions
-#--------------------------------------------------------------------------------
-if (NOT PROCESSLIB_EXTERNALLY_CONFIGURED)
-  option(PROCESSLIB_ENABLE_PYTHON "compile python binding code?" OFF)
-endif()
-if (PROCESSLIB_EXTERNALLY_CONFIGURED)
-  if (PROCESSLIB_EXTERNALLY_ENABLE_PYTHON)
-    set(PROCESSLIB_ENABLE_PYTHON ON)
-  else()
-    set(PROCESSLIB_ENABLE_PYTHON OFF)
-  endif()
+project (processlib)
+include(cmake/project_version.cmake)
+
+# Include additional modules that are used unconditionally
+include(GNUInstallDirs)
+include(GenerateExportHeader)
+
+# If conda build, always set lib dir to 'lib'
+if($ENV{CONDA_BUILD})
+  set(CMAKE_INSTALL_LIBDIR "lib")
 endif()
 
-#--------------------------------------------------------------------------------
-# cmake/ directory contains tools
-#--------------------------------------------------------------------------------
+# Check if processlib is being used directly or via add_subdirectory
+set(PROCESSLIB_MASTER_PROJECT OFF)
+if (CMAKE_CURRENT_SOURCE_DIR STREQUAL CMAKE_SOURCE_DIR)
+  set(PROCESSLIB_MASTER_PROJECT ON)
+endif()
+
+# Enable C++11 and later
+set(CMAKE_CXX_STANDARD 11)
+set(CMAKE_CXX_STANDARD_REQUIRED ON)
+
+if(MSVC AND MSVC_VERSION GREATER 1500)
+    # Compiler specific (parallel build)
+    set(CMAKE_C_FLAGS   "${CMAKE_C_FLAGS} /MP")
+    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /MP")
+endif()
+
+# cmake directory for additional macros
 set(CMAKE_MODULE_PATH ${CMAKE_CURRENT_SOURCE_DIR}/cmake ${CMAKE_MODULE_PATH})
-include(ProcesslibTools)
 
-#--------------------------------------------------------------------------------
-# If Processlib is used as a standalone library set here everything required
-#--------------------------------------------------------------------------------
-if (NOT PROCESSLIB_EXTERNALLY_CONFIGURED)
-  cmake_minimum_required(VERSION 2.8)
-  project (processlib)
+# Threads lib required
+find_package(Threads REQUIRED)
 
-  #--------------------------------------------------------------------------------
-  # Threads lib required
-  #--------------------------------------------------------------------------------
-  find_package(Threads REQUIRED)
+# GSL required
+find_package(GSL REQUIRED)
 
-  #--------------------------------------------------------------------------------
-  # Enable python binding code compilation using sip generator
-  #--------------------------------------------------------------------------------
-  if(PROCESSLIB_ENABLE_PYTHON)
+# Enable python binding code compilation using sip generator
+option(PROCESSLIB_ENABLE_PYTHON "compile python binding code?" LIMA_ENABLE_PYTHON)
+if(PROCESSLIB_ENABLE_PYTHON)
     find_package(PythonInterp)
     find_package(PythonLibs)
     if(${PYTHONINTERP_FOUND})
       # python site-packages folder
       execute_process(
-        COMMAND ${PYTHON_EXECUTABLE} -c "from distutils.sysconfig import get_python_lib; print (get_python_lib())"
-        OUTPUT_VARIABLE _PYTHON_SITE_PACKAGES_DIR OUTPUT_STRIP_TRAILING_WHITESPACE)
+          COMMAND ${PYTHON_EXECUTABLE} -c "from distutils.sysconfig import get_python_lib; print (get_python_lib())"
+          OUTPUT_VARIABLE _PYTHON_SITE_PACKAGES_DIR OUTPUT_STRIP_TRAILING_WHITESPACE)
     endif()
+
     find_package(SIP)
-    include(SIPMacros)
+    if(SIP_FOUND)
+        include(SIPMacros)
+
+        if(WIN32)
+            set(SIP_TAGS WIN32_PLATFORM)
+        elseif(UNIX)
+            set(SIP_TAGS POSIX_PLATFORM)
+        endif(WIN32)
+        set(SIP_EXTRA_OPTIONS -e -g)
+    else()
+  	    message(FATAL_ERROR "python SIP not installed, please install or disable PROCESSLIB_ENABLE_PYTHON")
+    endif()
 
     set(PYTHON_SITE_PACKAGES_DIR ${_PYTHON_SITE_PACKAGES_DIR} CACHE PATH "where should python modules be installed?")
 
     find_package(NumPy)
     if(${NUMPY_FOUND})
-      include_directories(${NUMPY_INCLUDE_DIRS})
-      link_directories(${NUMPY_LIBRARIES})
+        include_directories(${NUMPY_INCLUDE_DIRS})
+        link_directories(${NUMPY_LIBRARIES})
     else()
         message(FATAL_ERROR "NumPy not found, cannot build python extensions")
     endif()
-    if(WIN32)
-      set(SIP_TAGS WIN32_PLATFORM)
-    elseif(UNIX)
-      set(SIP_TAGS POSIX_PLATFORM)
-    endif(WIN32)
-    set(SIP_EXTRA_OPTIONS -e -g)
-  endif()
-
-endif(NOT PROCESSLIB_EXTERNALLY_CONFIGURED)
+endif()
 
 set(processlib_srcs
+    ${CMAKE_CURRENT_BINARY_DIR}/${PROJECT_NAME}/project_version.cc # Add version info
     core/src/GslErrorMgr.cpp
     core/src/PoolThreadMgr.cpp
     core/src/TaskEventCallback.cpp
@@ -126,81 +128,161 @@ set(processlib_srcs
     tasks/src/Roi2Spectrum.cpp
     tasks/src/Rotation.cpp
     tasks/src/PeakFinder.cpp
+)
+if(WIN32)
+    list(APPEND processlib_srcs
+        core/src/WindowSpecific/pthread_cancelling.cpp
+        core/src/WindowSpecific/pthread_cond.cpp
+        core/src/WindowSpecific/pthread_key.cpp
+        core/src/WindowSpecific/pthread_mutex.cpp
+        core/src/WindowSpecific/pthread_rwlock.cpp
+        core/src/WindowSpecific/pthread_thread.cpp
+        core/src/WindowSpecific/stdio_compat.cpp
+        core/src/WindowSpecific/time_compat.cpp
     )
-if(WIN32)
-    list(APPEND processlib_srcs core/src/WindowSpecific/pthread_cancelling.cpp
-                                core/src/WindowSpecific/pthread_cond.cpp
-                                core/src/WindowSpecific/pthread_key.cpp
-                                core/src/WindowSpecific/pthread_mutex.cpp
-                                core/src/WindowSpecific/pthread_rwlock.cpp
-                                core/src/WindowSpecific/pthread_thread.cpp
-                                core/src/WindowSpecific/stdio_compat.cpp
-                                core/src/WindowSpecific/time_compat.cpp
-				)
 endif()
 
-find_package(GSL REQUIRED)
-
-#--------------------------------------------------------------------------------
-# Add the library processlib definition
-#--------------------------------------------------------------------------------
-file(STRINGS "VERSION" processlib_ver)
 add_library(processlib SHARED
-            ${processlib_srcs})
-processlib_set_library_soversion(processlib "VERSION")
+    ${processlib_srcs}
+)
 
-target_link_libraries(processlib GSL::gsl GSL::gslcblas)
-target_include_directories(processlib PUBLIC ${GSL_INCLUDE_DIRS})
+# Generate export macros
+generate_export_header(processlib)
 
+# Set version
+set_target_properties(processlib PROPERTIES
+    VERSION "${VERSION}"
+    SOVERSION "${PACKAGE_VERSION_MAJOR}.${PACKAGE_VERSION_MINOR}")
+
+target_link_libraries(processlib
+    PUBLIC GSL::gsl
+    PUBLIC GSL::gslcblas
+)
+
+# The following might work with cmake 3.12
+# Add the library processlib definition
+# add_subdirectory(core)
+# add_subdirectory(tasks)
+# target_link_libraries(processlib
+#   PRIVATE core
+#   PRIVATE tasks)
+
+target_include_directories(processlib PRIVATE ${GSL_INCLUDE_DIRS})
+
+target_include_directories(processlib PUBLIC
+    "$<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/core/include>"
+    "$<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/tasks/include>"
+    "$<INSTALL_INTERFACE:${CMAKE_INSTALL_INCLUDEDIR}>"
+)
 if(WIN32)
-    set(CMAKE_FIND_LIBRARY_SUFFIXES .a)
-    include_directories("${CMAKE_CURRENT_SOURCE_DIR}/core/include/WindowSpecific")
+    target_include_directories(processlib PUBLIC
+        "$<BUILD_INTERFACE:${CMAKE_SOURCE_DIR}/core/include/WindowSpecific>"
+        "$<INSTALL_INTERFACE:${CMAKE_INSTALL_INCLUDEDIR}/processlib/WindowSpecific>"
+    )
 endif()
-target_include_directories(processlib PUBLIC "${CMAKE_CURRENT_SOURCE_DIR}/core/include")
-target_include_directories(processlib PUBLIC "${CMAKE_CURRENT_SOURCE_DIR}/tasks/include")
+
 if(THREADS_HAVE_PTHREAD_ARG)
     target_compile_options(PUBLIC processlib "-pthread")
 endif()
 if(CMAKE_THREAD_LIBS_INIT)
-    target_link_libraries(processlib "${CMAKE_THREAD_LIBS_INIT}")
+    target_link_libraries(processlib PRIVATE "${CMAKE_THREAD_LIBS_INIT}")
 endif()
 
 if(WIN32)
     target_compile_definitions(processlib PRIVATE LIBPROCESSLIB_EXPORTS)
     set_target_properties(processlib PROPERTIES PREFIX "lib")
+    set_target_properties(processlib PROPERTIES IMPORT_PREFIX "lib")
 endif()
+
+# SIP generated binding code for python
+if(PROCESSLIB_ENABLE_PYTHON)
+    if(SIP_VERSION_STR VERSION_LESS "4.12")
+        configure_file(${CMAKE_CURRENT_SOURCE_DIR}/sip/processlib_before_4_12.sip sip/processlib.sip)
+    else()
+        configure_file(${CMAKE_CURRENT_SOURCE_DIR}/sip/processlib.sip sip/processlib.sip)
+    endif()
+    set(SIP_INCLUDE_DIRS "${CMAKE_CURRENT_SOURCE_DIR}/tasks/sip")
+    add_sip_python_module(processlib "${CMAKE_CURRENT_BINARY_DIR}/sip/processlib.sip")
+    target_include_directories(python_module_processlib PRIVATE ${PYTHON_INCLUDE_DIRS} ${CMAKE_CURRENT_SOURCE_DIR}/sip)
+    target_link_libraries(python_module_processlib processlib)
+endif()
+
+## Installation
+
+# Generate and install package config file and version
+if(PROCESSLIB_MASTER_PROJECT)
+    set(PROJECT_LIBRARIES processlib)
+    set(SIP_INSTALL_DIR ${CMAKE_INSTALL_DATADIR}/sip/processlib)
+    include(cmake/package_config.cmake)
+endif()
+
+install(
+    TARGETS processlib
+    EXPORT "${TARGETS_EXPORT_NAME}"
+    ARCHIVE DESTINATION ${CMAKE_INSTALL_LIBDIR}   # import library
+    LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR}   # .so files are libraries
+    RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR}   # .dll files are binaries
+    INCLUDES DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}  # this does not actually install anything (but used by downstream projects)
+)
+
+install(
+    FILES
+        ${CMAKE_CURRENT_BINARY_DIR}/${PROJECT_NAME}/project_version.h
+        ${CMAKE_CURRENT_BINARY_DIR}/processlib_export.h
+    COMPONENT devel
+    DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}/processlib
+)
+
+install(
+    DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/core/include/processlib
+    COMPONENT devel
+    DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}
+    FILES_MATCHING PATTERN "*.h"
+)
+
+install(
+    DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/tasks/include/processlib
+    COMPONENT devel
+    DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}
+    FILES_MATCHING PATTERN "*.h"
+)
 
 if(WIN32)
-    install(TARGETS processlib
-            LIBRARY DESTINATION lib
-            RUNTIME DESTINATION bin)
-else()
-    include(GNUInstallDirs)
-    install(TARGETS processlib
-            LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR})
+    install(
+        DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/core/include/WindowSpecific
+        COMPONENT devel
+        DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}/processlib
+        FILES_MATCHING PATTERN "*.h"
+    )
 endif()
 
-install(
-    DIRECTORY ${CMAKE_SOURCE_DIR}/core/include/processlib
-    DESTINATION include/processlib
-    FILES_MATCHING PATTERN "*.h")
-
-install(
-    DIRECTORY ${CMAKE_SOURCE_DIR}/tasks/include/
-    DESTINATION include
-    FILES_MATCHING PATTERN "*.h")
-
-#--------------------------------------------------------------------------------
-# SIP generates binding code for python
-#--------------------------------------------------------------------------------
 if(PROCESSLIB_ENABLE_PYTHON)
-  if(SIP_VERSION_STR VERSION_LESS "4.12")
-    configure_file(${CMAKE_CURRENT_SOURCE_DIR}/sip/processlib_before_4_12.sip sip/processlib.sip)
-  else()
-    configure_file(${CMAKE_CURRENT_SOURCE_DIR}/sip/processlib.sip sip/processlib.sip)
-  endif()
-  set(SIP_INCLUDES "${CMAKE_CURRENT_SOURCE_DIR}/tasks/sip")
-  add_sip_python_module(processlib "${CMAKE_CURRENT_BINARY_DIR}/sip/processlib.sip")
-  target_include_directories(python_module_processlib PRIVATE ${PYTHON_INCLUDE_DIRS} ${CMAKE_CURRENT_SOURCE_DIR}/sip)
-  target_link_libraries(python_module_processlib processlib)
+    install(
+        FILES ${CMAKE_CURRENT_BINARY_DIR}/sip/processlib.sip
+              ${CMAKE_CURRENT_SOURCE_DIR}/tasks/sip/BackgroundSubstraction.sip
+              ${CMAKE_CURRENT_SOURCE_DIR}/tasks/sip/Binning.sip
+              ${CMAKE_CURRENT_SOURCE_DIR}/tasks/sip/Bpm.sip
+              ${CMAKE_CURRENT_SOURCE_DIR}/tasks/sip/FlatfieldCorrection.sip
+              ${CMAKE_CURRENT_SOURCE_DIR}/tasks/sip/Flip.sip
+              ${CMAKE_CURRENT_SOURCE_DIR}/tasks/sip/Mask.sip
+              ${CMAKE_CURRENT_SOURCE_DIR}/tasks/sip/PeakFinder.sip
+              ${CMAKE_CURRENT_SOURCE_DIR}/tasks/sip/Roi2Spectrum.sip
+              ${CMAKE_CURRENT_SOURCE_DIR}/tasks/sip/RoiCounter.sip
+              ${CMAKE_CURRENT_SOURCE_DIR}/tasks/sip/Rotation.sip
+              ${CMAKE_CURRENT_SOURCE_DIR}/tasks/sip/SoftRoi.sip
+        COMPONENT devel
+        DESTINATION ${SIP_INSTALL_DIR}
+    )
 endif()
+
+## Tests
+if(PROCESSLIB_ENABLE_TESTS)
+    enable_testing()
+    #add_subdirectory(test)
+endif()
+
+# Packages
+set(CPACK_GENERATOR "DEB")
+set(CPACK_DEBIAN_PACKAGE_MAINTAINER "ESRF/BLISS") #required
+set(CPACK_PACKAGE_CONTACT "lima@esrf.fr")
+include(CPack)

@@ -1,12 +1,15 @@
-{% set version = "1.5.2" %}
+# Strip the 'v' from the version tag
+{% set version = GIT_DESCRIBE_TAG[1:] %}
 
 package:
   name: processlib
   version: {{ version }}
 
 source:
-  git_url: https://gitlab.esrf.fr/limagroup/Processlib.git
-  git_branch: 16-generate-conda-packages
+  path: ..
+
+build:
+  number: {{ environ.get('GIT_DESCRIBE_NUMBER', 0) }}
 
 requirements:
   build:
@@ -31,4 +34,4 @@ about:
   home: https://github.com/esrf-bliss/Processlib
   license: GPL
   license_file: COPYING
-  summary: a compagnion library of LiMA for basic image processing
+  summary: a compagnion library of LImA for basic image processing

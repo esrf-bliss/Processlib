@@ -20,6 +20,12 @@
 // You should have received a copy of the GNU General Public License
 // along with this program; if not, see <http://www.gnu.org/licenses/>.
 //###########################################################################
+
+#pragma once
+
+#if !defined(PROCESSLIB_GSLERRORMGR_H)
+#define PROCESSLIB_GSLERRORMGR_H
+
 #ifndef __unix
 #pragma warning(disable:4251)
 #endif
@@ -46,6 +52,9 @@ class DLL_EXPORT GslErrorMgr
   ErrnoType		_lastGslErrno;
   static GslErrorMgr	_errorMgr;
 
-  GslErrorMgr(); 
+  GslErrorMgr();
   static void _error_handler(const char*,const char *,int,int);
 };
+
+
+#endif //!defined(PROCESSLIB_GSLERRORMGR_H)

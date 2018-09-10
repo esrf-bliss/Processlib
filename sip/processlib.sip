@@ -23,21 +23,79 @@
 %Module(name=processlib,version=0)
 
 %ModuleHeaderCode
+#define NPY_NO_DEPRECATED_API NPY_1_7_API_VERSION
+#include "numpy/numpyconfig.h"
+
 #if PY_VERSION_HEX >= 0x03000000
 extern "C" { int processlib_import_array();}
 #else
 extern "C" { void processlib_import_array();}
 #endif
+
+#include "processlib/Data.h"
+
+struct Data_HeaderContainer_itemIterator
+{
+  Data_HeaderContainer_itemIterator(Data::HeaderContainer &cnt) :
+    _cur(cnt.header().begin()),_end(cnt.header().end())
+  {}
+
+  std::map<std::string,std::string>::iterator _cur;
+  std::map<std::string,std::string>::iterator _end;
+};
+%End
+
+%ModuleCode
+#define PY_ARRAY_UNIQUE_SYMBOL _ProcessLibNumpyArray
+#define NPY_NO_DEPRECATED_API NPY_1_7_API_VERSION
+#include <numpy/arrayobject.h>
+#include <iostream>
+using namespace std;
+extern "C"
+{
+#if PY_VERSION_HEX >= 0x03000000
+  int processlib_import_array()
+  {
+    import_array();
+    return 0;
+  }
+#else
+  void processlib_import_array()
+  {
+    import_array();
+  }
+#endif
+}
 %End
 
 %PostInitialisationCode
 processlib_import_array();
 %End
 
+%UnitCode
+#include <Python.h>
+
+#ifndef LIMA_REPR_CODE
+#if PY_VERSION_HEX >= 0x03000000
+#define LIMA_REPR_CODE \
+	std::ostringstream str; \
+	str << *sipCpp;	\
+	const std::string& tmpString = str.str(); \
+	sipRes = PyUnicode_FromString(tmpString.c_str());
+#else
+#define LIMA_REPR_CODE \
+	std::ostringstream str; \
+	str << *sipCpp;	\
+	const std::string& tmpString = str.str(); \
+	sipRes = PyString_FromString(tmpString.c_str());
+#endif
+#endif //LIMA_REPR_CODE
+%End
+
 %Exception Data_Header_Iter_Stop_iteration /PyName=StopIteration/
 {
 %TypeHeaderCode
-#include "data_header_iterator.h"
+//#include "data_header_iterator.h"
 #include <iostream>
 %End
 %RaiseCode
@@ -50,7 +108,7 @@ processlib_import_array();
 struct Data_HeaderContainer_itemIterator
 {
 %TypeHeaderCode
-#include "data_header_iterator.h"
+//#include "data_header_iterator.h"
 %End
 
 public:
@@ -83,14 +141,14 @@ struct Data
 #if (defined(NPY_API_VERSION) && NPY_API_VERSION >= 0x00000004 && PY_VERSION_HEX >= 0x03000000)
 #include "numpy/npy_3kcompat.h"
 #endif
-#include "data_header_iterator.h"
+//#include "data_header_iterator.h"
 %End
 
   class HeaderContainer
   {
   public:
     HeaderContainer();
-    
+
 
 SIP_PYOBJECT pop(const char *,const char * = NULL);
 %MethodCode
@@ -114,7 +172,7 @@ PyObject *key, *value;
 SIP_SSIZE_T pos = 0;
 PoolThreadMgr::Lock aLock(sipCpp->mutex());
 Data::HeaderContainer::Header &header = sipCpp->header();
-while (PyDict_Next(a0, &pos, &key, &value)) 
+while (PyDict_Next(a0, &pos, &key, &value))
  {
   const char* keystr = PyString_AsString(key);
   const char* valuestr = PyString_AsString(value);
@@ -123,7 +181,7 @@ while (PyDict_Next(a0, &pos, &key, &value))
     std::cout << "Only string key and value are allowed" << std::endl;
     break;
    }
-std::pair<std::map<std::string,std::string>::iterator, bool> result = 
+std::pair<std::map<std::string,std::string>::iterator, bool> result =
 header.insert(std::pair<std::string,std::string>(PyString_AsString(key),PyString_AsString(value)));
 if(!result.second)
   result.first->second = PyString_AsString(value);
@@ -323,27 +381,6 @@ if(!sipErr)
 
   void releaseBuffer();
 
-%TypeCode
-#define PY_ARRAY_UNIQUE_SYMBOL _ProcessLibNumpyArray
-#define NPY_NO_DEPRECATED_API NPY_1_7_API_VERSION 
-#include "numpy/arrayobject.h"
-#include <iostream>
-using namespace std;
-extern "C"
-{
-#if PY_VERSION_HEX >= 0x03000000
-  int processlib_import_array()
-  {
-    import_array();
-  }
-#else
-  void processlib_import_array()
-  {
-    import_array();
-  }
-#endif
-}
-%End
   SIP_PYOBJECT refcount();
 %MethodCode
   Py_BEGIN_ALLOW_THREADS
@@ -451,7 +488,7 @@ class PoolThreadMgr
 
  public:
   static PoolThreadMgr& get() throw();
-  
+
   void addProcess(TaskMgr *,bool = true);
 %MethodCode
  Py_BEGIN_ALLOW_THREADS
@@ -465,10 +502,6 @@ class PoolThreadMgr
   bool wait(double timeout = -1.);
   void quit();
 };
-
-%UnitCode
-#include <lima_repr_attr.cpp>
-%End
 
 %Feature BPM_SUPPORT
 %Include BackgroundSubstraction.sip

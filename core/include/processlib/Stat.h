@@ -20,6 +20,12 @@
 // You should have received a copy of the GNU General Public License
 // along with this program; if not, see <http://www.gnu.org/licenses/>.
 //###########################################################################
+
+#pragma once
+
+#if !defined(PROCESSLIB_STAT_H)
+#define PROCESSLIB_STAT_H
+
 #include <stdio.h>      /* for printf() and fprintf() */
 #ifdef __unix
 #include <sys/time.h>
@@ -31,7 +37,7 @@
 class DLL_EXPORT Stat
 {
 public:
-  Stat(const Data &data,const std::string &info) : _data(data),_info(info) 
+  Stat(const Data &data,const std::string &info) : _data(data),_info(info)
   {
     if(!info.empty())
       gettimeofday(&_start,NULL);
@@ -41,11 +47,11 @@ public:
     if(!_info.empty())
       {
 	gettimeofday(&_end,NULL);
-	double diff = (_end.tv_sec - _start.tv_sec) + 
+	double diff = (_end.tv_sec - _start.tv_sec) +
 	  (_end.tv_usec - _start.tv_usec) / 1e6;
 	std::stringstream str;
 	str << "take : " << diff << "s";
-   
+
 	_data.header.insertOrIncKey(_info,str.str());
       }
   }
@@ -54,3 +60,5 @@ private:
   std::string	_info;
   struct timeval _start,_end;
 };
+
+#endif //!defined(PROCESSLIB_STAT_H)
