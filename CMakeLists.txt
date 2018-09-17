@@ -46,6 +46,10 @@ if($ENV{CONDA_BUILD})
   set(CMAKE_INSTALL_LIBDIR "lib")
 endif()
 
+# Set lower / upper case project names
+string(TOUPPER "${PROJECT_NAME}" PROJECT_NAME_UPPER)
+string(TOLOWER "${PROJECT_NAME}" PROJECT_NAME_LOWER)
+
 # Check if processlib is being used directly or via add_subdirectory
 set(PROCESSLIB_MASTER_PROJECT OFF)
 if (CMAKE_CURRENT_SOURCE_DIR STREQUAL CMAKE_SOURCE_DIR)
@@ -72,7 +76,7 @@ find_package(Threads REQUIRED)
 find_package(GSL REQUIRED)
 
 # Enable python binding code compilation using sip generator
-option(PROCESSLIB_ENABLE_PYTHON "compile python binding code?" LIMA_ENABLE_PYTHON)
+option(PROCESSLIB_ENABLE_PYTHON "compile python binding code?" ${LIMA_ENABLE_PYTHON})
 if(PROCESSLIB_ENABLE_PYTHON)
     find_package(PythonInterp)
     find_package(PythonLibs)
@@ -176,7 +180,7 @@ target_include_directories(processlib PUBLIC
 )
 if(WIN32)
     target_include_directories(processlib PUBLIC
-        "$<BUILD_INTERFACE:${CMAKE_SOURCE_DIR}/core/include/WindowSpecific>"
+        "$<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/core/include/WindowSpecific>"
         "$<INSTALL_INTERFACE:${CMAKE_INSTALL_INCLUDEDIR}/processlib/WindowSpecific>"
     )
 endif()
@@ -204,7 +208,7 @@ if(PROCESSLIB_ENABLE_PYTHON)
     set(SIP_INCLUDE_DIRS "${CMAKE_CURRENT_SOURCE_DIR}/tasks/sip")
     add_sip_python_module(processlib "${CMAKE_CURRENT_BINARY_DIR}/sip/processlib.sip")
     target_include_directories(python_module_processlib PRIVATE ${PYTHON_INCLUDE_DIRS} ${CMAKE_CURRENT_SOURCE_DIR}/sip)
-    target_link_libraries(python_module_processlib processlib)
+    target_link_libraries(python_module_processlib PRIVATE processlib)
 endif()
 
 ## Installation
@@ -256,7 +260,7 @@ if(WIN32)
     )
 endif()
 
-if(PROCESSLIB_ENABLE_PYTHON)
+if(PROCESSLIB_ENABLE_PYTHON AND PROCESSLIB_MASTER_PROJECT)
     install(
         FILES ${CMAKE_CURRENT_BINARY_DIR}/sip/processlib.sip
               ${CMAKE_CURRENT_SOURCE_DIR}/tasks/sip/BackgroundSubstraction.sip

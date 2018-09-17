@@ -35,9 +35,12 @@
 # SIP_EXTRA_OPTIONS - Extra command line options which should be passed on to
 #     SIP.
 
+# See https://itk.org/Bug/view.php?id=12265
+get_filename_component(_SIPMACRO_LIST_DIR ${CMAKE_CURRENT_LIST_FILE} PATH)
+
 set(SIP_INCLUDE_DIRS)
 set(SIP_TAGS)
-set(SIP_CONCAT_PARTS 8)
+set(SIP_CONCAT_PARTS 16)
 set(SIP_DISABLE_FEATURES)
 set(SIP_EXTRA_OPTIONS)
 
@@ -77,7 +80,7 @@ macro(ADD_SIP_PYTHON_MODULE MODULE_NAME MODULE_SIP)
         list(APPEND _sip_x -x ${_x})
     endforeach (_x ${SIP_DISABLE_FEATURES})
 
-    set(_message "-DMESSAGE=Generating CPP code for module ${MODULE_NAME}")
+    set(_message "Generating CPP code for module ${MODULE_NAME}")
     set(_sip_output_files)
     foreach(CONCAT_NUM RANGE 0 ${SIP_CONCAT_PARTS} )
         if( ${CONCAT_NUM} LESS ${SIP_CONCAT_PARTS} )
@@ -85,32 +88,28 @@ macro(ADD_SIP_PYTHON_MODULE MODULE_NAME MODULE_SIP)
         endif( ${CONCAT_NUM} LESS ${SIP_CONCAT_PARTS} )
     endforeach(CONCAT_NUM RANGE 0 ${SIP_CONCAT_PARTS} )
 
-    if(NOT WIN32)
-        set(TOUCH_COMMAND touch)
-    else(NOT WIN32)
-        set(TOUCH_COMMAND echo)
-        # instead of a touch command, give out the name and append to the files
-        # this is basically what the touch command does.
-        foreach(filename ${_sip_output_files})
-            file(APPEND filename "")
-        endforeach(filename ${_sip_output_files})
-    endif(NOT WIN32)
     add_custom_command(
         OUTPUT ${_sip_output_files}
-        COMMAND ${CMAKE_COMMAND} -E echo ${message}
-        COMMAND ${TOUCH_COMMAND} ${_sip_output_files}
+        COMMAND ${CMAKE_COMMAND} -E echo ${_message}
+        COMMAND ${CMAKE_COMMAND} -E touch ${_sip_output_files}
         COMMAND ${SIP_EXECUTABLE} ${_sip_tags} ${_sip_x} ${SIP_EXTRA_OPTIONS} -j ${SIP_CONCAT_PARTS} -c ${_module_path} ${_SIP_INCLUDE_DIRS} ${_abs_module_sip}
-        COMMAND ${PYTHON_EXECUTABLE} ${CMAKE_SOURCE_DIR}/cmake/checksipexc.py ${_sip_output_files}
+        COMMAND ${PYTHON_EXECUTABLE} "${_SIPMACRO_LIST_DIR}/checksipexc.py" ${_sip_output_files}
         DEPENDS ${_abs_module_sip} ${SIP_EXTRA_FILES_DEPEND}
     )
+
+    # Add the import numpy compilation unit
+    # See https://docs.scipy.org/doc/numpy/reference/c-api.array.html#importing-the-api
+    configure_file(${_SIPMACRO_LIST_DIR}/sip_init_numpy.cpp.in sip/sip_init_numpy.cpp)
+    list(APPEND _sip_output_files "${CMAKE_CURRENT_BINARY_DIR}/sip/sip_init_numpy.cpp")
+
     # not sure if type MODULE could be uses anywhere, limit to cygwin for now
     if (CYGWIN)
         add_library(${_logical_name} MODULE ${_sip_output_files} )
     else (CYGWIN)
         add_library(${_logical_name} SHARED ${_sip_output_files} )
     endif (CYGWIN)
-    target_link_libraries(${_logical_name} ${PYTHON_LIBRARY})
-    target_link_libraries(${_logical_name} ${EXTRA_LINK_LIBRARIES})
+    target_link_libraries(${_logical_name} PRIVATE ${PYTHON_LIBRARY})
+    target_link_libraries(${_logical_name} PRIVATE ${EXTRA_LINK_LIBRARIES})
     set_target_properties(${_logical_name} PROPERTIES PREFIX "" OUTPUT_NAME ${_child_module_name})
 
     if (WIN32)
