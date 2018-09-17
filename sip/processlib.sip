@@ -24,7 +24,12 @@
 
 %ModuleHeaderCode
 #define NPY_NO_DEPRECATED_API NPY_1_7_API_VERSION
-#include "numpy/numpyconfig.h"
+#define NO_IMPORT_ARRAY
+#define PY_ARRAY_UNIQUE_SYMBOL _processlibNumpyArray
+#include "numpy/arrayobject.h"
+#if (defined(NPY_API_VERSION) && NPY_API_VERSION >= 0x00000004 && PY_VERSION_HEX >= 0x03000000)
+#include "numpy/npy_3kcompat.h"
+#endif
 
 #if PY_VERSION_HEX >= 0x03000000
 extern "C" { int processlib_import_array();}
@@ -43,29 +48,6 @@ struct Data_HeaderContainer_itemIterator
   std::map<std::string,std::string>::iterator _cur;
   std::map<std::string,std::string>::iterator _end;
 };
-%End
-
-%ModuleCode
-#define PY_ARRAY_UNIQUE_SYMBOL _ProcessLibNumpyArray
-#define NPY_NO_DEPRECATED_API NPY_1_7_API_VERSION
-#include <numpy/arrayobject.h>
-#include <iostream>
-using namespace std;
-extern "C"
-{
-#if PY_VERSION_HEX >= 0x03000000
-  int processlib_import_array()
-  {
-    import_array();
-    return 0;
-  }
-#else
-  void processlib_import_array()
-  {
-    import_array();
-  }
-#endif
-}
 %End
 
 %PostInitialisationCode
@@ -136,12 +118,6 @@ struct Data
 #include "processlib/Data.h"
 #include "processlib/PoolThreadMgr.h"
 #include <sstream>
-#define NPY_NO_DEPRECATED_API NPY_1_7_API_VERSION
-#include "numpy/numpyconfig.h"
-#if (defined(NPY_API_VERSION) && NPY_API_VERSION >= 0x00000004 && PY_VERSION_HEX >= 0x03000000)
-#include "numpy/npy_3kcompat.h"
-#endif
-//#include "data_header_iterator.h"
 %End
 
   class HeaderContainer
