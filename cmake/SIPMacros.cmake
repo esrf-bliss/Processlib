@@ -40,7 +40,7 @@ get_filename_component(_SIPMACRO_LIST_DIR ${CMAKE_CURRENT_LIST_FILE} PATH)
 
 set(SIP_INCLUDE_DIRS)
 set(SIP_TAGS)
-set(SIP_CONCAT_PARTS 16)
+set(SIP_CONCAT_PARTS 8)
 set(SIP_DISABLE_FEATURES)
 set(SIP_EXTRA_OPTIONS)
 
@@ -93,7 +93,6 @@ macro(ADD_SIP_PYTHON_MODULE MODULE_NAME MODULE_SIP)
         COMMAND ${CMAKE_COMMAND} -E echo ${_message}
         COMMAND ${CMAKE_COMMAND} -E touch ${_sip_output_files}
         COMMAND ${SIP_EXECUTABLE} ${_sip_tags} ${_sip_x} ${SIP_EXTRA_OPTIONS} -j ${SIP_CONCAT_PARTS} -c ${_module_path} ${_sip_include_dirs} ${_abs_module_sip}
-        COMMAND ${PYTHON_EXECUTABLE} "${_SIPMACRO_LIST_DIR}/checksipexc.py" ${_sip_output_files}
         DEPENDS ${_abs_module_sip} ${SIP_EXTRA_FILES_DEPEND}
     )
 
