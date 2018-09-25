@@ -1,5 +1,6 @@
 //###########################################################################
-// This file is part of LImA, a Library for Image Acquisition
+// This file is part of ProcessLib, a submodule of LImA project the
+// Library for Image Acquisition
 //
 // Copyright (C) : 2009-2011
 // European Synchrotron Radiation Facility
