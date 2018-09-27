@@ -22,6 +22,7 @@ requirements:
     - cmake
     - {{ compiler('cxx') }}
     - python {{ python }} #Python is used by CMake configure stage
+    - numpy               #For detecting numpy version
     - sip 4.19*           #For the SIP generator
   run:
     - python
