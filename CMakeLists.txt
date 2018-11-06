@@ -161,7 +161,7 @@ generate_export_header(processlib)
 
 # Set version
 set_target_properties(processlib PROPERTIES
-    VERSION "${VERSION}"
+    VERSION "${PROJECT_VERSION}"
     SOVERSION "${PACKAGE_VERSION_MAJOR}.${PACKAGE_VERSION_MINOR}")
 
 target_link_libraries(processlib
