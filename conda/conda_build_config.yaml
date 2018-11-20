@@ -7,6 +7,7 @@ cxx_compiler:
 python:
   - 2.7                        # [linux]
   - 3.6
+  - 3.7
 numpy:
   - 1.15
 # This differs from target_platform in that it determines what subdir the compiler
