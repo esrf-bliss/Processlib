@@ -20,7 +20,7 @@
 // You should have received a copy of the GNU General Public License
 // along with this program; if not, see <http://www.gnu.org/licenses/>.
 //###########################################################################
-#ifndef WITHOUT_GSL
+#ifndef PROCESSLIB_WITHOUT_GSL
 #include <gsl/gsl_errno.h>
 #include "processlib/GslErrorMgr.h"
 #include "processlib/PoolThreadMgr.h"
@@ -82,4 +82,4 @@ void GslErrorMgr::_error_handler(const char *reason,
 							    aTmpBuffer));
   get()._lastGslErrno.insert(ErrnoType::value_type(pthread_self(),gsl_errno));
 }
-#endif //WITHOUT_GSL
+#endif //PROCESSLIB_WITHOUT_GSL
