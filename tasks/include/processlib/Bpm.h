@@ -22,7 +22,7 @@
 //###########################################################################
 #ifndef __BPM_H__
 #define __BPM_H__
-#ifndef WITHOUT_GSL
+#ifndef PROCESSLIB_WITHOUT_GSL
 #include "processlib/SinkTask.h"
 
 namespace Tasks
@@ -164,5 +164,5 @@ namespace Tasks
   {
   };
 }
-#endif	// WITHOUT_GSL
+#endif	// PROCESSLIB_WITHOUT_GSL
 #endif

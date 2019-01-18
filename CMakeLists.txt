@@ -73,8 +73,11 @@ set(CMAKE_MODULE_PATH ${CMAKE_CURRENT_SOURCE_DIR}/cmake ${CMAKE_MODULE_PATH})
 # Threads lib required
 find_package(Threads REQUIRED)
 
-# GSL required
-find_package(GSL REQUIRED)
+# Enable GSL processing
+option(PROCESSLIB_ENABLE_GSL "enable GSL related processing?" ON)
+if(PROCESSLIB_ENABLE_GSL)
+    find_package(GSL REQUIRED)
+endif(PROCESSLIB_ENABLE_GSL)
 
 # Enable python binding code compilation using sip generator
 option(PROCESSLIB_ENABLE_PYTHON "compile python binding code?" ${LIMA_ENABLE_PYTHON})
@@ -164,10 +167,16 @@ set_target_properties(processlib PROPERTIES
     VERSION "${PROJECT_VERSION}"
     SOVERSION "${PACKAGE_VERSION_MAJOR}.${PACKAGE_VERSION_MINOR}")
 
-target_link_libraries(processlib
-    PUBLIC GSL::gsl
-    PUBLIC GSL::gslcblas
-)
+if(PROCESSLIB_ENABLE_GSL)
+    target_link_libraries(processlib
+        PUBLIC GSL::gsl
+        PUBLIC GSL::gslcblas
+    )
+else()
+    target_compile_definitions(processlib
+        PUBLIC PROCESSLIB_WITHOUT_GSL
+    )
+endif(PROCESSLIB_ENABLE_GSL)
 
 # The following might work with cmake 3.12
 # Add the library processlib definition
@@ -176,8 +185,6 @@ target_link_libraries(processlib
 # target_link_libraries(processlib
 #   PRIVATE core
 #   PRIVATE tasks)
-
-target_include_directories(processlib PRIVATE ${GSL_INCLUDE_DIRS})
 
 target_include_directories(processlib PUBLIC
     "$<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/core/include>"
@@ -208,6 +215,10 @@ endif()
 if(PROCESSLIB_ENABLE_PYTHON)
     configure_file(${CMAKE_CURRENT_SOURCE_DIR}/sip/processlib.sip sip/processlib.sip COPYONLY)
     set(SIP_INCLUDE_DIRS "${CMAKE_CURRENT_SOURCE_DIR}/tasks/sip")
+    # Disable BPM is GLS is not enabled
+    if(NOT PROCESSLIB_ENABLE_GSL)
+        set(SIP_DISABLE_FEATURES "BPM_SUPPORT")
+    endif(NOT PROCESSLIB_ENABLE_GSL)
     add_sip_python_module(processlib "${CMAKE_CURRENT_BINARY_DIR}/sip/processlib.sip")
     target_include_directories(python_module_processlib PRIVATE ${PYTHON_INCLUDE_DIRS} ${CMAKE_CURRENT_SOURCE_DIR}/sip)
     target_link_libraries(python_module_processlib PRIVATE processlib)
