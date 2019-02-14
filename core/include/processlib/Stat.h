@@ -34,7 +34,7 @@
 #include <sstream>
 #include <string>
 
-class DLL_EXPORT Stat
+class PROCESSLIB_EXPORT Stat
 {
 public:
   Stat(const Data &data,const std::string &info) : _data(data),_info(info)

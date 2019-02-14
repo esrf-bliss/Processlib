@@ -32,7 +32,7 @@ namespace Tasks
   
   typedef SinkTaskMgr<RoiCounterResult> RoiCounterManager;
 
-  struct DLL_EXPORT RoiCounterResult
+  struct PROCESSLIB_EXPORT RoiCounterResult
   {
     RoiCounterResult() : 
       sum(0.),average(0.),std(0.),
@@ -65,7 +65,7 @@ namespace Tasks
     return os;
   }
 
-  class DLL_EXPORT RoiCounterTask : public SinkTask<RoiCounterResult>
+  class PROCESSLIB_EXPORT RoiCounterTask : public SinkTask<RoiCounterResult>
   {
   public:
     enum type {UNDEF,SQUARE,ARC,LUT,MASK};

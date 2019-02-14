@@ -27,14 +27,15 @@
 #define PROCESSLIB_TASKMGR_H
 
 #include <deque>
+
 #include "processlib/Data.h"
-#include "processlib/Compatibility.h"
+#include <processlib_export.h>
 
 class LinkTask;
 class SinkTaskBase;
 class PoolThreadMgr;
 
-class DLL_EXPORT TaskMgr
+class PROCESSLIB_EXPORT TaskMgr
 {
   friend class PoolThreadMgr;
   struct Task
@@ -81,7 +82,7 @@ public:
   TaskMgr(const TaskMgr&);
   ~TaskMgr();
 
-  void setInputData(Data &aData) {_currentData = aData;}
+  void setInputData(AnyData &aData) {_currentData = aData;}
   bool setLinkTask(int aStage,LinkTask *);
   void addSinkTask(int aStage,SinkTaskBase *);
   void getLastTask(std::pair<int,LinkTask*>&,

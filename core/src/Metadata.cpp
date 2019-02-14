@@ -20,11 +20,13 @@
 // You should have received a copy of the GNU General Public License
 // along with this program; if not, see <http://www.gnu.org/licenses/>.
 //###########################################################################
-#include "processlib/Data.h"
-#include "processlib/PoolThreadMgr.h"
-#include <sstream>
 
-struct Data::HeaderContainer::HeaderHolder
+#include <sstream>
+#include <utility>
+
+#include "processlib/Metadata.h"
+
+struct HeaderContainer::HeaderHolder
 {
   HeaderHolder() : refcount(1)
   {
@@ -65,131 +67,128 @@ struct Data::HeaderContainer::HeaderHolder
   {
     pthread_mutex_unlock(&_lock);
   }
+  
   int				refcount;
   pthread_mutex_t		_lock;
   pthread_mutexattr_t           _lock_attr;
-  Data::HeaderContainer::Header header;
+  HeaderContainer::Header header;
 };
 
-
-Data::HeaderContainer::HeaderContainer() :
-  _header(new HeaderHolder())
+HeaderContainer::HeaderContainer() :
+  m_impl(std::make_unique<HeaderHolder>())
 {
 }
 
-Data::HeaderContainer::HeaderContainer(const HeaderContainer &cnt) :
-  _header(NULL)
+HeaderContainer& HeaderContainer::operator=(const HeaderContainer &cnt)
 {
-  *this = cnt;
-}
-
-Data::HeaderContainer& Data::HeaderContainer::operator=(const HeaderContainer &cnt)
-{
-  cnt._header->ref();
-  if(_header) _header->unref();
-  _header = cnt._header;
+  cnt.m_impl->ref();
+  if(m_impl) m_impl->unref();
+  m_impl = cnt.m_impl;
   return *this;
 }
 
-Data::HeaderContainer::~HeaderContainer()
+HeaderContainer::~HeaderContainer()
 {
-  if(_header)
-    _header->unref();
+  if(m_impl)
+    m_impl->unref();
 }
 
-void Data::HeaderContainer::insert(const char *key,const char *value)
+void HeaderContainer::insert(const char *key,const char *value)
 {
-  _header->lock();
-  std::pair<std::map<std::string,std::string>::iterator, bool> result = 
-    _header->header.insert(std::pair<std::string,std::string>(key,value));
+  m_impl->lock();
+  auto result = 
+    m_impl->header.insert(std::make_pair(key, value));
   if(!result.second)
     result.first->second = value;
-  _header->unlock();
+  m_impl->unlock();
 }
-void Data::HeaderContainer::insertOrIncKey(const std::string &key,
-					   const std::string &value)
+
+void HeaderContainer::insertOrIncKey(
+    const std::string &key,
+    const std::string &value)
 {
-  _header->lock();
-std::pair<std::map<std::string,std::string>::iterator, bool> result = 
-  _header->header.insert(std::pair<std::string,std::string>(key,value));
+  m_impl->lock();
+  auto result = 
+    m_impl->header.insert(std::make_pair(key, value));
   int aNumber = 0;
   std::stringstream aTmpKey;
   while(!result.second)
     {
       aTmpKey << key << '_' << ++aNumber;
-      result = _header->header.insert(std::pair<std::string,std::string>(aTmpKey.str(),value));
+      result = m_impl->header.insert(std::make_pair(aTmpKey.str(), value));
       aTmpKey.seekp(0,aTmpKey.beg);
     }
-  _header->unlock();
-}
-void Data::HeaderContainer::erase(const char *key)
-{
-  _header->lock();
-  std::map<std::string,std::string>::iterator i = _header->header.find(key);
-  if(i != _header->header.end())
-    _header->header.erase(i);
-  _header->unlock();
+  m_impl->unlock();
 }
 
-void Data::HeaderContainer::clear()
+void HeaderContainer::erase(const char *key)
 {
-  _header->lock();
-  _header->header.clear();
-  _header->unlock();
+  m_impl->lock();
+  auto i = m_impl->header.find(key);
+  if(i != m_impl->header.end())
+    m_impl->header.erase(i);
+  m_impl->unlock();
 }
 
-const char * Data::HeaderContainer::get(const char *key,
+void HeaderContainer::clear()
+{
+  m_impl->lock();
+  m_impl->header.clear();
+  m_impl->unlock();
+}
+
+const char * HeaderContainer::get(const char *key,
 					const char *defaultValue) const
 {
   const char *aReturnValue = defaultValue;
-  _header->lock();
-  std::map<std::string,std::string>::const_iterator i = _header->header.find(key);
-  if(i != _header->header.end())
+  m_impl->lock();
+  auto i = m_impl->header.find(key);
+  if(i != m_impl->header.end())
     aReturnValue = i->second.c_str();
-  _header->unlock();
+  m_impl->unlock();
   return aReturnValue;
 }
 
-int Data::HeaderContainer::size() const
+int HeaderContainer::size() const
 {
-  _header->lock();
-  int aReturnSize = int(_header->header.size());
-  _header->unlock();
+  m_impl->lock();
+  int aReturnSize = int(m_impl->header.size());
+  m_impl->unlock();
   return aReturnSize;
 }
 
-void Data::HeaderContainer::lock()
+void HeaderContainer::lock()
 {
-  _header->lock();
+  m_impl->lock();
 }
 
-void Data::HeaderContainer::unlock()
+void HeaderContainer::unlock()
 {
-  _header->unlock();
-}
-pthread_mutex_t* Data::HeaderContainer::mutex() const
-{
-  return &_header->_lock;
+  m_impl->unlock();
 }
 
-Data::HeaderContainer::Header& Data::HeaderContainer::header()
+pthread_mutex_t* HeaderContainer::mutex() const
 {
-  return _header->header;
+  return &m_impl->_lock;
 }
 
-const Data::HeaderContainer::Header& Data::HeaderContainer::header() const
+HeaderContainer::Header& HeaderContainer::header()
 {
-  return _header->header;
+  return m_impl->header;
 }
 
+const HeaderContainer::Header& HeaderContainer::header() const
+{
+  return m_impl->header;
+}
 
 std::ostream& operator<<(std::ostream &os,
-			 const Data::HeaderContainer &aHeader)
+			 const HeaderContainer &aHeader)
 {
   os << "< ";
   PoolThreadMgr::Lock aLock(aHeader.mutex());
-  const Data::HeaderContainer::Header &header = aHeader.header();
-  for(Data::HeaderContainer::Header::const_iterator i = header.begin();
+  const HeaderContainer::Header &header = aHeader.header();
+  for(HeaderContainer::Header::const_iterator i = header.begin();
       i != header.end();++i)
     os << "(" << i->first << "," << i->second << ") ";
   os << ">";

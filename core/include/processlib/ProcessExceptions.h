@@ -27,14 +27,12 @@
 #define PROCESSLIB_PROCESS_EXCEPTIONS_H
 
 #include <string>
+#include <stdexcept>
 
-class ProcessException
+struct ProcessException : std::runtime_error
 {
- public:
-  ProcessException(const char *msg) : m_msg(msg) {}
-  const std::string& getErrMsg() const {return m_msg;}
- private:
-  std::string m_msg;
+  ProcessException(const char* what_arg) : runtime_error(what_arg) {}
+  const char* getErrMsg() const noexcept { return what(); }
 };
 
 #endif //!defined(PROCESSLIB_PROCESS_EXCEPTIONS_H)

@@ -23,38 +23,51 @@
 
 #pragma once
 
-#if !defined(PROCESSLIB_GSLERRORMGR_H)
-#define PROCESSLIB_GSLERRORMGR_H
+#if !defined(PROCESSLIB_METADATA_H)
+#define PROCESSLIB_METADATA_H
 
-#ifndef __unix
-#pragma warning(disable:4251)
-#endif
-
-#include <pthread.h>
-#include <map>
+#include <memory>
 #include <string>
+#include <unordered_map>
 
 #include <processlib_export.h>
 
-/** @brief this class manage error message in thread safe maner
- */
-class PROCESSLIB_EXPORT GslErrorMgr
+class PROCESSLIB_EXPORT HeaderContainer
 {
-  typedef std::map<pthread_t,std::string> ErrorMessageType;
-  typedef std::map<pthread_t,int>	  ErrnoType;
- public:
-  static inline GslErrorMgr& get() throw() {return GslErrorMgr::_errorMgr;}
-  const char* lastErrorMsg() const;
-  int   lastErrno() const;
-  void	resetErrorMsg();
- private:
-  ErrorMessageType	_errorMessage;
-  ErrnoType		_lastGslErrno;
-  static GslErrorMgr	_errorMgr;
+public:
+  typedef std::unordered_map<std::string, std::string> Header;
 
-  GslErrorMgr();
-  static void _error_handler(const char*,const char *,int,int);
+  HeaderContainer();
+  ~HeaderContainer();
+
+  void insert(const char *key,const char *value);
+  void insertOrIncKey(const std::string &key,const std::string &value);
+  void erase(const char *key);
+  void clear();
+
+  const char* get(const char *key,const char *defaultValue = NULL) const;
+  int size() const;
+
+  const char* operator[](const char *aKey) const {return get(aKey);}
+
+  HeaderContainer& operator=(const HeaderContainer&);
+
+  // ExpertMethodes for macro insertion a loop
+  void lock();
+  void unlock();
+  pthread_mutex_t* mutex() const;
+  Header& header();
+  const Header& header() const;
+
+private:
+  struct HeaderHolder;
+  
+  std::unique_ptr<HeaderHolder> m_impl;
 };
 
 
-#endif //!defined(PROCESSLIB_GSLERRORMGR_H)
+PROCESSLIB_EXPORT std::ostream& operator<<(std::ostream &os,
+				    const HeaderContainer &aHeader);
+
+
+#endif //!defined(PROCESSLIB_METADATA_H)

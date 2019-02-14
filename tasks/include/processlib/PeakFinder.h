@@ -32,7 +32,7 @@ namespace Tasks
   
   typedef SinkTaskMgr<PeakFinderResult> PeakFinderManager;
 
-  struct DLL_EXPORT PeakFinderResult
+  struct PROCESSLIB_EXPORT PeakFinderResult
   {
     PeakFinderResult() : 
     x_peak(0.),y_peak(0.),
@@ -58,7 +58,7 @@ namespace Tasks
     return os;
   }
 
-  class DLL_EXPORT PeakFinderTask : public SinkTask<PeakFinderResult>
+  class PROCESSLIB_EXPORT PeakFinderTask : public SinkTask<PeakFinderResult>
   {
   public:
     enum ComputingMode {MAXIMUM,CM};

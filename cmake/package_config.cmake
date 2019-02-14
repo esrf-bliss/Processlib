@@ -23,7 +23,7 @@ configure_package_config_file(
 write_basic_package_version_file(
   "${PROJECT_BINARY_DIR}/${PROJECT_NAME_LOWER}-config-version.cmake"
   VERSION ${PROJECT_VERSION}
-  COMPATIBILITY SameMinorVersion)
+  COMPATIBILITY SameMajorVersion)
 
 install(FILES
   "${PROJECT_BINARY_DIR}/${PROJECT_NAME_LOWER}-config.cmake"

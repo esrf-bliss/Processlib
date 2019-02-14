@@ -23,7 +23,7 @@
 #include "processlib/LinkTask.h"
 namespace Tasks
 {
-  class DLL_EXPORT Binning : public LinkTask
+  class PROCESSLIB_EXPORT Binning : public LinkTask
   {
   public:
     Binning();

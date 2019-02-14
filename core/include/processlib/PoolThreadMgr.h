@@ -30,16 +30,15 @@
 #pragma warning(disable:4251)
 #endif
 
-#include <map>
+//#include <map>
+#include <queue>
 #include <vector>
-#include <pthread.h>
 
-#include "processlib/Compatibility.h"
+#include <processlib_export.h>
 
 class TaskMgr;
-struct Data;
 
-class DLL_EXPORT PoolThreadMgr
+class PROCESSLIB_EXPORT PoolThreadMgr
 {
 public:
   typedef std::pair<int,int> TaskPriority;
@@ -96,7 +95,10 @@ private:
 	return b.first < a.first;
     }
   };
-  typedef std::multimap<TaskPriority,TaskMgr*,cmp> QueueType;
+  
+  //typedef std::multimap<TaskPriority,TaskMgr*,cmp> QueueType;
+  typedef std::priority_queue<TaskPriority, std::vector<TaskMgr>, cmp> QueueType;
+  
 
   pthread_mutex_t                    _lock;
   pthread_cond_t                     _cond;

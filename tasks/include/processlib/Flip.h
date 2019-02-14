@@ -23,7 +23,7 @@
 #include "processlib/LinkTask.h"
 namespace Tasks
 {
-  class DLL_EXPORT Flip : public LinkTask
+  class PROCESSLIB_EXPORT Flip : public LinkTask
   {
   public:
     enum FLIP_MODE {

@@ -31,7 +31,7 @@ namespace Tasks
   
   typedef SinkTaskMgr<Roi2SpectrumResult> Roi2SpectrumManager;
 
-  struct DLL_EXPORT Roi2SpectrumResult
+  struct PROCESSLIB_EXPORT Roi2SpectrumResult
   {
     Roi2SpectrumResult() :
       frameNumber(-1),
@@ -55,7 +55,7 @@ namespace Tasks
       return os;
     }
 
-  class DLL_EXPORT Roi2SpectrumTask : public SinkTask<Roi2SpectrumResult>
+  class PROCESSLIB_EXPORT Roi2SpectrumTask : public SinkTask<Roi2SpectrumResult>
   {
   public:
     enum Mode {LINES_SUM,COLUMN_SUM};

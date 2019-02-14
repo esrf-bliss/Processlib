@@ -25,7 +25,7 @@
 #include "processlib/LinkTask.h"
 namespace Tasks
 {
-  class DLL_EXPORT SoftRoi : public LinkTask
+  class PROCESSLIB_EXPORT SoftRoi : public LinkTask
   {
   public:
     SoftRoi();

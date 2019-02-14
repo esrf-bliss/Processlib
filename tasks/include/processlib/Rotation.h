@@ -26,7 +26,7 @@
 #include "processlib/LinkTask.h"
 namespace Tasks
 {
-  class DLL_EXPORT Rotation : public LinkTask
+  class PROCESSLIB_EXPORT Rotation : public LinkTask
   {
   public:
     enum Type {R_90,R_180,R_270};

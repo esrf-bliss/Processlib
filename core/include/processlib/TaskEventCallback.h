@@ -29,7 +29,7 @@
 #include "processlib/Data.h"
 #include <pthread.h>
 
-class DLL_EXPORT TaskEventCallback
+class PROCESSLIB_EXPORT TaskEventCallback
 {
  public:
   TaskEventCallback();

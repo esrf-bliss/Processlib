@@ -31,7 +31,7 @@ namespace Tasks
 
   typedef SinkTaskMgr<BpmResult> BpmManager;
   
-  class DLL_EXPORT BpmResult
+  class PROCESSLIB_EXPORT BpmResult
   {
   public:
     BpmResult():
@@ -105,7 +105,7 @@ namespace Tasks
     }
   };
 
-  class DLL_EXPORT BpmTask : public SinkTask<BpmResult>
+  class PROCESSLIB_EXPORT BpmTask : public SinkTask<BpmResult>
   {
   public:
     BpmTask(BpmManager &);

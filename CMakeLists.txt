@@ -33,7 +33,7 @@
 # default is the python installation directory, for UNIX it
 # can be /usr/lib/python2.7/dist-packages/ .
 
-cmake_minimum_required(VERSION 3.1)
+cmake_minimum_required(VERSION 3.13)
 
 project (processlib)
 include(cmake/project_version.cmake)
@@ -57,8 +57,8 @@ if (CMAKE_CURRENT_SOURCE_DIR STREQUAL CMAKE_SOURCE_DIR)
   set(PROCESSLIB_MASTER_PROJECT ON)
 endif()
 
-# Enable C++11 and later
-set(CMAKE_CXX_STANDARD 11)
+# Enable C++17 and later
+set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
 if(MSVC AND MSVC_VERSION GREATER 1500)
@@ -69,9 +69,6 @@ endif()
 
 # cmake directory for additional macros
 set(CMAKE_MODULE_PATH ${CMAKE_CURRENT_SOURCE_DIR}/cmake ${CMAKE_MODULE_PATH})
-
-# Threads lib required
-find_package(Threads REQUIRED)
 
 # Enable GSL processing
 option(PROCESSLIB_ENABLE_GSL "enable GSL related processing?" ON)
@@ -116,48 +113,14 @@ if(PROCESSLIB_ENABLE_PYTHON)
     endif()
 endif()
 
-set(processlib_srcs
-    ${CMAKE_CURRENT_BINARY_DIR}/${PROJECT_NAME}/project_version.cc # Add version info
-    core/src/GslErrorMgr.cpp
-    core/src/PoolThreadMgr.cpp
-    core/src/TaskEventCallback.cpp
-    core/src/LinkTask.cpp
-    core/src/SinkTask.cpp
-    core/src/TaskMgr.cpp
-    core/src/HeaderContainer.cpp
-    tasks/src/BackgroundSubstraction.cpp
-    tasks/src/FlatfieldCorrection.cpp
-    tasks/src/RoiCounter.cpp
-    tasks/src/Binning.cpp
-    tasks/src/Flip.cpp
-    tasks/src/SoftRoi.cpp
-    tasks/src/Bpm.cpp
-    tasks/src/Mask.cpp
-    tasks/src/Roi2Spectrum.cpp
-    tasks/src/Rotation.cpp
-    tasks/src/PeakFinder.cpp
-)
-if(WIN32)
-    list(APPEND processlib_srcs
-        core/src/WindowSpecific/pthread_cancelling.cpp
-        core/src/WindowSpecific/pthread_cond.cpp
-        core/src/WindowSpecific/pthread_key.cpp
-        core/src/WindowSpecific/pthread_mutex.cpp
-        core/src/WindowSpecific/pthread_rwlock.cpp
-        core/src/WindowSpecific/pthread_thread.cpp
-        core/src/WindowSpecific/stdio_compat.cpp
-        core/src/WindowSpecific/time_compat.cpp
-    )
-endif()
+# Add the library processlib definition
+add_subdirectory(core)
+add_subdirectory(tasks)
 
-file(GLOB_RECURSE core_incs "core/include/*.h")
-file(GLOB_RECURSE tasks_incs "tasks/include/*.h")
-
-add_library(processlib SHARED
-    ${processlib_srcs}
-    ${core_incs}
-    ${tasks_incs}
-)
+add_library(processlib SHARED)
+target_link_libraries(processlib
+  PRIVATE core
+  PRIVATE tasks)
 
 # Generate export macros
 generate_export_header(processlib)
@@ -172,21 +135,10 @@ if(PROCESSLIB_ENABLE_GSL)
         PUBLIC GSL::gsl
         PUBLIC GSL::gslcblas
     )
-else()
-    target_compile_definitions(processlib
-        PUBLIC PROCESSLIB_WITHOUT_GSL
-    )
 endif(PROCESSLIB_ENABLE_GSL)
 
-# The following might work with cmake 3.12
-# Add the library processlib definition
-# add_subdirectory(core)
-# add_subdirectory(tasks)
-# target_link_libraries(processlib
-#   PRIVATE core
-#   PRIVATE tasks)
-
 target_include_directories(processlib PUBLIC
+    "$<BUILD_INTERFACE:${CMAKE_BINARY_DIR}>"
     "$<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/core/include>"
     "$<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/tasks/include>"
     "$<INSTALL_INTERFACE:${CMAKE_INSTALL_INCLUDEDIR}>"
@@ -294,8 +246,13 @@ endif()
 
 ## Tests
 if(PROCESSLIB_ENABLE_TESTS)
+    find_package(Boost COMPONENTS
+        unit_test_framework
+        REQUIRED
+    )
+    
     enable_testing()
-    #add_subdirectory(test)
+    add_subdirectory(test)
 endif()
 
 # Packages
