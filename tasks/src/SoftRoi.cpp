@@ -20,10 +20,15 @@
 // You should have received a copy of the GNU General Public License
 // along with this program; if not, see <http://www.gnu.org/licenses/>.
 //###########################################################################
+
+#include <algorithm>
+#include <cstring>
+
+#include "processlib/ProcessExceptions.h"
 #include "processlib/SoftRoi.h"
 #include "processlib/ProcessExceptions.h"
 #include "processlib/Stat.h"
-#include <string.h>
+
 using namespace Tasks;
 
 SoftRoi::SoftRoi() : LinkTask(), _x1(-1), _x2(-1), _y1(-1), _y2(-1) {}
@@ -58,10 +63,10 @@ Data SoftRoi::process(Data &aData)
     else if (_x1 >= 0 && _y1 >= 0 && _x2 >= 0 && _y2 >= 0)
     {
         int depth         = aData.depth();
-        int startLineId   = min(_y1, aData.dimensions[1] - 1);
-        int endLineId     = min(_y2 + 1, aData.dimensions[1]);
-        int startColumnId = min(_x1, aData.dimensions[0] - 1);
-        int endColumnId   = min(_x2 + 1, aData.dimensions[0]);
+        int startLineId   = std::min(_y1, aData.dimensions[1] - 1);
+        int endLineId     = std::min(_y2 + 1, aData.dimensions[1]);
+        int startColumnId = std::min(_x1, aData.dimensions[0] - 1);
+        int endColumnId   = std::min(_x2 + 1, aData.dimensions[0]);
         int cropSize      = (endColumnId - startColumnId) * depth;
         int lineSize      = aData.dimensions[0] * depth;
 

@@ -30,8 +30,6 @@ namespace Tasks
 %End
   public:
     enum Type {R_90,R_180,R_270};
-    Rotation();
-    Rotation(const Tasks::Rotation&);
     virtual Data process(Data&);
     void setType(Tasks::Rotation::Type);
   };

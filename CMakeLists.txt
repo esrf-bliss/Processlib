@@ -137,18 +137,7 @@ set(processlib_srcs
     tasks/src/Rotation.cpp
     tasks/src/PeakFinder.cpp
 )
-if(WIN32)
-    list(APPEND processlib_srcs
-        core/src/WindowSpecific/pthread_cancelling.cpp
-        core/src/WindowSpecific/pthread_cond.cpp
-        core/src/WindowSpecific/pthread_key.cpp
-        core/src/WindowSpecific/pthread_mutex.cpp
-        core/src/WindowSpecific/pthread_rwlock.cpp
-        core/src/WindowSpecific/pthread_thread.cpp
-        core/src/WindowSpecific/stdio_compat.cpp
-        core/src/WindowSpecific/time_compat.cpp
-    )
-endif()
+
 
 file(GLOB_RECURSE core_incs "core/include/*.h")
 file(GLOB_RECURSE tasks_incs "tasks/include/*.h")

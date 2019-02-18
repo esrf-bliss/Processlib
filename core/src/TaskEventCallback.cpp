@@ -23,28 +23,20 @@
 #include "processlib/TaskEventCallback.h"
 #include "processlib/PoolThreadMgr.h"
 
-TaskEventCallback::TaskEventCallback() : _refCounter(1)
-{
-    pthread_mutex_init(&_lock, NULL);
-}
-
-TaskEventCallback::~TaskEventCallback()
-{
-    pthread_mutex_destroy(&_lock);
-}
+TaskEventCallback::TaskEventCallback() : _refCounter(1) {}
 
 void TaskEventCallback::ref()
 {
-    PoolThreadMgr::Lock aLock(&_lock);
+    std::lock_guard<std::mutex> aLock(_lock);
     ++_refCounter;
 }
 
 void TaskEventCallback::unref()
 {
-    PoolThreadMgr::Lock aLock(&_lock);
+    _lock.lock();
     if (!(--_refCounter))
     {
-        aLock.unLock();
+        _lock.unlock();
         delete this;
     }
 }

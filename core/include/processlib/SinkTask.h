@@ -26,6 +26,8 @@
 #if !defined(PROCESSLIB_SINKTASK_H)
 #define PROCESSLIB_SINKTASK_H
 
+#include <mutex>
+
 #include "processlib/Data.h"
 #include "processlib/SinkTaskMgr.h"
 #include "processlib/TaskEventCallback.h"
@@ -51,7 +53,7 @@ class DLL_EXPORT SinkTaskBase
   protected:
     virtual ~SinkTaskBase();
 
-    mutable pthread_mutex_t _lock;
+    mutable std::mutex _lock;
 
   private:
     TaskEventCallback *_eventCbkPt;

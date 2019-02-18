@@ -26,8 +26,9 @@
 #if !defined(PROCESSLIB_TASKEVENTCALLBACK_H)
 #define PROCESSLIB_TASKEVENTCALLBACK_H
 
+#include <mutex>
+
 #include "processlib/Data.h"
-#include <pthread.h>
 
 class DLL_EXPORT TaskEventCallback
 {
@@ -40,11 +41,8 @@ class DLL_EXPORT TaskEventCallback
     void ref();
     void unref();
 
-  protected:
-    virtual ~TaskEventCallback();
-
   private:
-    pthread_mutex_t _lock;
+    std::mutex _lock;
     int _refCounter;
 };
 

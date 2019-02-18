@@ -32,7 +32,7 @@ namespace Tasks
     enum RUN_MODE {Counter,Monitor};
     PeakFinderManager(int = 4);
 
-    Tasks::PeakFinderResult    getResult(double = 0.,int = -1) const;
+    Tasks::PeakFinderResult    getResult(int rel_time_ms = 0,int = -1) const;
     void	resizeHistory(int aSize);
     void  resetHistory();
     int	  historySize() const;
@@ -45,6 +45,8 @@ namespace Tasks
  sipCppV = NULL;
  Py_END_ALLOW_THREADS;
 %End
+    private:
+    PeakFinderManager(const PeakFinderManager&);
    };
 
 

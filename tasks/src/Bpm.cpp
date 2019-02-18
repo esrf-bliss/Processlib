@@ -21,13 +21,16 @@
 // along with this program; if not, see <http://www.gnu.org/licenses/>.
 //###########################################################################
 #ifndef PROCESSLIB_WITHOUT_GSL
+
+#include <algorithm>
+#include <cmath>
 #include <cstring>
 
 #include <gsl/gsl_fft_complex.h>
 #include <gsl/gsl_linalg.h>
 #include <gsl/gsl_multifit.h>
 #include <gsl/gsl_spline.h>
-#include <math.h>
+
 #ifdef __unix
 #include <sys/time.h>
 #endif
@@ -53,13 +56,6 @@ static inline INPUT min(INPUT a, INPUT b)
 }
 #endif
 
-// oldest windows C++ (VStudio 2008) does not provide round() func with math.h,
-// so wrap it with local function
-#ifdef __unix
-#define ROUND(a) round(a)
-#else
-#define ROUND(a) win_specific_round(a)
-#endif
 /** @brief Calculate the image projections in X and Y and
  *  the integrated pixel intensity on the image.
  */
@@ -98,9 +94,9 @@ void BpmTask::_tune_projection(const Data &aSrc, Buffer &projection_x, Buffer &p
     INPUT *aSrcPt     = (INPUT *)aBufferPt->data;
 
     // X tuning profile
-    int tuning_margin = (int)ROUND((aResult.beam_fwhm_y * (mFwhmTunningExtension - 1)) / 2.);
-    int fwhm_min      = max(mBorderExclusion, aResult.beam_fwhm_min_y_index - tuning_margin);
-    int fwhm_max      = min(aResult.beam_fwhm_max_y_index + tuning_margin, aSrc.dimensions[1] - 1 - mBorderExclusion);
+    int tuning_margin = (int)std::round((aResult.beam_fwhm_y * (mFwhmTunningExtension - 1)) / 2.);
+    int fwhm_min      = std::max(mBorderExclusion, aResult.beam_fwhm_min_y_index - tuning_margin);
+    int fwhm_max = std::min(aResult.beam_fwhm_max_y_index + tuning_margin, aSrc.dimensions[1] - 1 - mBorderExclusion);
     for (int y = fwhm_min; y < (fwhm_max + 1); ++y)
     {
         INPUT *aBufferPt = aSrcPt + (y * aSrc.dimensions[0]) + mBorderExclusion;
@@ -109,9 +105,9 @@ void BpmTask::_tune_projection(const Data &aSrc, Buffer &projection_x, Buffer &p
     }
 
     // Y tuning profile
-    tuning_margin = (int)ROUND((aResult.beam_fwhm_x * (mFwhmTunningExtension - 1)) / 2.);
-    fwhm_min      = max(mBorderExclusion, aResult.beam_fwhm_min_x_index - tuning_margin);
-    fwhm_max      = min(aResult.beam_fwhm_max_x_index + tuning_margin, aSrc.dimensions[0] - 1 - mBorderExclusion);
+    tuning_margin = (int)std::round((aResult.beam_fwhm_x * (mFwhmTunningExtension - 1)) / 2.);
+    fwhm_min      = std::max(mBorderExclusion, aResult.beam_fwhm_min_x_index - tuning_margin);
+    fwhm_max      = std::min(aResult.beam_fwhm_max_x_index + tuning_margin, aSrc.dimensions[0] - 1 - mBorderExclusion);
 
     for (int y = mBorderExclusion; y < (aSrc.dimensions[1] - mBorderExclusion); ++y)
     {
@@ -509,58 +505,58 @@ BpmTask::BpmTask(const BpmTask &aTask)
 {
 }
 
-#define COMPUTE_BEAM_POSITION(XorY, WidthorHeight, SUMMTYPE)                                                   \
-    {                                                                                                          \
-        int min_index, max_index;                                                                              \
-        aResult.beam_fwhm_##XorY =                                                                             \
-            _calculate_fwhm<SUMMTYPE>(*projection_##XorY, WidthorHeight, int(aResult.beam_center_##XorY),      \
-                                      aResult.mBackgroundLevel##XorY, min_index, max_index);                   \
-        /* check for strange results */                                                                        \
-        if (max_index <= min_index || max_index <= 0 || aResult.beam_fwhm_##XorY <= 0.)                        \
-        {                                                                                                      \
-            aResult.beam_fwhm_##XorY       = -1.;                                                              \
-            aResult.beam_center_##XorY     = -1.;                                                              \
-            aResult.mBackgroundLevel##XorY = 0;                                                                \
-            /*@todo maybe register in BpmManager::Result with enum that call failed  \ \ \                                                                                                             \
-             */                                                                                                \
-        } else                                                                                                 \
-        {                                                                                                      \
-            aResult.beam_fwhm_min_##XorY##_index = min_index;                                                  \
-            aResult.beam_fwhm_max_##XorY##_index = max_index;                                                  \
-            if (mRoiAutomatic)                                                                                 \
-            {                                                                                                  \
-                int AOI_margin         = (int)ROUND(((max_index - min_index) * (mAoiExtension - 1)) / 2.);     \
-                min_index              = max(mBorderExclusion, min_index - AOI_margin);                        \
-                max_index              = min(max_index + AOI_margin, WidthorHeight - 1 - mBorderExclusion);    \
-                aResult.AOI_min_##XorY = min_index;                                                            \
-                aResult.AOI_max_##XorY = max_index;                                                            \
-            } else                                                                                             \
-            {                                                                                                  \
-                aResult.AOI_automatic = false;                                                                 \
-                /* @todo No Roi Management for now maybe*/                                                     \
-                min_index = 0;                                                                                 \
-                max_index = WidthorHeight;                                                                     \
-            }                                                                                                  \
-            if (min_index < max_index)                                                                         \
-            {                                                                                                  \
-                _calculate_background<SUMMTYPE>(*projection_##XorY, aResult.mBackgroundLevel##XorY, min_index, \
-                                                max_index);                                                    \
-                /* calculate the beam center */                                                                \
-                int size                = max_index - min_index + 1;                                           \
-                Buffer *profile         = new Buffer(size * sizeof(double));                                   \
-                double *aProfilePt      = (double *)profile->data;                                             \
-                SUMMTYPE *aSrcProfilePt = (SUMMTYPE *)projection_##XorY->data + min_index;                     \
-                for (int i = 0; i < size; ++i) /* @todo optimized if needed */                                 \
-                    aProfilePt[i] = double(aSrcProfilePt[i]);                                                  \
-                                                                                                               \
-                aResult.beam_center_##XorY = _compute_center(aProfilePt, size) + min_index;                    \
-                profile->unref(); /* free */                                                                   \
-            }                                                                                                  \
-                                                                                                               \
-            /*if(aResult.beam_center_x <= 0) @todo should manage error	\             \ \ \                                                                                                             \
-             error = "Beam center calculation failed" \                              \ \ error += \                                                                                                             \
-             gsl_cw_error_message();*/                                                                         \
-        }                                                                                                      \
+#define COMPUTE_BEAM_POSITION(XorY, WidthorHeight, SUMMTYPE)                                                     \
+    {                                                                                                            \
+        int min_index, max_index;                                                                                \
+        aResult.beam_fwhm_##XorY =                                                                               \
+            _calculate_fwhm<SUMMTYPE>(*projection_##XorY, WidthorHeight, int(aResult.beam_center_##XorY),        \
+                                      aResult.mBackgroundLevel##XorY, min_index, max_index);                     \
+        /* check for strange results */                                                                          \
+        if (max_index <= min_index || max_index <= 0 || aResult.beam_fwhm_##XorY <= 0.)                          \
+        {                                                                                                        \
+            aResult.beam_fwhm_##XorY       = -1.;                                                                \
+            aResult.beam_center_##XorY     = -1.;                                                                \
+            aResult.mBackgroundLevel##XorY = 0;                                                                  \
+            /*@todo maybe register in BpmManager::Result with enum that call failed  \                           \
+             */                                                                                                  \
+        } else                                                                                                   \
+        {                                                                                                        \
+            aResult.beam_fwhm_min_##XorY##_index = min_index;                                                    \
+            aResult.beam_fwhm_max_##XorY##_index = max_index;                                                    \
+            if (mRoiAutomatic)                                                                                   \
+            {                                                                                                    \
+                int AOI_margin         = (int)std::round(((max_index - min_index) * (mAoiExtension - 1)) / 2.);  \
+                min_index              = std::max(mBorderExclusion, min_index - AOI_margin);                     \
+                max_index              = std::min(max_index + AOI_margin, WidthorHeight - 1 - mBorderExclusion); \
+                aResult.AOI_min_##XorY = min_index;                                                              \
+                aResult.AOI_max_##XorY = max_index;                                                              \
+            } else                                                                                               \
+            {                                                                                                    \
+                aResult.AOI_automatic = false;                                                                   \
+                /* @todo No Roi Management for now maybe*/                                                       \
+                min_index = 0;                                                                                   \
+                max_index = WidthorHeight;                                                                       \
+            }                                                                                                    \
+            if (min_index < max_index)                                                                           \
+            {                                                                                                    \
+                _calculate_background<SUMMTYPE>(*projection_##XorY, aResult.mBackgroundLevel##XorY, min_index,   \
+                                                max_index);                                                      \
+                /* calculate the beam center */                                                                  \
+                int size                = max_index - min_index + 1;                                             \
+                Buffer *profile         = new Buffer(size * sizeof(double));                                     \
+                double *aProfilePt      = (double *)profile->data;                                               \
+                SUMMTYPE *aSrcProfilePt = (SUMMTYPE *)projection_##XorY->data + min_index;                       \
+                for (int i = 0; i < size; ++i) /* @todo optimized if needed */                                   \
+                    aProfilePt[i] = double(aSrcProfilePt[i]);                                                    \
+                                                                                                                 \
+                aResult.beam_center_##XorY = _compute_center(aProfilePt, size) + min_index;                      \
+                profile->unref(); /* free */                                                                     \
+            }                                                                                                    \
+                                                                                                                 \
+            /*if(aResult.beam_center_x <= 0) @todo should manage error	\             \                           \
+             error = "Beam center calculation failed" \                              \                           \
+             error += gsl_cw_error_message();*/                                                                  \
+        }                                                                                                        \
     }
 
 #define TUNE_FWHM(XorY, WidthorHeight, SUMMTYPE)                                                                       \
@@ -570,9 +566,9 @@ BpmTask::BpmTask(const BpmTask &aTask)
             *projection_##XorY, WidthorHeight, _max_intensity_position<SUMMTYPE>(*projection_##XorY, WidthorHeight),   \
             aResult.mBackgroundLevelTune##XorY, min_index, max_index);                                                 \
                                                                                                                        \
-        int AOI_margin = (int)ROUND((aResult.beam_fwhm_##XorY * (mAoiExtension - 1)) / 2.);                            \
-        min_index      = max(mBorderExclusion, min_index - AOI_margin);                                                \
-        max_index      = min(max_index + AOI_margin, WidthorHeight - 1 - mBorderExclusion);                            \
+        int AOI_margin = (int)std::round((aResult.beam_fwhm_##XorY * (mAoiExtension - 1)) / 2.);                       \
+        min_index      = std::max(mBorderExclusion, min_index - AOI_margin);                                           \
+        max_index      = std::min(max_index + AOI_margin, WidthorHeight - 1 - mBorderExclusion);                       \
                                                                                                                        \
         _calculate_background<SUMMTYPE>(*projection_##XorY, aResult.mBackgroundLevelTune##XorY, min_index, max_index); \
     }
@@ -727,5 +723,5 @@ static void _impl_bpm()
     bpmTask->unref();
 }
 }
-#endif
+#endif // __unix
 #endif // PROCESSLIB_WITHOUT_GSL
