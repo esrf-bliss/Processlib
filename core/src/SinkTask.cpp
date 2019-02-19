@@ -39,7 +39,7 @@ SinkTaskBase::~SinkTaskBase()
 
 void SinkTaskBase::setEventCallback(TaskEventCallback *aEventCbk)
 {
-    std::lock_guard<std::mutex> aLock(_lock);
+    std::lock_guard<std::mutex> aLock(_mutex);
     if (aEventCbk)
         aEventCbk->ref();
     if (_eventCbkPt)
@@ -49,22 +49,24 @@ void SinkTaskBase::setEventCallback(TaskEventCallback *aEventCbk)
 
 void SinkTaskBase::ref()
 {
-    std::lock_guard<std::mutex> aLock(_lock);
+    std::lock_guard<std::mutex> aLock(_mutex);
     ++_refCounter;
 }
 
 void SinkTaskBase::unref()
 {
-    _lock.lock();
+    _mutex.lock();
     if (!(--_refCounter))
     {
-        _lock.unlock();
+        _mutex.unlock();
         delete this;
     }
+    else
+        _mutex.unlock();
 }
 
 int SinkTaskBase::getRefCounter() const
 {
-    std::lock_guard<std::mutex> aLock(_lock);
+    std::lock_guard<std::mutex> aLock(_mutex);
     return _refCounter;
 }

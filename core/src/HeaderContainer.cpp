@@ -42,16 +42,10 @@ struct Data::HeaderContainer::HeaderHolder
             _lock.unlock();
             delete this;
         }
+        else
+            _lock.unlock();
     }
 
-    // inline void lock()
-    //{
-    //  while(pthread_mutex_lock(&_lock));
-    //}
-    // inline void unlock()
-    //{
-    //  pthread_mutex_unlock(&_lock);
-    //}
     int refcount;
     std::recursive_mutex _lock;
     Data::HeaderContainer::Header header;

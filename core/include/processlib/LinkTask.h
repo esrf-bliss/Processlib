@@ -67,7 +67,7 @@ class PROCESSLIB_EXPORT LinkTask
     bool _processingInPlaceFlag;
     TaskEventCallback *_eventCbkPt;
 
-    mutable std::mutex _lock;
+    mutable std::mutex _mutex;
 
   private:
     int _refCounter;

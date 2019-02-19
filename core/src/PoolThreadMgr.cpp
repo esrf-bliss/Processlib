@@ -40,16 +40,32 @@ std::once_flag PoolThreadMgr::init_flag;
  */
 void PoolThreadMgr::addProcess(TaskMgr *aProcess, bool aFlag)
 {
-    std::lock_guard<std::mutex> lock(m_mutex);
-    _processQueue.push(aProcess);
-    aProcess->_pool = this;
-    m_cond.notify_all();
+    // Recursive mutex should be used here
+    if (aFlag)
+    {
+        std::lock_guard<std::mutex> lock(m_mutex);
+        _processQueue.push(aProcess);
+        aProcess->_pool = this;
+        m_cond.notify_all();
+    }
+    else
+    {
+        _processQueue.push(aProcess);
+        aProcess->_pool = this;
+        m_cond.notify_all();
+    }
 }
 
 void PoolThreadMgr::removeProcess(TaskMgr *aProcess, bool aFlag)
 {
-    std::lock_guard<std::mutex> lock(m_mutex);
-    _processQueue.remove(aProcess);
+    // Recursive mutex should be used here
+    if (aFlag)
+    {
+        std::lock_guard<std::mutex> lock(m_mutex);
+        _processQueue.remove(aProcess);
+    }
+    else
+        _processQueue.remove(aProcess);
 }
 
 /** @brief change the number of thread in the pool
@@ -136,7 +152,7 @@ void *PoolThreadMgr::_run(void *arg)
     // that is the equivalent of this (but this is a reserved keyword)
     PoolThreadMgr *that = reinterpret_cast<PoolThreadMgr *>(arg);
 
-    std::lock_guard<std::mutex> lock(that->m_mutex);
+    std::unique_lock<std::mutex> lock(that->m_mutex);
     that->_runningThread++;
     while (1)
     {
@@ -151,7 +167,6 @@ void *PoolThreadMgr::_run(void *arg)
                 aBroadcastFlag = false;
             }
 
-            std::unique_lock<std::mutex> lock(that->m_mutex);
             that->m_cond.wait(lock);
         }
         that->_runningThread++;
@@ -159,8 +174,10 @@ void *PoolThreadMgr::_run(void *arg)
         if (!that->_processQueue.empty())
         {
             TaskMgr *processPt = that->_processQueue.top();
+            that->_processQueue.pop();
+
             TaskMgr::TaskWrap *aNextTask = processPt->next();
-            // aLock.unLock();
+            lock.unlock();
 
             try
             {
@@ -173,7 +190,7 @@ void *PoolThreadMgr::_run(void *arg)
                 aNextTask->error("Unknown exception!");
             }
 
-            // aLock.lock();
+            lock.lock();
         } else
             break; // stop
     }

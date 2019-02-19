@@ -70,9 +70,10 @@ struct PROCESSLIB_EXPORT Buffer
     }
     void unref()
     {
-        std::lock_guard<std::mutex> lock(_mutex);
+        _mutex.lock();
         if (!(--refcount))
         {
+            _mutex.unlock();
             if (owner == SHARED && data)
 #ifdef __unix
                 free(data);
@@ -81,6 +82,8 @@ struct PROCESSLIB_EXPORT Buffer
 #endif
             delete this;
         }
+        else
+            _mutex.unlock();
     }
     void ref()
     {

@@ -300,6 +300,8 @@ void SinkTaskMgr<Result>::unref()
         _lock.unlock();
         delete this;
     }
+    else
+        _lock.unlock();
 }
 
 #endif //! defined(PROCESSLIB_SINKTASKMGR_H)

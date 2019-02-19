@@ -196,7 +196,7 @@ if(CMAKE_THREAD_LIBS_INIT)
 endif()
 
 if(WIN32)
-    target_compile_definitions(processlib PRIVATE processlib_EXPORTS)
+    target_compile_definitions(processlib PUBLIC processlib_EXPORTS)
     set_target_properties(processlib PROPERTIES PREFIX "lib")
     set_target_properties(processlib PROPERTIES IMPORT_PREFIX "lib")
 endif()
@@ -285,8 +285,14 @@ endif()
 
 ## Tests
 if(PROCESSLIB_ENABLE_TESTS)
+    set(Boost_USE_STATIC_LIBS ON)
+    find_package(Boost COMPONENTS
+        unit_test_framework
+        REQUIRED
+    )
+    
     enable_testing()
-    #add_subdirectory(test)
+    add_subdirectory(test)
 endif()
 
 # Packages

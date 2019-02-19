@@ -44,7 +44,7 @@ LinkTask::~LinkTask()
 }
 void LinkTask::setEventCallback(TaskEventCallback *aEventCbk)
 {
-    std::lock_guard<std::mutex> aLock(_lock);
+    std::lock_guard<std::mutex> aLock(_mutex);
     if (aEventCbk)
         aEventCbk->ref();
     if (_eventCbkPt)
@@ -54,22 +54,24 @@ void LinkTask::setEventCallback(TaskEventCallback *aEventCbk)
 
 void LinkTask::ref()
 {
-    std::lock_guard<std::mutex> aLock(_lock);
+    std::lock_guard<std::mutex> aLock(_mutex);
     ++_refCounter;
 }
 
 void LinkTask::unref()
 {
-    _lock.lock();
+    _mutex.lock();
     if (!(--_refCounter))
     {
-        _lock.unlock();
+        _mutex.unlock();
         delete this;
     }
+    else
+        _mutex.unlock();
 }
 
 int LinkTask::getRefCounter() const
 {
-    std::lock_guard<std::mutex> aLock(_lock);
+    std::lock_guard<std::mutex> aLock(_mutex);
     return _refCounter;
 }

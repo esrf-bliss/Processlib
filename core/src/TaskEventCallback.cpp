@@ -39,4 +39,6 @@ void TaskEventCallback::unref()
         _lock.unlock();
         delete this;
     }
+    else
+        _lock.unlock();
 }

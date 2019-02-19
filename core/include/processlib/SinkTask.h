@@ -53,7 +53,7 @@ class PROCESSLIB_EXPORT SinkTaskBase
   protected:
     virtual ~SinkTaskBase();
 
-    mutable std::mutex _lock;
+    mutable std::mutex _mutex;
 
   private:
     TaskEventCallback *_eventCbkPt;

@@ -96,8 +96,8 @@ class PROCESSLIB_EXPORT PoolThreadMgr
 
   private:
     // Thread safe Singleton (guaranted in C++11)
-    PoolThreadMgr() : _stopFlag(false), _suspendFlag(false), _runningThread(0), _taskMgr(NULL) {}
-    ~PoolThreadMgr()= default;
+    PoolThreadMgr() : _stopFlag(false), _suspendFlag(false), _runningThread(0), _taskMgr(NULL) { }
+    ~PoolThreadMgr() { quit(); }
     PoolThreadMgr(const PoolThreadMgr&)= delete;
     PoolThreadMgr& operator=(const PoolThreadMgr&)= delete;
 
