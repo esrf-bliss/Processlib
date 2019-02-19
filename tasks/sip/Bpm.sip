@@ -32,7 +32,7 @@ namespace Tasks
     enum RUN_MODE {Counter,Monitor};
     BpmManager(int = 4);
 
-    Tasks::BpmResult	getResult(double = 0.,int = -1) const;
+    Tasks::BpmResult	getResult(int rel_time_ms = 0,int = -1) const;
     SIP_PYOBJECT getHistory(int fromFrameNumber = 0) const;
 %MethodCode
 std::list<Tasks::BpmResult> results;
@@ -65,6 +65,8 @@ for(std::list<Tasks::BpmResult>::iterator i = results.begin();
  sipCppV = NULL;
  Py_END_ALLOW_THREADS;
 %End
+    private:
+    BpmManager(const BpmManager&);
   };
 
   class BpmResult

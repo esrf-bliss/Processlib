@@ -28,7 +28,6 @@
 
 #include "processlib/Data.h"
 #include "processlib/TaskEventCallback.h"
-#include <pthread.h>
 
 class DLL_EXPORT LinkTask
 {
@@ -67,7 +66,7 @@ class DLL_EXPORT LinkTask
     bool _processingInPlaceFlag;
     TaskEventCallback *_eventCbkPt;
 
-    mutable pthread_mutex_t _lock;
+    mutable std::mutex _lock;
 
   private:
     int _refCounter;

@@ -26,14 +26,10 @@
 #if !defined(PROCESSLIB_SINKTASKMGR_H)
 #define PROCESSLIB_SINKTASKMGR_H
 
-#include <pthread.h>
-#ifdef __unix
-#include <sys/time.h>
-#endif
-#include <errno.h>
-#include <time.h>
-
+#include <chrono>
+#include <condition_variable>
 #include <list>
+#include <mutex>
 #include <vector>
 
 #include "processlib/PoolThreadMgr.h"
@@ -51,10 +47,10 @@ class DLL_EXPORT SinkTaskMgr
 
     void setMode(RUN_MODE);
 
-    Result getResult(double timeout = 0., int frameNumber = -1) const;
+    Result getResult(int rel_time_ms = 0, int frameNumber = -1) const;
     void getHistory(std::list<Result> &aHistory, int fromFrameNumber = 0) const;
     void resizeHistory(int aSize);
-    void resetHistory(bool alockFlag = true);
+    void resetHistory();
     int historySize() const;
     //@brief return the last available frame with no hole before
     int lastFrameNumber() const;
@@ -65,14 +61,14 @@ class DLL_EXPORT SinkTaskMgr
     void unref();
 
   protected:
-    virtual ~SinkTaskMgr();
+    virtual ~SinkTaskMgr() = default;
 
   private:
     bool _isFrameAvailable(int frameNumber) const;
 
     volatile int _currentFrameNumber;
-    mutable pthread_mutex_t _lock;
-    mutable pthread_cond_t _cond;
+    mutable std::mutex _lock;
+    mutable std::condition_variable m_cond;
     FrameResultList _historyResult;
     RUN_MODE _mode;
     int _refCounter;
@@ -88,22 +84,14 @@ inline bool _history_sort(const Result &A, const Result &B)
 template <class Result>
 SinkTaskMgr<Result>::SinkTaskMgr(int historySize) : _currentFrameNumber(0), _mode(SinkTaskMgr::Counter), _refCounter(1)
 {
-    pthread_mutex_init(&_lock, NULL);
-    pthread_cond_init(&_cond, NULL);
     _historyResult.resize(historySize);
     resetHistory();
-}
-template <class Result>
-SinkTaskMgr<Result>::~SinkTaskMgr()
-{
-    pthread_mutex_destroy(&_lock);
-    pthread_cond_destroy(&_cond);
 }
 
 template <class Result>
 void SinkTaskMgr<Result>::setMode(typename SinkTaskMgr<Result>::RUN_MODE aMode)
 {
-    PoolThreadMgr::Lock aLock(&_lock);
+    std::lock_guard<std::mutex> aLock(_lock);
     _mode = aMode;
 }
 
@@ -112,31 +100,20 @@ void SinkTaskMgr<Result>::setMode(typename SinkTaskMgr<Result>::RUN_MODE aMode)
     @param frameNumber the frame id you want or last frame if < 0
 */
 template <class Result>
-Result SinkTaskMgr<Result>::getResult(double askedTimeout, int frameNumber) const
+Result SinkTaskMgr<Result>::getResult(int rel_time_ms, int frameNumber) const
 {
-    if (askedTimeout >= 0.)
+    if (rel_time_ms > 0)
     {
-        struct timeval now;
-        struct timespec timeout;
-        int retcode = 0;
-        gettimeofday(&now, NULL);
-        timeout.tv_sec  = now.tv_sec + long(askedTimeout);
-        timeout.tv_nsec = (now.tv_usec * 1000) + long((askedTimeout - long(askedTimeout)) * 1e9);
-        if (timeout.tv_nsec >= 1000000000L) // Carry
-            ++timeout.tv_sec, timeout.tv_nsec -= 1000000000L;
+        std::unique_lock<std::mutex> lock(_lock);
+        bool res = m_cond.wait_for(lock, std::chrono::milliseconds(rel_time_ms),
+                                   [&] { return _isFrameAvailable(frameNumber); });
 
-        PoolThreadMgr::Lock aLock(&_lock);
-        while (!_isFrameAvailable(frameNumber))
-        {
-            retcode = pthread_cond_timedwait(&_cond, &_lock, &timeout);
-            if (retcode == ETIMEDOUT)
-                return Result(SinkTaskMgr<Result>::TIMEDOUT);
-        }
+        if (res)
+            return Result(SinkTaskMgr<Result>::TIMEDOUT);
     } else
     {
-        PoolThreadMgr::Lock aLock(&_lock);
-        while (!_isFrameAvailable(frameNumber))
-            pthread_cond_wait(&_cond, &_lock);
+        std::unique_lock<std::mutex> lock(_lock);
+        m_cond.wait(lock, [&] { return _isFrameAvailable(frameNumber); });
     }
 
     if (frameNumber < 0)
@@ -151,7 +128,7 @@ Result SinkTaskMgr<Result>::getResult(double askedTimeout, int frameNumber) cons
 template <class Result>
 void SinkTaskMgr<Result>::setResult(const Result &aResult)
 {
-    PoolThreadMgr::Lock aLock(&_lock);
+    std::lock_guard<std::mutex> aLock(_lock);
     if (aResult.frameNumber > _currentFrameNumber)
         _currentFrameNumber = aResult.frameNumber;
     int aResultPos = aResult.frameNumber % _historyResult.size();
@@ -163,13 +140,13 @@ void SinkTaskMgr<Result>::setResult(const Result &aResult)
     {
         _historyResult[aResultPos] = aResult;
     }
-    pthread_cond_broadcast(&_cond);
+    m_cond.notify_all();
 }
 
 template <class Result>
-void SinkTaskMgr<Result>::resetHistory(bool lockFlag)
+void SinkTaskMgr<Result>::resetHistory()
 {
-    PoolThreadMgr::Lock aLock(&_lock, lockFlag);
+    std::lock_guard<std::mutex> aLock(_lock);
     typename std::vector<Result>::iterator i;
     for (i = _historyResult.begin(); i != _historyResult.end(); ++i)
         i->frameNumber = -1;
@@ -182,7 +159,7 @@ template <class Result>
 void SinkTaskMgr<Result>::getHistory(std::list<Result> &anHistory, int fromFrameNumber) const
 {
     bool sort_needed = false;
-    PoolThreadMgr::Lock aLock(&_lock);
+    std::lock_guard<std::mutex> aLock(_lock);
     if (fromFrameNumber > _currentFrameNumber)
         return; // not yet available
     else if (fromFrameNumber < 0)
@@ -237,7 +214,7 @@ void SinkTaskMgr<Result>::getHistory(std::list<Result> &anHistory, int fromFrame
             }
         }
     }
-    aLock.unLock();
+
     if (sort_needed)
         anHistory.sort(_history_sort<Result>);
 }
@@ -250,15 +227,17 @@ void SinkTaskMgr<Result>::resizeHistory(int aSize)
 {
     if (aSize < 1)
         aSize = 1;
-    PoolThreadMgr::Lock aLock(&_lock);
-    _historyResult.resize(aSize);
-    resetHistory(false);
+    {
+        std::lock_guard<std::mutex> aLock(_lock);
+        _historyResult.resize(aSize);
+    }
+    resetHistory();
 }
 
 template <class Result>
 int SinkTaskMgr<Result>::historySize() const
 {
-    PoolThreadMgr::Lock aLock(&_lock);
+    std::lock_guard<std::mutex> aLock(_lock);
     return int(_historyResult.size());
 }
 
@@ -308,17 +287,17 @@ bool SinkTaskMgr<Result>::_isFrameAvailable(int aFrameNumber) const
 template <class Result>
 void SinkTaskMgr<Result>::ref()
 {
-    PoolThreadMgr::Lock aLock(&_lock);
+    std::lock_guard<std::mutex> aLock(_lock);
     ++_refCounter;
 }
 
 template <class Result>
 void SinkTaskMgr<Result>::unref()
 {
-    PoolThreadMgr::Lock aLock(&_lock);
+    _lock.lock();
     if (!(--_refCounter))
     {
-        aLock.unLock();
+        _lock.unlock();
         delete this;
     }
 }

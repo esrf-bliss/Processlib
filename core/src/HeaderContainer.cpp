@@ -26,47 +26,34 @@
 
 struct Data::HeaderContainer::HeaderHolder
 {
-    HeaderHolder() : refcount(1)
-    {
-        pthread_mutexattr_init(&_lock_attr);
-        pthread_mutexattr_settype(&_lock_attr, PTHREAD_MUTEX_RECURSIVE);
-        pthread_mutex_init(&_lock, &_lock_attr);
-    }
-    ~HeaderHolder()
-    {
-        pthread_mutex_destroy(&_lock);
-        pthread_mutexattr_destroy(&_lock_attr);
-    }
+    HeaderHolder() : refcount(1) {}
 
-    inline void ref()
+    void ref()
     {
-        while (pthread_mutex_lock(&_lock))
-            ;
+        std::lock_guard<std::recursive_mutex> aLock(_lock);
         ++refcount;
-        pthread_mutex_unlock(&_lock);
     }
 
-    inline void unref()
+    void unref()
     {
-        while (pthread_mutex_lock(&_lock))
-            ;
+        _lock.lock();
         if (!(--refcount))
         {
-            pthread_mutex_unlock(&_lock);
+            _lock.unlock();
             delete this;
-        } else
-            pthread_mutex_unlock(&_lock);
+        }
     }
 
-    inline void lock()
-    {
-        while (pthread_mutex_lock(&_lock))
-            ;
-    }
-    inline void unlock() { pthread_mutex_unlock(&_lock); }
+    // inline void lock()
+    //{
+    //  while(pthread_mutex_lock(&_lock));
+    //}
+    // inline void unlock()
+    //{
+    //  pthread_mutex_unlock(&_lock);
+    //}
     int refcount;
-    pthread_mutex_t _lock;
-    pthread_mutexattr_t _lock_attr;
+    std::recursive_mutex _lock;
     Data::HeaderContainer::Header header;
 };
 
@@ -94,16 +81,15 @@ Data::HeaderContainer::~HeaderContainer()
 
 void Data::HeaderContainer::insert(const char *key, const char *value)
 {
-    _header->lock();
+    std::lock_guard<std::recursive_mutex> aLock(mutex());
     std::pair<std::map<std::string, std::string>::iterator, bool> result =
         _header->header.insert(std::pair<std::string, std::string>(key, value));
     if (!result.second)
         result.first->second = value;
-    _header->unlock();
 }
 void Data::HeaderContainer::insertOrIncKey(const std::string &key, const std::string &value)
 {
-    _header->lock();
+    std::lock_guard<std::recursive_mutex> aLock(mutex());
     std::pair<std::map<std::string, std::string>::iterator, bool> result =
         _header->header.insert(std::pair<std::string, std::string>(key, value));
     int aNumber = 0;
@@ -114,55 +100,41 @@ void Data::HeaderContainer::insertOrIncKey(const std::string &key, const std::st
         result = _header->header.insert(std::pair<std::string, std::string>(aTmpKey.str(), value));
         aTmpKey.seekp(0, aTmpKey.beg);
     }
-    _header->unlock();
 }
 void Data::HeaderContainer::erase(const char *key)
 {
-    _header->lock();
+    std::lock_guard<std::recursive_mutex> aLock(mutex());
     std::map<std::string, std::string>::iterator i = _header->header.find(key);
     if (i != _header->header.end())
         _header->header.erase(i);
-    _header->unlock();
 }
 
 void Data::HeaderContainer::clear()
 {
-    _header->lock();
+    std::lock_guard<std::recursive_mutex> aLock(mutex());
     _header->header.clear();
-    _header->unlock();
 }
 
 const char *Data::HeaderContainer::get(const char *key, const char *defaultValue) const
 {
     const char *aReturnValue = defaultValue;
-    _header->lock();
+    std::lock_guard<std::recursive_mutex> aLock(mutex());
     std::map<std::string, std::string>::const_iterator i = _header->header.find(key);
     if (i != _header->header.end())
         aReturnValue = i->second.c_str();
-    _header->unlock();
     return aReturnValue;
 }
 
 int Data::HeaderContainer::size() const
 {
-    _header->lock();
+    std::lock_guard<std::recursive_mutex> aLock(mutex());
     int aReturnSize = int(_header->header.size());
-    _header->unlock();
     return aReturnSize;
 }
 
-void Data::HeaderContainer::lock()
+std::recursive_mutex &Data::HeaderContainer::mutex() const
 {
-    _header->lock();
-}
-
-void Data::HeaderContainer::unlock()
-{
-    _header->unlock();
-}
-pthread_mutex_t *Data::HeaderContainer::mutex() const
-{
-    return &_header->_lock;
+    return _header->_lock;
 }
 
 Data::HeaderContainer::Header &Data::HeaderContainer::header()
@@ -178,7 +150,7 @@ const Data::HeaderContainer::Header &Data::HeaderContainer::header() const
 std::ostream &operator<<(std::ostream &os, const Data::HeaderContainer &aHeader)
 {
     os << "< ";
-    PoolThreadMgr::Lock aLock(aHeader.mutex());
+    std::lock_guard<std::recursive_mutex> aLock(aHeader.mutex());
     const Data::HeaderContainer::Header &header = aHeader.header();
     for (Data::HeaderContainer::Header::const_iterator i = header.begin(); i != header.end(); ++i)
         os << "(" << i->first << "," << i->second << ") ";

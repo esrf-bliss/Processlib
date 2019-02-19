@@ -31,8 +31,9 @@
 #endif
 
 #include <map>
-#include <pthread.h>
+#include <mutex>
 #include <string>
+#include <thread>
 
 #include "processlib/Compatibility.h"
 
@@ -40,11 +41,11 @@
  */
 class DLL_EXPORT GslErrorMgr
 {
-    typedef std::map<pthread_t, std::string> ErrorMessageType;
-    typedef std::map<pthread_t, int> ErrnoType;
+    typedef std::map<std::thread::id, std::string> ErrorMessageType;
+    typedef std::map<std::thread::id, int> ErrnoType;
 
   public:
-    static inline GslErrorMgr &get() throw() { return GslErrorMgr::_errorMgr; }
+    static inline GslErrorMgr &get() { return GslErrorMgr::_errorMgr; }
     const char *lastErrorMsg() const;
     int lastErrno() const;
     void resetErrorMsg();
@@ -52,7 +53,9 @@ class DLL_EXPORT GslErrorMgr
   private:
     ErrorMessageType _errorMessage;
     ErrnoType _lastGslErrno;
+
     static GslErrorMgr _errorMgr;
+    static std::mutex _lock;
 
     GslErrorMgr();
     static void _error_handler(const char *, const char *, int, int);

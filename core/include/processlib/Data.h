@@ -34,7 +34,7 @@
 #include <cstring>
 #include <iostream>
 #include <map>
-#include <pthread.h>
+#include <mutex>
 #include <stdlib.h>
 #include <string>
 #include <vector>
@@ -56,9 +56,8 @@ struct DLL_EXPORT Buffer
     {
         if (callback)
             callback->destroy(data);
-        pthread_mutex_destroy(&_lock);
     }
-    Buffer() : owner(SHARED), refcount(1), data(NULL), callback(NULL) { pthread_mutex_init(&_lock, NULL); }
+    Buffer() : owner(SHARED), refcount(1), data(NULL), callback(NULL) {}
     explicit Buffer(int aSize) : owner(SHARED), refcount(1), callback(NULL)
     {
 #ifdef __unix
@@ -68,12 +67,10 @@ struct DLL_EXPORT Buffer
         if (!data)
 #endif
             std::cerr << "Can't allocate memory" << std::endl;
-        pthread_mutex_init(&_lock, NULL);
     }
     void unref()
     {
-        while (pthread_mutex_lock(&_lock))
-            ;
+        std::lock_guard<std::mutex> lock(_mutex);
         if (!(--refcount))
         {
             if (owner == SHARED && data)
@@ -82,22 +79,18 @@ struct DLL_EXPORT Buffer
 #else
                 _aligned_free(data);
 #endif
-            pthread_mutex_unlock(&_lock);
             delete this;
-        } else
-            pthread_mutex_unlock(&_lock);
+        }
     }
     void ref()
     {
-        while (pthread_mutex_lock(&_lock))
-            ;
+        std::lock_guard<std::mutex> lock(_mutex);
         ++refcount;
-        pthread_mutex_unlock(&_lock);
     }
     Ownership owner;
     volatile int refcount;
     void *data;
-    pthread_mutex_t _lock;
+    std::mutex _mutex;
     Callback *callback;
 };
 struct DLL_EXPORT Data
@@ -123,10 +116,7 @@ struct DLL_EXPORT Data
 
         HeaderContainer &operator=(const HeaderContainer &);
 
-        // ExpertMethodes for macro insertion a loop
-        void lock();
-        void unlock();
-        pthread_mutex_t *mutex() const;
+        std::recursive_mutex &mutex() const;
         Header &header();
         const Header &header() const;
 

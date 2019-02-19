@@ -26,10 +26,6 @@
 #if !defined(PROCESSLIB_STAT_H)
 #define PROCESSLIB_STAT_H
 
-#include <stdio.h> /* for printf() and fprintf() */
-#ifdef __unix
-#include <sys/time.h>
-#endif
 #include <sstream>
 #include <stdlib.h>
 #include <string>
@@ -40,16 +36,16 @@ class DLL_EXPORT Stat
     Stat(const Data &data, const std::string &info) : _data(data), _info(info)
     {
         if (!info.empty())
-            gettimeofday(&_start, NULL);
+            _start = std::chrono::high_resolution_clock::now();
     }
     ~Stat()
     {
         if (!_info.empty())
         {
-            gettimeofday(&_end, NULL);
-            double diff = (_end.tv_sec - _start.tv_sec) + (_end.tv_usec - _start.tv_usec) / 1e6;
+            _end      = std::chrono::high_resolution_clock::now();
+            auto diff = _end - _start;
             std::stringstream str;
-            str << "take : " << diff << "s";
+            str << "take : " << std::chrono::duration_cast<std::chrono::milliseconds>(diff).count() << "ms";
 
             _data.header.insertOrIncKey(_info, str.str());
         }
@@ -58,7 +54,7 @@ class DLL_EXPORT Stat
   private:
     Data _data;
     std::string _info;
-    struct timeval _start, _end;
+    std::chrono::high_resolution_clock::time_point _start, _end;
 };
 
 #endif //! defined(PROCESSLIB_STAT_H)

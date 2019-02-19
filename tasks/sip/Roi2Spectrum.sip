@@ -36,7 +36,7 @@ namespace Tasks
   
     void	setMode(Tasks::Roi2SpectrumManager::RUN_MODE);
 
-    Tasks::Roi2SpectrumResult getResult(double timeout = 0.,
+    Tasks::Roi2SpectrumResult getResult(int rel_time_ms = 0,
 					int frameNumber = -1) const;
 
     void resizeHistory(int aSize);
@@ -52,7 +52,8 @@ namespace Tasks
  sipCppV = NULL;
  Py_END_ALLOW_THREADS;
 %End
-
+  private:
+    Roi2SpectrumManager(const Roi2SpectrumManager&);
   };
 
   struct Roi2SpectrumResult

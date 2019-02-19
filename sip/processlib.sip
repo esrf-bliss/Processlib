@@ -123,7 +123,7 @@ struct Data
 
 SIP_PYOBJECT pop(const char *,const char * = NULL);
 %MethodCode
-PoolThreadMgr::Lock aLock(sipCpp->mutex());
+std::lock_guard<std::recursive_mutex> lock(sipCpp->mutex());
 Data::HeaderContainer::Header &header = sipCpp->header();
 std::map<std::string,std::string>::iterator i = header.find(a0);
 if(i != header.end())
@@ -141,7 +141,7 @@ void update(SIP_PYDICT);
 %MethodCode
 PyObject *key, *value;
 SIP_SSIZE_T pos = 0;
-PoolThreadMgr::Lock aLock(sipCpp->mutex());
+std::lock_guard<std::recursive_mutex> lock(sipCpp->mutex());
 Data::HeaderContainer::Header &header = sipCpp->header();
 while (PyDict_Next(a0, &pos, &key, &value))
  {
@@ -163,7 +163,7 @@ SIP_PYOBJECT __repr__() const;
 %MethodCode
 std::stringstream str;
 str << "{";
-PoolThreadMgr::Lock aLock(sipCpp->mutex());
+std::lock_guard<std::recursive_mutex> lock(sipCpp->mutex());
 Data::HeaderContainer::Header &header = sipCpp->header();
 for(std::map<std::string,std::string>::iterator i = header.begin();
     i != header.end();++i)
@@ -186,7 +186,7 @@ const char* __str__();
 %MethodCode
 std::stringstream str;
 str << "{";
-PoolThreadMgr::Lock aLock(sipCpp->mutex());
+std::lock_guard<std::recursive_mutex> lock(sipCpp->mutex());
 Data::HeaderContainer::Header &header = sipCpp->header();
 for(std::map<std::string,std::string>::iterator i = header.begin();
     i != header.end();++i)
@@ -200,19 +200,20 @@ str << "}";
 const std::string& tmpString = str.str();
 sipRes = tmpString.c_str();
 %End
+
 void __enter__();
 %MethodCode
-sipCpp->lock();
+sipCpp->mutex().lock();
 %End
 
 void __exit__(SIP_PYOBJECT,SIP_PYOBJECT,SIP_PYOBJECT);
 %MethodCode
-sipCpp->unlock();
+sipCpp->mutex().unlock();
 %End
 
 SIP_PYOBJECT values();
 %MethodCode
-PoolThreadMgr::Lock aLock(sipCpp->mutex());
+std::lock_guard<std::recursive_mutex> lock(sipCpp->mutex());
 Data::HeaderContainer::Header &header = sipCpp->header();
 sipRes = PyList_New(header.size());
 int index = 0;
@@ -224,7 +225,7 @@ for(std::map<std::string,std::string>::iterator i = header.begin();
 
 SIP_PYOBJECT keys();
 %MethodCode
-PoolThreadMgr::Lock aLock(sipCpp->mutex());
+std::lock_guard<std::recursive_mutex> lock(sipCpp->mutex());
 Data::HeaderContainer::Header &header = sipCpp->header();
 sipRes = PyList_New(header.size());
 int index = 0;
@@ -236,7 +237,7 @@ for(std::map<std::string,std::string>::iterator i = header.begin();
 
 SIP_PYOBJECT items();
 %MethodCode
-PoolThreadMgr::Lock aLock(sipCpp->mutex());
+std::lock_guard<std::recursive_mutex> lock(sipCpp->mutex());
 Data::HeaderContainer::Header &header = sipCpp->header();
 sipRes = PyList_New(header.size());
 int index = 0;
@@ -252,7 +253,7 @@ sipRes = new Data_HeaderContainer_itemIterator(*sipCpp);
 
 bool has_key(const char*);
 %MethodCode
-PoolThreadMgr::Lock aLock(sipCpp->mutex());
+std::lock_guard<std::recursive_mutex> lock(sipCpp->mutex());
 Data::HeaderContainer::Header &header = sipCpp->header();
 std::map<std::string,std::string>::iterator i = header.find(a0);
 sipRes = i != header.end();
@@ -386,6 +387,8 @@ class TaskEventCallback
   sipCppV = NULL;
   Py_END_ALLOW_THREADS
 %End
+ private:
+  TaskEventCallback(const TaskEventCallback&);
 };
 
 class LinkTask
@@ -407,6 +410,8 @@ class LinkTask
  sipCppV = NULL;
  Py_END_ALLOW_THREADS;
 %End
+ private:
+  LinkTask(const LinkTask&);
 };
 
 class SinkTaskBase
@@ -426,6 +431,8 @@ protected:
  sipCppV = NULL;
  Py_END_ALLOW_THREADS;
 %End
+ private:
+  SinkTaskBase(const SinkTaskBase&);
 };
 
 class TaskMgr
@@ -472,6 +479,9 @@ class PoolThreadMgr
   void suspend(bool);
   bool wait(double timeout = -1.);
   void quit();
+
+ private:
+  PoolThreadMgr(const PoolThreadMgr&);
 };
 
 %Feature BPM_SUPPORT

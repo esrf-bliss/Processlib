@@ -32,7 +32,7 @@ namespace Tasks
     enum RUN_MODE {Counter,Monitor};
     RoiCounterManager(int = 4);
 
-    Tasks::RoiCounterResult	getResult(double = 0.,int = -1) const;
+    Tasks::RoiCounterResult	getResult(int rel_time_ms = 0,int = -1) const;
     void	resizeHistory(int aSize);
     void  resetHistory();
     int	  historySize() const;
@@ -45,6 +45,8 @@ namespace Tasks
  sipCppV = NULL;
  Py_END_ALLOW_THREADS;
 %End
+    private:
+    RoiCounterManager(const RoiCounterManager&);
    };
 
 
