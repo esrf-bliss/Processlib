@@ -22,57 +22,54 @@
 //###########################################################################
 #include "processlib/SinkTask.h"
 
-SinkTaskBase::SinkTaskBase() : 
-  _eventCbkPt(NULL),
-  _refCounter(1)
+SinkTaskBase::SinkTaskBase() : _eventCbkPt(NULL), _refCounter(1)
 {
-  pthread_mutex_init(&_lock,NULL);
+    pthread_mutex_init(&_lock, NULL);
 }
 
-SinkTaskBase::SinkTaskBase(const SinkTaskBase &aTask) :
-  _refCounter(1)
+SinkTaskBase::SinkTaskBase(const SinkTaskBase &aTask) : _refCounter(1)
 {
-  if(aTask._eventCbkPt)
-    aTask._eventCbkPt->ref();
-  _eventCbkPt = aTask._eventCbkPt;
-  pthread_mutex_init(&_lock,NULL);
+    if (aTask._eventCbkPt)
+        aTask._eventCbkPt->ref();
+    _eventCbkPt = aTask._eventCbkPt;
+    pthread_mutex_init(&_lock, NULL);
 }
 
 SinkTaskBase::~SinkTaskBase()
 {
-  if(_eventCbkPt)
-    _eventCbkPt->unref();
-  pthread_mutex_destroy(&_lock);
+    if (_eventCbkPt)
+        _eventCbkPt->unref();
+    pthread_mutex_destroy(&_lock);
 }
 
-void SinkTaskBase:: setEventCallback(TaskEventCallback *aEventCbk)
+void SinkTaskBase::setEventCallback(TaskEventCallback *aEventCbk)
 {
-  PoolThreadMgr::Lock aLock(&_lock);
-  if(aEventCbk)
-      aEventCbk->ref();
-  if(_eventCbkPt)
-      _eventCbkPt->unref();
-  _eventCbkPt = aEventCbk;
+    PoolThreadMgr::Lock aLock(&_lock);
+    if (aEventCbk)
+        aEventCbk->ref();
+    if (_eventCbkPt)
+        _eventCbkPt->unref();
+    _eventCbkPt = aEventCbk;
 }
 
 void SinkTaskBase::ref()
 {
-  PoolThreadMgr::Lock aLock(&_lock);
-  ++_refCounter;
+    PoolThreadMgr::Lock aLock(&_lock);
+    ++_refCounter;
 }
 
 void SinkTaskBase::unref()
 {
-  PoolThreadMgr::Lock aLock(&_lock);
-  if(!(--_refCounter))
+    PoolThreadMgr::Lock aLock(&_lock);
+    if (!(--_refCounter))
     {
-      aLock.unLock();
-      delete this;
+        aLock.unLock();
+        delete this;
     }
 }
 
 int SinkTaskBase::getRefCounter() const
 {
-  PoolThreadMgr::Lock aLock(&_lock);
-  return _refCounter;
+    PoolThreadMgr::Lock aLock(&_lock);
+    return _refCounter;
 }

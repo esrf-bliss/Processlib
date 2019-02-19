@@ -36,4 +36,4 @@
 #endif
 #endif
 
-#endif //!defined(PROCESSLIB_COMPATIBILITY_H)
+#endif //! defined(PROCESSLIB_COMPATIBILITY_H)

@@ -26,9 +26,9 @@
 #if !defined(PROCESSLIB_TASKMGR_H)
 #define PROCESSLIB_TASKMGR_H
 
-#include <deque>
-#include "processlib/Data.h"
 #include "processlib/Compatibility.h"
+#include "processlib/Data.h"
+#include <deque>
 
 class LinkTask;
 class SinkTaskBase;
@@ -36,78 +36,75 @@ class PoolThreadMgr;
 
 class DLL_EXPORT TaskMgr
 {
-  friend class PoolThreadMgr;
-  struct Task
-  {
-    Task() : _linkTask(NULL) {}
-    ~Task();
-    Task* copy() const;
-    LinkTask		       *_linkTask;
-    std::deque<SinkTaskBase*>	_sinkTaskQueue;
-  };
-  typedef std::deque<Task*> StageTask;
+    friend class PoolThreadMgr;
+    struct Task
+    {
+        Task() : _linkTask(NULL) {}
+        ~Task();
+        Task *copy() const;
+        LinkTask *_linkTask;
+        std::deque<SinkTaskBase *> _sinkTaskQueue;
+    };
+    typedef std::deque<Task *> StageTask;
 
-public:
-  class EventCallback
-  {
   public:
-    virtual ~EventCallback() {}
-    virtual void error(Data&,const char*) {}
-  };
+    class EventCallback
+    {
+      public:
+        virtual ~EventCallback() {}
+        virtual void error(Data &, const char *) {}
+    };
 
-  class TaskWrap
-  {
-    friend class TaskMgr;
-  public:
-    virtual ~TaskWrap(){};
-    virtual void process() = 0;
-    virtual void error(const std::string &errMsg) = 0;
-  protected:
-  TaskWrap(TaskMgr &aMgr) : _Mgr(aMgr) {};
+    class TaskWrap
+    {
+        friend class TaskMgr;
 
-    inline void _endLinkTask(LinkTask *aFinnishedTask)
-      {_Mgr._endLinkTask(aFinnishedTask);}
-    inline void _endSinkTask(SinkTaskBase *aFinnishedTask)
-      {_Mgr._endSinkTask(aFinnishedTask);}
-    inline void _setNextData(Data &aNextData)
-      {_Mgr._nextData = aNextData;}
-    inline void _callError(Data &aData,const char *msg)
-      {_Mgr._callError(aData,msg);}
-    TaskMgr &_Mgr;
-  };
-  friend class TaskWrap;
+      public:
+        virtual ~TaskWrap(){};
+        virtual void process()                        = 0;
+        virtual void error(const std::string &errMsg) = 0;
 
-  TaskMgr(int priority = 0);
-  TaskMgr(const TaskMgr&);
-  ~TaskMgr();
+      protected:
+        TaskWrap(TaskMgr &aMgr) : _Mgr(aMgr){};
 
-  void setInputData(Data &aData) {_currentData = aData;}
-  bool setLinkTask(int aStage,LinkTask *);
-  void addSinkTask(int aStage,SinkTaskBase *);
-  void getLastTask(std::pair<int,LinkTask*>&,
-		   std::pair<int,SinkTaskBase*>&);
-  void setEventCallback(EventCallback *);
-  TaskWrap* next();
-  std::pair<int,int> priority() const
-  {return std::pair<int,int>(_priority,_sub_priority);}
-  //@brief do all the task synchronously
-  Data syncProcess();
-private:
-  StageTask			_Tasks;
-  LinkTask		       *_PendingLinkTask;
-  bool				_initStageFlag;
-  int				_nbPendingSinkTask;
-  Data       			_currentData;
-  Data       			_nextData;
-  EventCallback*		_eventCBK;
-  int				_priority;
-  int				_sub_priority;
-  PoolThreadMgr*		_pool;
+        inline void _endLinkTask(LinkTask *aFinnishedTask) { _Mgr._endLinkTask(aFinnishedTask); }
+        inline void _endSinkTask(SinkTaskBase *aFinnishedTask) { _Mgr._endSinkTask(aFinnishedTask); }
+        inline void _setNextData(Data &aNextData) { _Mgr._nextData = aNextData; }
+        inline void _callError(Data &aData, const char *msg) { _Mgr._callError(aData, msg); }
+        TaskMgr &_Mgr;
+    };
+    friend class TaskWrap;
 
-  void _endLinkTask(LinkTask *aFinnishedTask);
-  void _endSinkTask(SinkTaskBase *aFinnishedTask);
-  void _goToNextStage();
-  void _callError(Data&,const char*);
+    TaskMgr(int priority = 0);
+    TaskMgr(const TaskMgr &);
+    ~TaskMgr();
+
+    void setInputData(Data &aData) { _currentData = aData; }
+    bool setLinkTask(int aStage, LinkTask *);
+    void addSinkTask(int aStage, SinkTaskBase *);
+    void getLastTask(std::pair<int, LinkTask *> &, std::pair<int, SinkTaskBase *> &);
+    void setEventCallback(EventCallback *);
+    TaskWrap *next();
+    std::pair<int, int> priority() const { return std::pair<int, int>(_priority, _sub_priority); }
+    //@brief do all the task synchronously
+    Data syncProcess();
+
+  private:
+    StageTask _Tasks;
+    LinkTask *_PendingLinkTask;
+    bool _initStageFlag;
+    int _nbPendingSinkTask;
+    Data _currentData;
+    Data _nextData;
+    EventCallback *_eventCBK;
+    int _priority;
+    int _sub_priority;
+    PoolThreadMgr *_pool;
+
+    void _endLinkTask(LinkTask *aFinnishedTask);
+    void _endSinkTask(SinkTaskBase *aFinnishedTask);
+    void _goToNextStage();
+    void _callError(Data &, const char *);
 };
 
-#endif //!defined(PROCESSLIB_TASKMGR_H)
+#endif //! defined(PROCESSLIB_TASKMGR_H)

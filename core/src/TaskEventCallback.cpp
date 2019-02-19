@@ -20,31 +20,31 @@
 // You should have received a copy of the GNU General Public License
 // along with this program; if not, see <http://www.gnu.org/licenses/>.
 //###########################################################################
-#include "processlib/PoolThreadMgr.h"
 #include "processlib/TaskEventCallback.h"
+#include "processlib/PoolThreadMgr.h"
 
 TaskEventCallback::TaskEventCallback() : _refCounter(1)
 {
-  pthread_mutex_init(&_lock,NULL);
+    pthread_mutex_init(&_lock, NULL);
 }
 
 TaskEventCallback::~TaskEventCallback()
 {
-  pthread_mutex_destroy(&_lock);
+    pthread_mutex_destroy(&_lock);
 }
 
 void TaskEventCallback::ref()
 {
-  PoolThreadMgr::Lock aLock(&_lock);
-  ++_refCounter;
+    PoolThreadMgr::Lock aLock(&_lock);
+    ++_refCounter;
 }
 
 void TaskEventCallback::unref()
 {
-  PoolThreadMgr::Lock aLock(&_lock);
-  if(!(--_refCounter))
+    PoolThreadMgr::Lock aLock(&_lock);
+    if (!(--_refCounter))
     {
-      aLock.unLock();
-      delete this;
+        aLock.unLock();
+        delete this;
     }
 }

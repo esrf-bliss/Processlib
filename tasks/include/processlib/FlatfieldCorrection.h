@@ -21,16 +21,16 @@
 // along with this program; if not, see <http://www.gnu.org/licenses/>.
 //###########################################################################
 #include "processlib/LinkTask.h"
-namespace Tasks
+namespace Tasks {
+class DLL_EXPORT FlatfieldCorrection : public LinkTask
 {
-  class DLL_EXPORT FlatfieldCorrection : public LinkTask
-  {
   public:
     FlatfieldCorrection();
-    FlatfieldCorrection(const FlatfieldCorrection&);
-    void setFlatFieldImageData(Data &aData,bool normalize = true);
-    virtual Data process(Data&);
+    FlatfieldCorrection(const FlatfieldCorrection &);
+    void setFlatFieldImageData(Data &aData, bool normalize = true);
+    virtual Data process(Data &);
+
   private:
     Data _flatFieldImage;
-  };
-}
+};
+} // namespace Tasks

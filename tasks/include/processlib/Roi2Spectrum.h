@@ -25,61 +25,53 @@
 
 #include "processlib/SinkTask.h"
 
-namespace Tasks
+namespace Tasks {
+struct Roi2SpectrumResult;
+
+typedef SinkTaskMgr<Roi2SpectrumResult> Roi2SpectrumManager;
+
+struct DLL_EXPORT Roi2SpectrumResult
 {
-  struct Roi2SpectrumResult;
-  
-  typedef SinkTaskMgr<Roi2SpectrumResult> Roi2SpectrumManager;
+    Roi2SpectrumResult() : frameNumber(-1), errorCode(Roi2SpectrumManager::OK) {}
+    explicit Roi2SpectrumResult(Roi2SpectrumManager::ErrorCode code) : errorCode(code) {}
 
-  struct DLL_EXPORT Roi2SpectrumResult
-  {
-    Roi2SpectrumResult() :
-      frameNumber(-1),
-      errorCode(Roi2SpectrumManager::OK)
-    {}
-    explicit Roi2SpectrumResult(Roi2SpectrumManager::ErrorCode code) :
-      errorCode(code) {}
-    
-    Data 				spectrum;
-    int 				frameNumber;
-    Roi2SpectrumManager::ErrorCode 	errorCode;
-  };
+    Data spectrum;
+    int frameNumber;
+    Roi2SpectrumManager::ErrorCode errorCode;
+};
 
-  inline std::ostream& operator<<(std::ostream &os,
-				  const Roi2SpectrumResult &aResult)
-    {
-      os << "<"
-	 << "frameNumber=" << aResult.frameNumber << ", "
-	 << "spectrum=" << aResult.spectrum;
-      os << ">";
-      return os;
-    }
-
-  class DLL_EXPORT Roi2SpectrumTask : public SinkTask<Roi2SpectrumResult>
-  {
-  public:
-    enum Mode {LINES_SUM,COLUMN_SUM};
-
-    Roi2SpectrumTask(Roi2SpectrumManager&);
-    Roi2SpectrumTask(const Roi2SpectrumTask&);
-    virtual void process(Data&);
-
-    void setMode(Mode aMode) {_mode = aMode;}
-    Mode getMode() const {return _mode;}
-
-    void setRoi(int x,int y,int width,int height)
-    {
-      _x = x,_y = y;
-      _width = width,_height = height;
-    }
-    void getRoi(int &x,int &y,int &width,int &height)
-    {
-      x = _x,y = _y,width = _width,height = _height;
-    }
-  private:
-    int _x,_y;
-    int _width,_height;
-    Mode _mode;
-  };
+inline std::ostream &operator<<(std::ostream &os, const Roi2SpectrumResult &aResult)
+{
+    os << "<"
+       << "frameNumber=" << aResult.frameNumber << ", "
+       << "spectrum=" << aResult.spectrum;
+    os << ">";
+    return os;
 }
+
+class DLL_EXPORT Roi2SpectrumTask : public SinkTask<Roi2SpectrumResult>
+{
+  public:
+    enum Mode { LINES_SUM, COLUMN_SUM };
+
+    Roi2SpectrumTask(Roi2SpectrumManager &);
+    Roi2SpectrumTask(const Roi2SpectrumTask &);
+    virtual void process(Data &);
+
+    void setMode(Mode aMode) { _mode = aMode; }
+    Mode getMode() const { return _mode; }
+
+    void setRoi(int x, int y, int width, int height)
+    {
+        _x = x, _y = y;
+        _width = width, _height = height;
+    }
+    void getRoi(int &x, int &y, int &width, int &height) { x = _x, y = _y, width = _width, height = _height; }
+
+  private:
+    int _x, _y;
+    int _width, _height;
+    Mode _mode;
+};
+} // namespace Tasks
 #endif

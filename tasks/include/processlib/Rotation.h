@@ -24,19 +24,19 @@
 #define PROCESSLIB_ROTATION_H
 
 #include "processlib/LinkTask.h"
-namespace Tasks
+namespace Tasks {
+class DLL_EXPORT Rotation : public LinkTask
 {
-  class DLL_EXPORT Rotation : public LinkTask
-  {
   public:
-    enum Type {R_90,R_180,R_270};
+    enum Type { R_90, R_180, R_270 };
     Rotation();
-    Rotation(const Rotation&);
-    virtual Data process(Data&);
+    Rotation(const Rotation &);
+    virtual Data process(Data &);
     void setType(Type);
+
   private:
     Type m_type;
-  };
-}
+};
+} // namespace Tasks
 
 #endif
