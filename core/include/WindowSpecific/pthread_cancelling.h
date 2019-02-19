@@ -23,6 +23,7 @@
 #ifndef __PTHREAD_CANCELLING_H__
 #define __PTHREAD_CANCELLING_H__
 #include "processlib/Compatibility.h"
+#include "pthread_thread.h"
 #include <Windows.h>
 
 #ifdef __cplusplus
