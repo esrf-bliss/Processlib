@@ -482,6 +482,7 @@ class PoolThreadMgr
 
  private:
   PoolThreadMgr(const PoolThreadMgr&);
+  ~PoolThreadMgr();
 };
 
 %Feature BPM_SUPPORT
