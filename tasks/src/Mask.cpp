@@ -20,277 +20,253 @@
 // You should have received a copy of the GNU General Public License
 // along with this program; if not, see <http://www.gnu.org/licenses/>.
 //###########################################################################
-#include <stdio.h>
-#include "processlib/ProcessExceptions.h"
 #include "processlib/Mask.h"
+#include "processlib/ProcessExceptions.h"
+#include <stdio.h>
 using namespace Tasks;
 
-Mask::Mask() : LinkTask(),_type(Mask::STANDARD) {}
+Mask::Mask() : LinkTask(), _type(Mask::STANDARD) {}
 
-Mask::Mask(const Mask &aTask) :
-  LinkTask(aTask),
-  _MaskImage(aTask._MaskImage),
-  _type(Mask::STANDARD)
-{}
+Mask::Mask(const Mask &aTask) : LinkTask(aTask), _MaskImage(aTask._MaskImage), _type(Mask::STANDARD) {}
 
 void Mask::setMaskImageData(Data &aMaskImage)
 {
-  if(!aMaskImage.empty() && 
-     aMaskImage.buffer->owner == Buffer::MAPPED)
+    if (!aMaskImage.empty() && aMaskImage.buffer->owner == Buffer::MAPPED)
     {
-      Data copiedData = aMaskImage.copy();
-      _MaskImage.setData(copiedData);
-    }
-  else
-    _MaskImage.setData(aMaskImage);
+        Data copiedData = aMaskImage.copy();
+        _MaskImage.setData(copiedData);
+    } else
+        _MaskImage.setData(aMaskImage);
 }
 
 void Mask::setType(Mask::Type aType)
 {
-  _type = aType;
+    _type = aType;
 }
 
 void Mask::getType(Mask::Type &aType) const
 {
-  aType = _type;
+    aType = _type;
 }
-template<class INPUT,class MASK>
-static void _mask_inplace(INPUT *src,int aSize,MASK *mask)
+template <class INPUT, class MASK>
+static void _mask_inplace(INPUT *src, int aSize, MASK *mask)
 {
-  for(int i = aSize / sizeof(INPUT);i;--i,++src,++mask)
-    if(!*mask) *src = INPUT(0);
+    for (int i = aSize / sizeof(INPUT); i; --i, ++src, ++mask)
+        if (!*mask)
+            *src = INPUT(0);
 }
 
-template<class INPUT,class MASK>
-static void _mask(INPUT *src,INPUT *dst,int aSize,MASK *mask)
+template <class INPUT, class MASK>
+static void _mask(INPUT *src, INPUT *dst, int aSize, MASK *mask)
 {
-  for(int i = aSize / sizeof(INPUT);i;--i,++src,++dst,++mask)
+    for (int i = aSize / sizeof(INPUT); i; --i, ++src, ++dst, ++mask)
     {
-      if(!*mask) 
-	*dst = INPUT(0);
-      else
-	*dst = *src;
+        if (!*mask)
+            *dst = INPUT(0);
+        else
+            *dst = *src;
     }
 }
 
-template<class INPUT,class MASK>
-static void _dummy_inplace(INPUT *src,int aSize,MASK *mask)
+template <class INPUT, class MASK>
+static void _dummy_inplace(INPUT *src, int aSize, MASK *mask)
 {
-  for(int i = aSize / sizeof(INPUT);i;--i,++src,++mask)
-    if(*mask) *src = INPUT(*mask);
+    for (int i = aSize / sizeof(INPUT); i; --i, ++src, ++mask)
+        if (*mask)
+            *src = INPUT(*mask);
 }
 
-template<class INPUT,class MASK>
-static void _dummy(INPUT *src,INPUT *dst,int aSize,MASK *mask)
+template <class INPUT, class MASK>
+static void _dummy(INPUT *src, INPUT *dst, int aSize, MASK *mask)
 {
-  for(int i = aSize / sizeof(INPUT);i;--i,++src,++dst,++mask)
+    for (int i = aSize / sizeof(INPUT); i; --i, ++src, ++dst, ++mask)
     {
-      if(*mask) 
-	*dst = INPUT(*mask);
-      else
-	*dst = *src;
+        if (*mask)
+            *dst = INPUT(*mask);
+        else
+            *dst = *src;
     }
 }
 
 Data Mask::process(Data &aData)
 {
-#define _INPLACE(data,size,datamask)		\
-  if(_type == Mask::STANDARD)			\
-    _mask_inplace(data,size,datamask);		\
-  else						\
-    _dummy_inplace(data,size,datamask);
+#define _INPLACE(data, size, datamask)       \
+    if (_type == Mask::STANDARD)             \
+        _mask_inplace(data, size, datamask); \
+    else                                     \
+        _dummy_inplace(data, size, datamask);
 
-#define _COPY(src,dst,size,datamask)		\
-  if(_type == Mask::STANDARD)			\
-    _mask(src,dst,size,datamask);		\
-  else						\
-    _dummy(src,dst,size,datamask);
+#define _COPY(src, dst, size, datamask)  \
+    if (_type == Mask::STANDARD)         \
+        _mask(src, dst, size, datamask); \
+    else                                 \
+        _dummy(src, dst, size, datamask);
 
     const char *errorMsgPt = NULL;
-    if(aData.dimensions == _MaskImage.dimensions)
-      {
-	if(_processingInPlaceFlag)
-	  {
-	    switch(aData.type)
-	      {
-	      case Data::UINT8:
-		if(aData.type == _MaskImage.type)
-		  {
-		    _INPLACE((unsigned char*)aData.data(),aData.size(),
-			     (unsigned char*)_MaskImage.data());
-		  }
-		else
-		  {
-		    errorMsgPt = "mask image must be an unsigned char";
-		    goto error;
-		  }
-		break;
-	      case Data::UINT16:
-		switch(_MaskImage.type)
-		  {
-		  case Data::UINT8:
-		    _INPLACE((unsigned short*)aData.data(),aData.size(),
-			     (unsigned char*)_MaskImage.data());
-		    break;
-		  case Data::UINT16:
-		    _INPLACE((unsigned short*)aData.data(),aData.size(),
-			     (unsigned short*)_MaskImage.data());
-		    break;
-		  default:
-		    errorMsgPt = "mask image must be an unsigned char or unsigned short";
-		    goto error;
-		  }
-		break;
-	      case Data::UINT32:
-		switch(_MaskImage.type)
-		  {
-		  case Data::UINT8:
-		    _INPLACE((unsigned int*)aData.data(),aData.size(),
-			     (unsigned char*)_MaskImage.data());
-		    break;
-		  case Data::UINT16:
-		    _INPLACE((unsigned int*)aData.data(),aData.size(),
-			     (unsigned short*)_MaskImage.data());
-		    break;
-		  case Data::UINT32:
-		    _INPLACE((unsigned int*)aData.data(),aData.size(),
-			     (unsigned int*)_MaskImage.data());
-		    break;
-		  default:
-		    errorMsgPt = "mask image must be an unsigned char,unsigned short or unsigned int";
-		    goto error;
-		  }
-		break;
-	      case Data::INT32:
-		switch(_MaskImage.type)
-		  {
-		  case Data::UINT8:
-		    _INPLACE((int*)aData.data(),aData.size(),
-			     (unsigned char*)_MaskImage.data());
-		    break;
-		  case Data::UINT16:
-		    _INPLACE((int*)aData.data(),aData.size(),
-			     (unsigned short*)_MaskImage.data());
-		    break;
-		  case Data::UINT32:
-		    _INPLACE((int*)aData.data(),aData.size(),
-			     (unsigned int*)_MaskImage.data());
-		    break;
-		  case Data::INT32:
-		    _INPLACE((int*)aData.data(),aData.size(),
-			     (int*)_MaskImage.data());
-		    break;
-		  default:
-		    errorMsgPt = "mask image must be an unsigned char,unsigned short,unsigned int or int";
-		    goto error;
-		  }
-		break;
-	      default: 
-		errorMsgPt = "Data type not managed";
-		goto error;
-	      }
-	    return aData;
-	  }
-	else
-	  {
-	    Data aNewData = aData.copyHeader(aData.type);	// get a new data buffer
-	    switch(aData.type)
-	      {
-	      case Data::UINT8:
-		if(aData.type == _MaskImage.type)
-		  {
-		    _COPY((unsigned char*)aData.data(),(unsigned char*)aNewData.data(),
-			  aData.size(),(unsigned char*)_MaskImage.data());
-		  }
-		else
-		  {
-		    errorMsgPt = "mask image must be an unsigned char";
-		    goto error;
-		  }
-		break;
-	      case Data::UINT16:
-		switch(_MaskImage.type)
-		  {
-		  case Data::UINT8:
-		    _COPY((unsigned short*)aData.data(),(unsigned short*)aNewData.data(),
-			  aData.size(),(unsigned char*)_MaskImage.data());
-		    break;
-		  case Data::UINT16:
-		    _COPY((unsigned short*)aData.data(),(unsigned short*)aNewData.data(),
-			  aData.size(),
-			  (unsigned short*)_MaskImage.data());
-		    break;
-		  default:
-		    errorMsgPt = "mask image must be an unsigned char or unsigned short";
-		    goto error;
-		  }
-		break;
-	      case Data::UINT32:
-		switch(_MaskImage.type)
-		  {
-		  case Data::UINT8:
-		    _COPY((unsigned int*)aData.data(),(unsigned int*)aNewData.data(),
-			  aData.size(),
-			  (unsigned char*)_MaskImage.data());
-		    break;
-		  case Data::UINT16:
-		    _COPY((unsigned int*)aData.data(),(unsigned int*)aNewData.data(),
-			  aData.size(),
-			  (unsigned short*)_MaskImage.data());
-		    break;
-		  case Data::UINT32:
-		    _COPY((unsigned int*)aData.data(),(unsigned int*)aNewData.data(),
-			  aData.size(),
-			  (unsigned int*)_MaskImage.data());
-		    break;
-		  default:
-		    errorMsgPt = "mask image must be an unsigned char,unsigned short or unsigned int";
-		    goto error;
-		  }
-	      case Data::INT32:
-		switch(_MaskImage.type)
-		  {
-		  case Data::UINT8:
-		    _COPY((int*)aData.data(),(int*)aNewData.data(),
-			  aData.size(),
-			  (unsigned char*)_MaskImage.data());
-		    break;
-		  case Data::UINT16:
-		    _COPY((int*)aData.data(),(int*)aNewData.data(),
-			  aData.size(),
-			  (unsigned short*)_MaskImage.data());
-		    break;
-		  case Data::INT32:
-		    _COPY((int*)aData.data(),(int*)aNewData.data(),
-			  aData.size(),
-			  (int*)_MaskImage.data());
-		    break;
-		  case Data::UINT32:
-		    _COPY((int*)aData.data(),(int*)aNewData.data(),
-			  aData.size(),
-			  (unsigned int*)_MaskImage.data());
-		    break;
-		  default:
-		    errorMsgPt = "mask image must be an unsigned char,unsigned short,unsigned int or int";
-		    goto error;
-		  }
-		break;
-	      default: 
-		errorMsgPt = "Data type not managed";
-		goto error;
-	      }
-	    return aNewData;
-	  }
-      }
-    else
-      errorMsgPt = "Source image differ from mask image";
+    if (aData.dimensions == _MaskImage.dimensions)
+    {
+        if (_processingInPlaceFlag)
+        {
+            switch (aData.type)
+            {
+            case Data::UINT8:
+                if (aData.type == _MaskImage.type)
+                {
+                    _INPLACE((unsigned char *)aData.data(), aData.size(), (unsigned char *)_MaskImage.data());
+                } else
+                {
+                    errorMsgPt = "mask image must be an unsigned char";
+                    goto error;
+                }
+                break;
+            case Data::UINT16:
+                switch (_MaskImage.type)
+                {
+                case Data::UINT8:
+                    _INPLACE((unsigned short *)aData.data(), aData.size(), (unsigned char *)_MaskImage.data());
+                    break;
+                case Data::UINT16:
+                    _INPLACE((unsigned short *)aData.data(), aData.size(), (unsigned short *)_MaskImage.data());
+                    break;
+                default:
+                    errorMsgPt = "mask image must be an unsigned char or unsigned short";
+                    goto error;
+                }
+                break;
+            case Data::UINT32:
+                switch (_MaskImage.type)
+                {
+                case Data::UINT8:
+                    _INPLACE((unsigned int *)aData.data(), aData.size(), (unsigned char *)_MaskImage.data());
+                    break;
+                case Data::UINT16:
+                    _INPLACE((unsigned int *)aData.data(), aData.size(), (unsigned short *)_MaskImage.data());
+                    break;
+                case Data::UINT32:
+                    _INPLACE((unsigned int *)aData.data(), aData.size(), (unsigned int *)_MaskImage.data());
+                    break;
+                default:
+                    errorMsgPt = "mask image must be an unsigned char,unsigned short or "
+                                 "unsigned int";
+                    goto error;
+                }
+                break;
+            case Data::INT32:
+                switch (_MaskImage.type)
+                {
+                case Data::UINT8:
+                    _INPLACE((int *)aData.data(), aData.size(), (unsigned char *)_MaskImage.data());
+                    break;
+                case Data::UINT16:
+                    _INPLACE((int *)aData.data(), aData.size(), (unsigned short *)_MaskImage.data());
+                    break;
+                case Data::UINT32:
+                    _INPLACE((int *)aData.data(), aData.size(), (unsigned int *)_MaskImage.data());
+                    break;
+                case Data::INT32:
+                    _INPLACE((int *)aData.data(), aData.size(), (int *)_MaskImage.data());
+                    break;
+                default:
+                    errorMsgPt = "mask image must be an unsigned char,unsigned "
+                                 "short,unsigned int or int";
+                    goto error;
+                }
+                break;
+            default:
+                errorMsgPt = "Data type not managed";
+                goto error;
+            }
+            return aData;
+        } else
+        {
+            Data aNewData = aData.copyHeader(aData.type); // get a new data buffer
+            switch (aData.type)
+            {
+            case Data::UINT8:
+                if (aData.type == _MaskImage.type)
+                {
+                    _COPY((unsigned char *)aData.data(), (unsigned char *)aNewData.data(), aData.size(),
+                          (unsigned char *)_MaskImage.data());
+                } else
+                {
+                    errorMsgPt = "mask image must be an unsigned char";
+                    goto error;
+                }
+                break;
+            case Data::UINT16:
+                switch (_MaskImage.type)
+                {
+                case Data::UINT8:
+                    _COPY((unsigned short *)aData.data(), (unsigned short *)aNewData.data(), aData.size(),
+                          (unsigned char *)_MaskImage.data());
+                    break;
+                case Data::UINT16:
+                    _COPY((unsigned short *)aData.data(), (unsigned short *)aNewData.data(), aData.size(),
+                          (unsigned short *)_MaskImage.data());
+                    break;
+                default:
+                    errorMsgPt = "mask image must be an unsigned char or unsigned short";
+                    goto error;
+                }
+                break;
+            case Data::UINT32:
+                switch (_MaskImage.type)
+                {
+                case Data::UINT8:
+                    _COPY((unsigned int *)aData.data(), (unsigned int *)aNewData.data(), aData.size(),
+                          (unsigned char *)_MaskImage.data());
+                    break;
+                case Data::UINT16:
+                    _COPY((unsigned int *)aData.data(), (unsigned int *)aNewData.data(), aData.size(),
+                          (unsigned short *)_MaskImage.data());
+                    break;
+                case Data::UINT32:
+                    _COPY((unsigned int *)aData.data(), (unsigned int *)aNewData.data(), aData.size(),
+                          (unsigned int *)_MaskImage.data());
+                    break;
+                default:
+                    errorMsgPt = "mask image must be an unsigned char,unsigned short or "
+                                 "unsigned int";
+                    goto error;
+                }
+            case Data::INT32:
+                switch (_MaskImage.type)
+                {
+                case Data::UINT8:
+                    _COPY((int *)aData.data(), (int *)aNewData.data(), aData.size(),
+                          (unsigned char *)_MaskImage.data());
+                    break;
+                case Data::UINT16:
+                    _COPY((int *)aData.data(), (int *)aNewData.data(), aData.size(),
+                          (unsigned short *)_MaskImage.data());
+                    break;
+                case Data::INT32:
+                    _COPY((int *)aData.data(), (int *)aNewData.data(), aData.size(), (int *)_MaskImage.data());
+                    break;
+                case Data::UINT32:
+                    _COPY((int *)aData.data(), (int *)aNewData.data(), aData.size(), (unsigned int *)_MaskImage.data());
+                    break;
+                default:
+                    errorMsgPt = "mask image must be an unsigned char,unsigned "
+                                 "short,unsigned int or int";
+                    goto error;
+                }
+                break;
+            default:
+                errorMsgPt = "Data type not managed";
+                goto error;
+            }
+            return aNewData;
+        }
+    } else
+        errorMsgPt = "Source image differ from mask image";
 
-  error:
-    if(errorMsgPt)
-      {
-	char aBuffer[256];
-	snprintf(aBuffer,sizeof(aBuffer),"Mask : %s",errorMsgPt);
-	throw ProcessException(aBuffer);
-      }
+error:
+    if (errorMsgPt)
+    {
+        char aBuffer[256];
+        snprintf(aBuffer, sizeof(aBuffer), "Mask : %s", errorMsgPt);
+        throw ProcessException(aBuffer);
+    }
     return Data();
-  }
+}

@@ -27,11 +27,11 @@
 #define PROCESSLIB_GSLERRORMGR_H
 
 #ifndef __unix
-#pragma warning(disable:4251)
+#pragma warning(disable : 4251)
 #endif
 
-#include <pthread.h>
 #include <map>
+#include <pthread.h>
 #include <string>
 
 #include "processlib/Compatibility.h"
@@ -40,21 +40,22 @@
  */
 class DLL_EXPORT GslErrorMgr
 {
-  typedef std::map<pthread_t,std::string> ErrorMessageType;
-  typedef std::map<pthread_t,int>	  ErrnoType;
- public:
-  static inline GslErrorMgr& get() throw() {return GslErrorMgr::_errorMgr;}
-  const char* lastErrorMsg() const;
-  int   lastErrno() const;
-  void	resetErrorMsg();
- private:
-  ErrorMessageType	_errorMessage;
-  ErrnoType		_lastGslErrno;
-  static GslErrorMgr	_errorMgr;
+    typedef std::map<pthread_t, std::string> ErrorMessageType;
+    typedef std::map<pthread_t, int> ErrnoType;
 
-  GslErrorMgr();
-  static void _error_handler(const char*,const char *,int,int);
+  public:
+    static inline GslErrorMgr &get() throw() { return GslErrorMgr::_errorMgr; }
+    const char *lastErrorMsg() const;
+    int lastErrno() const;
+    void resetErrorMsg();
+
+  private:
+    ErrorMessageType _errorMessage;
+    ErrnoType _lastGslErrno;
+    static GslErrorMgr _errorMgr;
+
+    GslErrorMgr();
+    static void _error_handler(const char *, const char *, int, int);
 };
 
-
-#endif //!defined(PROCESSLIB_GSLERRORMGR_H)
+#endif //! defined(PROCESSLIB_GSLERRORMGR_H)

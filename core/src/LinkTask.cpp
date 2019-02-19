@@ -23,63 +23,59 @@
 #include "processlib/LinkTask.h"
 #include "processlib/PoolThreadMgr.h"
 
-LinkTask::LinkTask() :
-  _processingInPlaceFlag(true),
-  _eventCbkPt(NULL),_refCounter(1)
+LinkTask::LinkTask() : _processingInPlaceFlag(true), _eventCbkPt(NULL), _refCounter(1)
 {
-  pthread_mutex_init(&_lock,NULL);
+    pthread_mutex_init(&_lock, NULL);
 }
 
-LinkTask::LinkTask(bool aProcessingInPlaceFlag) :
-  _processingInPlaceFlag(aProcessingInPlaceFlag),
-  _eventCbkPt(NULL),_refCounter(1)
+LinkTask::LinkTask(bool aProcessingInPlaceFlag)
+    : _processingInPlaceFlag(aProcessingInPlaceFlag), _eventCbkPt(NULL), _refCounter(1)
 {
-  pthread_mutex_init(&_lock,NULL);
+    pthread_mutex_init(&_lock, NULL);
 }
 
-LinkTask::LinkTask(const LinkTask &aLinkTask) :
-  _processingInPlaceFlag(aLinkTask._processingInPlaceFlag)
+LinkTask::LinkTask(const LinkTask &aLinkTask) : _processingInPlaceFlag(aLinkTask._processingInPlaceFlag)
 {
-  if(aLinkTask._eventCbkPt)
-      aLinkTask._eventCbkPt->ref();
-  _eventCbkPt = aLinkTask._eventCbkPt;
-  pthread_mutex_init(&_lock,NULL);
+    if (aLinkTask._eventCbkPt)
+        aLinkTask._eventCbkPt->ref();
+    _eventCbkPt = aLinkTask._eventCbkPt;
+    pthread_mutex_init(&_lock, NULL);
 }
 
 LinkTask::~LinkTask()
 {
-  if(_eventCbkPt)
-    _eventCbkPt->unref();
-  pthread_mutex_destroy(&_lock);
+    if (_eventCbkPt)
+        _eventCbkPt->unref();
+    pthread_mutex_destroy(&_lock);
 }
 void LinkTask::setEventCallback(TaskEventCallback *aEventCbk)
 {
-  PoolThreadMgr::Lock aLock(&_lock);
-  if(aEventCbk)
-      aEventCbk->ref();
-  if(_eventCbkPt)
-      _eventCbkPt->unref();
-  _eventCbkPt = aEventCbk;
+    PoolThreadMgr::Lock aLock(&_lock);
+    if (aEventCbk)
+        aEventCbk->ref();
+    if (_eventCbkPt)
+        _eventCbkPt->unref();
+    _eventCbkPt = aEventCbk;
 }
 
 void LinkTask::ref()
 {
-  PoolThreadMgr::Lock aLock(&_lock);
-  ++_refCounter;
+    PoolThreadMgr::Lock aLock(&_lock);
+    ++_refCounter;
 }
 
 void LinkTask::unref()
 {
-  PoolThreadMgr::Lock aLock(&_lock);
-  if(!(--_refCounter))
+    PoolThreadMgr::Lock aLock(&_lock);
+    if (!(--_refCounter))
     {
-      aLock.unLock();
-      delete this;
+        aLock.unLock();
+        delete this;
     }
 }
 
 int LinkTask::getRefCounter() const
 {
-  PoolThreadMgr::Lock aLock(&_lock);
-  return _refCounter;
+    PoolThreadMgr::Lock aLock(&_lock);
+    return _refCounter;
 }

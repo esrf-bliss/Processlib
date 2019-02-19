@@ -21,17 +21,16 @@
 // along with this program; if not, see <http://www.gnu.org/licenses/>.
 //###########################################################################
 #include "processlib/LinkTask.h"
-namespace Tasks
+namespace Tasks {
+class DLL_EXPORT Binning : public LinkTask
 {
-  class DLL_EXPORT Binning : public LinkTask
-  {
   public:
     Binning();
-    Binning(const Binning&);
+    Binning(const Binning &);
 
-    virtual Data process(Data&);
+    virtual Data process(Data &);
 
     int mXFactor;
     int mYFactor;
-  };
-}
+};
+} // namespace Tasks

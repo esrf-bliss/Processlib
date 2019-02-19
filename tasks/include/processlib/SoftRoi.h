@@ -23,19 +23,18 @@
 #ifndef PROCESSLIB_SOFTROI_H
 #define PROCESSLIB_SOFTROI_H
 #include "processlib/LinkTask.h"
-namespace Tasks
+namespace Tasks {
+class DLL_EXPORT SoftRoi : public LinkTask
 {
-  class DLL_EXPORT SoftRoi : public LinkTask
-  {
   public:
     SoftRoi();
-    SoftRoi(const SoftRoi&);
-    virtual Data process(Data&);
-    void setRoi(int x1,int x2,
-		int y1,int y2);
+    SoftRoi(const SoftRoi &);
+    virtual Data process(Data &);
+    void setRoi(int x1, int x2, int y1, int y2);
+
   private:
-    int _x1,_x2;
-    int _y1,_y2;
-  };
-}
+    int _x1, _x2;
+    int _y1, _y2;
+};
+} // namespace Tasks
 #endif

@@ -30,11 +30,12 @@
 
 class ProcessException
 {
- public:
-  ProcessException(const char *msg) : m_msg(msg) {}
-  const std::string& getErrMsg() const {return m_msg;}
- private:
-  std::string m_msg;
+  public:
+    ProcessException(const char *msg) : m_msg(msg) {}
+    const std::string &getErrMsg() const { return m_msg; }
+
+  private:
+    std::string m_msg;
 };
 
-#endif //!defined(PROCESSLIB_PROCESS_EXCEPTIONS_H)
+#endif //! defined(PROCESSLIB_PROCESS_EXCEPTIONS_H)

@@ -28,15 +28,14 @@
 #define PTHREAD_CANCEL_DEFERRED 0
 #define PTHREAD_CANCEL_ASYNCHRONOUS 0x02
 
-#define PTHREAD_CANCELED ((void *) int(0xDEADBEEF))
-#include "stdio_compat.h"
-#include "time_compat.h"
-#include "pthread_mutex.h"
-#include "pthread_rwlock.h"
-#include "pthread_key.h"
-#include "pthread_thread.h"
+#define PTHREAD_CANCELED ((void *)int(0xDEADBEEF))
 #include "pthread_cancelling.h"
 #include "pthread_cond.h"
+#include "pthread_key.h"
+#include "pthread_mutex.h"
+#include "pthread_rwlock.h"
+#include "pthread_thread.h"
+#include "stdio_compat.h"
+#include "time_compat.h"
 
 #endif
-

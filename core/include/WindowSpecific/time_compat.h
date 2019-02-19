@@ -30,28 +30,28 @@
 #include "processlib/Compatibility.h"
 
 #if defined(_MSC_VER) || defined(_MSC_EXTENSIONS)
-  #define DELTA_EPOCH_IN_MICROSECS  11644473600000000Ui64
+#define DELTA_EPOCH_IN_MICROSECS 11644473600000000Ui64
 #else
-  #define DELTA_EPOCH_IN_MICROSECS  11644473600000000ULL
+#define DELTA_EPOCH_IN_MICROSECS 11644473600000000ULL
 #endif
 
-#define ctime_r(rTime,buffer) ctime_s(buffer,sizeof(buffer),rTime)
-#define localtime_r(timep,result) localtime_s(result,timep)
+#define ctime_r(rTime, buffer) ctime_s(buffer, sizeof(buffer), rTime)
+#define localtime_r(timep, result) localtime_s(result, timep)
 
-struct compat_timezone 
+struct compat_timezone
 {
-  int  tz_minuteswest; /* minutes W of Greenwich */
-  int  tz_dsttime;     /* type of dst correction */
+    int tz_minuteswest; /* minutes W of Greenwich */
+    int tz_dsttime;     /* type of dst correction */
 };
 
 #ifdef __cplusplus
-extern "C"{
+extern "C" {
 #endif
 
-  DLL_EXPORT int gettimeofday(struct timeval *tv, struct compat_timezone *tz);
-  
+DLL_EXPORT int gettimeofday(struct timeval *tv, struct compat_timezone *tz);
+
 #ifdef __cplusplus
-}       //  Assume C declarations for C++
-#endif  //C++
+} //  Assume C declarations for C++
+#endif // C++
 
 #endif //__GETTIMEOFDAY__

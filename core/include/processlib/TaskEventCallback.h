@@ -31,20 +31,21 @@
 
 class DLL_EXPORT TaskEventCallback
 {
- public:
-  TaskEventCallback();
-  virtual void started(Data &) {}
-  virtual void finished(Data &) {}
-  virtual void error(Data &,const char*) {}
+  public:
+    TaskEventCallback();
+    virtual void started(Data &) {}
+    virtual void finished(Data &) {}
+    virtual void error(Data &, const char *) {}
 
-  void ref();
-  void unref();
+    void ref();
+    void unref();
 
- protected:
-  virtual ~TaskEventCallback();
- private:
-  pthread_mutex_t _lock;
-  int		  _refCounter;
+  protected:
+    virtual ~TaskEventCallback();
+
+  private:
+    pthread_mutex_t _lock;
+    int _refCounter;
 };
 
-#endif //!defined(PROCESSLIB_TASKEVENTCALLBACK_H)
+#endif //! defined(PROCESSLIB_TASKEVENTCALLBACK_H)

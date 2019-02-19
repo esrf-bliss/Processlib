@@ -21,23 +21,18 @@
 // along with this program; if not, see <http://www.gnu.org/licenses/>.
 //###########################################################################
 #include "processlib/LinkTask.h"
-namespace Tasks
+namespace Tasks {
+class DLL_EXPORT Flip : public LinkTask
 {
-  class DLL_EXPORT Flip : public LinkTask
-  {
   public:
-    enum FLIP_MODE {
-      FLIP_NONE,
-      FLIP_X,
-      FLIP_Y,
-      FLIP_ALL
-    };
+    enum FLIP_MODE { FLIP_NONE, FLIP_X, FLIP_Y, FLIP_ALL };
     Flip();
-    Flip(const Flip&);
+    Flip(const Flip &);
     void setFlip(FLIP_MODE);
- 
-   virtual Data process(Data&);
+
+    virtual Data process(Data &);
+
   private:
     FLIP_MODE _mode;
-  };
-}
+};
+} // namespace Tasks

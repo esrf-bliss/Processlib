@@ -24,74 +24,73 @@
 #ifdef __unix
 #include <sys/time.h>
 #endif
-#include <errno.h>
 #include "processlib/PoolThreadMgr.h"
-#include "processlib/TaskMgr.h"
 #include "processlib/ProcessExceptions.h"
+#include "processlib/TaskMgr.h"
+#include <errno.h>
 
-//Static variable
+// Static variable
 static const int NB_DEFAULT_THREADS = 2;
 
 static PoolThreadMgr *_processMgrPt = NULL;
-static pthread_once_t _init = PTHREAD_ONCE_INIT;
+static pthread_once_t _init         = PTHREAD_ONCE_INIT;
 static void _processMgrInit()
 {
-  _processMgrPt = new PoolThreadMgr();
+    _processMgrPt = new PoolThreadMgr();
 }
 
 PoolThreadMgr::PoolThreadMgr()
 {
-  pthread_mutex_init(&_lock,NULL);
-  pthread_cond_init(&_cond,NULL);
+    pthread_mutex_init(&_lock, NULL);
+    pthread_cond_init(&_cond, NULL);
 
-  _stopFlag = false;
-  _suspendFlag = false;
-  _runningThread = 0;
-  _taskMgr = NULL;
+    _stopFlag      = false;
+    _suspendFlag   = false;
+    _runningThread = 0;
+    _taskMgr       = NULL;
 
 #ifdef __unix
-  int ret = pthread_atfork(atfork_prepare, atfork_parent, atfork_child);
-  if (ret != 0)
-    throw ProcessException("Cannot register pthread_atfork handlers");
+    int ret = pthread_atfork(atfork_prepare, atfork_parent, atfork_child);
+    if (ret != 0)
+        throw ProcessException("Cannot register pthread_atfork handlers");
 #endif
 
-  _createProcessThread(NB_DEFAULT_THREADS);
+    _createProcessThread(NB_DEFAULT_THREADS);
 }
 
 PoolThreadMgr::~PoolThreadMgr()
 {
 #ifdef __unix
-  quit();
+    quit();
 #endif
-  pthread_mutex_destroy(&_lock);
-  pthread_cond_destroy(&_cond);
+    pthread_mutex_destroy(&_lock);
+    pthread_cond_destroy(&_cond);
 }
 
 /** @brief add a process in the process queue.
- *  Notice that after calling this methode aProcess will be own by PoolThreadMgr,
- *  do not modify or even delete it.
+ *  Notice that after calling this methode aProcess will be own by
+ * PoolThreadMgr, do not modify or even delete it.
  *  @param aProcess a background process
  *  @param aFlag if true lock the queue which is the default
-*/
-void PoolThreadMgr::addProcess(TaskMgr *aProcess,bool aFlag) 
+ */
+void PoolThreadMgr::addProcess(TaskMgr *aProcess, bool aFlag)
 {
-  Lock aLock(&_lock,aFlag);
-  _processQueue.insert(QueueType::value_type(aProcess->priority(),aProcess));
-  aProcess->_pool = this;
-  pthread_cond_broadcast(&_cond);
+    Lock aLock(&_lock, aFlag);
+    _processQueue.insert(QueueType::value_type(aProcess->priority(), aProcess));
+    aProcess->_pool = this;
+    pthread_cond_broadcast(&_cond);
 }
 
-void PoolThreadMgr::removeProcess(TaskMgr *aProcess,bool aFlag)
+void PoolThreadMgr::removeProcess(TaskMgr *aProcess, bool aFlag)
 {
-  Lock aLock(&_lock,aFlag);
-  for(QueueType::iterator i = _processQueue.begin();
-      i != _processQueue.end();++i)
+    Lock aLock(&_lock, aFlag);
+    for (QueueType::iterator i = _processQueue.begin(); i != _processQueue.end(); ++i)
     {
-      if(i->second == aProcess)
-       {
-         _processQueue.erase(i);
-         break;
-       }
+        if (i->second == aProcess)
+        {
+            _processQueue.erase(i);
+            break;
+        }
     }
 }
 
@@ -99,17 +98,17 @@ void PoolThreadMgr::removeProcess(TaskMgr *aProcess,bool aFlag)
  * @warning this methode is not MT-Safe
  * @see quit
  */
-void PoolThreadMgr::setNumberOfThread(int nbThread) 
+void PoolThreadMgr::setNumberOfThread(int nbThread)
 {
-  if(int(_threadID.size()) <= nbThread)
-    _createProcessThread(nbThread - int(_threadID.size()));
-  else
+    if (int(_threadID.size()) <= nbThread)
+        _createProcessThread(nbThread - int(_threadID.size()));
+    else
     {
-      quit();
-      _createProcessThread(nbThread);
+        quit();
+        _createProcessThread(nbThread);
     }
 }
-/** @brief set the image processing mgr 
+/** @brief set the image processing mgr
  *
  *  this is the way to defined the chained process of all images.
  *  each time an image is received, this TaskMgr is clone
@@ -117,12 +116,12 @@ void PoolThreadMgr::setNumberOfThread(int nbThread)
  */
 void PoolThreadMgr::setTaskMgr(const TaskMgr *aMgr)
 {
-  TaskMgr *refBackgrounMgr = NULL;
-  if(aMgr)
-    refBackgrounMgr = new TaskMgr(*aMgr);
-  Lock aLock(&_lock);
-  delete _taskMgr;
-  _taskMgr = refBackgrounMgr;
+    TaskMgr *refBackgrounMgr = NULL;
+    if (aMgr)
+        refBackgrounMgr = new TaskMgr(*aMgr);
+    Lock aLock(&_lock);
+    delete _taskMgr;
+    _taskMgr = refBackgrounMgr;
 }
 
 /** @brief clean quit
@@ -132,138 +131,133 @@ void PoolThreadMgr::setTaskMgr(const TaskMgr *aMgr)
 
 void PoolThreadMgr::quit()
 {
-  Lock aLock(&_lock);
-  _stopFlag = true;
-  pthread_cond_broadcast(&_cond);
-  aLock.unLock();
+    Lock aLock(&_lock);
+    _stopFlag = true;
+    pthread_cond_broadcast(&_cond);
+    aLock.unLock();
 
-  for(std::vector<pthread_t>::iterator i = _threadID.begin();
-      i != _threadID.end();++i)
+    for (std::vector<pthread_t>::iterator i = _threadID.begin(); i != _threadID.end(); ++i)
     {
-      void *returnThread;
-      while(pthread_join(*i,&returnThread));
+        void *returnThread;
+        while (pthread_join(*i, &returnThread))
+            ;
     }
-  _stopFlag = false;
-  _threadID.clear();
+    _stopFlag = false;
+    _threadID.clear();
 }
 /** @brief abort all process
  */
 void PoolThreadMgr::abort()
 {
-  Lock aLock(&_lock);
-  _suspendFlag = true;
-  while(_runningThread) pthread_cond_wait(&_cond,&_lock);
-  for(QueueType::iterator i = _processQueue.begin();
-      i != _processQueue.end();++i)
-    delete i->second;
-  _processQueue.clear();
-  _suspendFlag = false;
+    Lock aLock(&_lock);
+    _suspendFlag = true;
+    while (_runningThread)
+        pthread_cond_wait(&_cond, &_lock);
+    for (QueueType::iterator i = _processQueue.begin(); i != _processQueue.end(); ++i)
+        delete i->second;
+    _processQueue.clear();
+    _suspendFlag = false;
 }
 
 /** @brief suspend all process
  */
 void PoolThreadMgr::suspend(bool aFlag)
 {
-  Lock aLock(&_lock);
-  _suspendFlag = aFlag;
-  if(!aFlag)
-    pthread_cond_broadcast(&_cond);
+    Lock aLock(&_lock);
+    _suspendFlag = aFlag;
+    if (!aFlag)
+        pthread_cond_broadcast(&_cond);
 }
 /** @brief wait until queue is empty
  */
 bool PoolThreadMgr::wait(double askedTimeout)
 {
-  if(askedTimeout >= 0.)
+    if (askedTimeout >= 0.)
     {
-      struct timeval now;
-      struct timespec timeout;
-      int retcode = 0;
-      gettimeofday(&now,NULL);
-      timeout.tv_sec = now.tv_sec + long(askedTimeout);
-      timeout.tv_nsec = (now.tv_usec * 1000) + 
-	long((askedTimeout - long(askedTimeout)) * 1e9);
-      if(timeout.tv_nsec >= 1000000000L) // Carry
-	++timeout.tv_sec,timeout.tv_nsec -= 1000000000L;
-      Lock aLock(&_lock);
-      while(_runningThread && !retcode)
-	retcode = pthread_cond_timedwait(&_cond,&_lock,&timeout);
-      return retcode != ETIMEDOUT;
-    }
-  else
+        struct timeval now;
+        struct timespec timeout;
+        int retcode = 0;
+        gettimeofday(&now, NULL);
+        timeout.tv_sec  = now.tv_sec + long(askedTimeout);
+        timeout.tv_nsec = (now.tv_usec * 1000) + long((askedTimeout - long(askedTimeout)) * 1e9);
+        if (timeout.tv_nsec >= 1000000000L) // Carry
+            ++timeout.tv_sec, timeout.tv_nsec -= 1000000000L;
+        Lock aLock(&_lock);
+        while (_runningThread && !retcode)
+            retcode = pthread_cond_timedwait(&_cond, &_lock, &timeout);
+        return retcode != ETIMEDOUT;
+    } else
     {
-      Lock aLock(&_lock);
-      while(_runningThread)
-	pthread_cond_wait(&_cond,&_lock);
-      return true;
+        Lock aLock(&_lock);
+        while (_runningThread)
+            pthread_cond_wait(&_cond, &_lock);
+        return true;
     }
 }
-void* PoolThreadMgr::_run(void *arg) 
+void *PoolThreadMgr::_run(void *arg)
 {
-  PoolThreadMgr* processMgrPt = (PoolThreadMgr*)arg;
-  Lock aLock(&processMgrPt->_lock);
-  processMgrPt->_runningThread++;
-  while(1)
+    PoolThreadMgr *processMgrPt = (PoolThreadMgr *)arg;
+    Lock aLock(&processMgrPt->_lock);
+    processMgrPt->_runningThread++;
+    while (1)
     {
-      bool aBroadcastFlag = true;
-      processMgrPt->_runningThread--;
+        bool aBroadcastFlag = true;
+        processMgrPt->_runningThread--;
 
-      while(processMgrPt->_suspendFlag ||
-	    (!processMgrPt->_stopFlag && processMgrPt->_processQueue.empty()))
-	{
-	  if(aBroadcastFlag)
-	    {
-	      pthread_cond_broadcast(&processMgrPt->_cond);	// synchro if abort
-	      aBroadcastFlag = false;
-	    }
-	  pthread_cond_wait(&processMgrPt->_cond,&processMgrPt->_lock);
-	}      
-      processMgrPt->_runningThread++;
+        while (processMgrPt->_suspendFlag || (!processMgrPt->_stopFlag && processMgrPt->_processQueue.empty()))
+        {
+            if (aBroadcastFlag)
+            {
+                pthread_cond_broadcast(&processMgrPt->_cond); // synchro if abort
+                aBroadcastFlag = false;
+            }
+            pthread_cond_wait(&processMgrPt->_cond, &processMgrPt->_lock);
+        }
+        processMgrPt->_runningThread++;
 
-      if(!processMgrPt->_processQueue.empty())
-	{
-	  QueueType::iterator i = processMgrPt->_processQueue.begin();
-	  TaskMgr *processPt = i->second;
-	  TaskMgr::TaskWrap *aNextTask = processPt->next();
-	  aLock.unLock();
-	  try
-	    {
-	      aNextTask->process();
-	    }
-	  catch(ProcessException &exp)
-	    {
-	      aNextTask->error(exp.getErrMsg());
-	    }
-	  catch(...)
-	    {
-	      aNextTask->error("Unknowed exception!");
-	    }
-	  aLock.lock();
-	  delete aNextTask;
-	}
-      else break;		// stop
+        if (!processMgrPt->_processQueue.empty())
+        {
+            QueueType::iterator i        = processMgrPt->_processQueue.begin();
+            TaskMgr *processPt           = i->second;
+            TaskMgr::TaskWrap *aNextTask = processPt->next();
+            aLock.unLock();
+            try
+            {
+                aNextTask->process();
+            } catch (ProcessException &exp)
+            {
+                aNextTask->error(exp.getErrMsg());
+            } catch (...)
+            {
+                aNextTask->error("Unknowed exception!");
+            }
+            aLock.lock();
+            delete aNextTask;
+        } else
+            break; // stop
     }
-  processMgrPt->_runningThread--;
-  return NULL;
+    processMgrPt->_runningThread--;
+    return NULL;
 }
 
 void PoolThreadMgr::_createProcessThread(int aNumber)
 {
-  for(int i = aNumber;i;--i)
+    for (int i = aNumber; i; --i)
     {
-      pthread_t  threadID;
-      if(!pthread_create(&threadID,NULL,_run,this))
-	_threadID.push_back(threadID);
+        pthread_t threadID;
+        if (!pthread_create(&threadID, NULL, _run, this))
+            _threadID.push_back(threadID);
     }
 }
 
-PoolThreadMgr& PoolThreadMgr::get() throw()
+PoolThreadMgr &PoolThreadMgr::get() throw()
 {
 #ifdef WIN32
-  _pthread_once_raw(&_init,_processMgrInit);
+    _pthread_once_raw(&_init, _processMgrInit);
 #else
-  pthread_once(&_init,_processMgrInit);
+    pthread_once(&_init, _processMgrInit);
 #endif
-  return *_processMgrPt;
+    return *_processMgrPt;
 }
 
 #ifdef __unix
@@ -275,8 +269,9 @@ PoolThreadMgr& PoolThreadMgr::get() throw()
  */
 void PoolThreadMgr::atfork_prepare()
 {
-  pthread_mutex_t& lock = _processMgrPt->_lock;
-  while (pthread_mutex_lock(&lock));
+    pthread_mutex_t &lock = _processMgrPt->_lock;
+    while (pthread_mutex_lock(&lock))
+        ;
 }
 
 /** @brief cleanup of thread-related tasks after fork in parent
@@ -285,8 +280,8 @@ void PoolThreadMgr::atfork_prepare()
  */
 void PoolThreadMgr::atfork_parent()
 {
-  pthread_mutex_t& lock = _processMgrPt->_lock;
-  pthread_mutex_unlock(&lock);
+    pthread_mutex_t &lock = _processMgrPt->_lock;
+    pthread_mutex_unlock(&lock);
 }
 
 /** @brief cleanup of thread-related tasks after fork in child
@@ -296,10 +291,10 @@ void PoolThreadMgr::atfork_parent()
  */
 void PoolThreadMgr::atfork_child()
 {
-  pthread_mutex_t& lock = _processMgrPt->_lock;
-  pthread_mutex_unlock(&lock);
-  std::vector<pthread_t>& thread_list = _processMgrPt->_threadID;
-  thread_list.clear();
+    pthread_mutex_t &lock = _processMgrPt->_lock;
+    pthread_mutex_unlock(&lock);
+    std::vector<pthread_t> &thread_list = _processMgrPt->_threadID;
+    thread_list.clear();
 }
 
 #endif // __unix

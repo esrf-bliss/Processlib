@@ -23,61 +23,54 @@
 #ifndef __PEAKFINDER_H__
 #define __PEAKFINDER_H__
 
-#include <sstream>
 #include "processlib/SinkTask.h"
+#include <sstream>
 
-namespace Tasks
+namespace Tasks {
+struct PeakFinderResult;
+
+typedef SinkTaskMgr<PeakFinderResult> PeakFinderManager;
+
+struct DLL_EXPORT PeakFinderResult
 {
-  struct PeakFinderResult;
-  
-  typedef SinkTaskMgr<PeakFinderResult> PeakFinderManager;
+    PeakFinderResult() : x_peak(0.), y_peak(0.), frameNumber(-1), errorCode(PeakFinderManager::OK) {}
+    explicit PeakFinderResult(PeakFinderManager::ErrorCode code) : errorCode(code) {}
 
-  struct DLL_EXPORT PeakFinderResult
-  {
-    PeakFinderResult() : 
-    x_peak(0.),y_peak(0.),
-      frameNumber(-1),
-      errorCode(PeakFinderManager::OK)
-	{}
-    explicit PeakFinderResult(PeakFinderManager::ErrorCode code) : 
-    errorCode(code) {}
-
-    double                       x_peak;
-    double                       y_peak;
-    int                          frameNumber;
+    double x_peak;
+    double y_peak;
+    int frameNumber;
     PeakFinderManager::ErrorCode errorCode;
-  };
+};
 
-  inline std::ostream& operator<<(std::ostream &os,const PeakFinderResult &aPeakResult)
-  {
+inline std::ostream &operator<<(std::ostream &os, const PeakFinderResult &aPeakResult)
+{
     os << "<"
        << "frameNumber=" << aPeakResult.frameNumber << ", "
        << "x_peak=" << aPeakResult.x_peak << ", "
        << "y_peak=" << aPeakResult.y_peak;
     os << ">";
     return os;
-  }
+}
 
-  class DLL_EXPORT PeakFinderTask : public SinkTask<PeakFinderResult>
-  {
+class DLL_EXPORT PeakFinderTask : public SinkTask<PeakFinderResult>
+{
   public:
-    enum ComputingMode {MAXIMUM,CM};
-    PeakFinderTask(PeakFinderManager&);
-    PeakFinderTask(const PeakFinderTask&);
-    virtual void process(Data&);
-    
-    void setMask(Data &aMask) {_mask = aMask;}
+    enum ComputingMode { MAXIMUM, CM };
+    PeakFinderTask(PeakFinderManager &);
+    PeakFinderTask(const PeakFinderTask &);
+    virtual void process(Data &);
+
+    void setMask(Data &aMask) { _mask = aMask; }
     void setComputingMode(ComputingMode);
     void getComputingMode(ComputingMode &) const;
+
   private:
-    
     Data _mask;
     int _nb_peaks;
     ComputingMode _computing_mode;
-    
 
     //    void _compute_peaks(const Data& aData, PeakFinderResult &aResult);
-  };
+};
 
-}
+} // namespace Tasks
 #endif

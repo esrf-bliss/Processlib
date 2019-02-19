@@ -21,37 +21,36 @@
 // along with this program; if not, see <http://www.gnu.org/licenses/>.
 //###########################################################################
 #ifndef _UNISTD_H
-#define _UNISTD_H        1
+#define _UNISTD_H 1
 
-/* This file intended to serve as a drop-in replacement for 
+/* This file intended to serve as a drop-in replacement for
  *  unistd.h on Windows
- *  Please add functionality as neeeded 
+ *  Please add functionality as neeeded
  */
 
-#include <stdlib.h>
 #include <io.h>
+#include <stdlib.h>
 
 #define srandom srand
 #define random rand
 
-
-#define R_OK    4               /* Test for read permission.  */
-#define W_OK    2               /* Test for write permission.  */
-#define X_OK    1               /* Test for execute permission.  */
-#define F_OK    0               /* Test for existence.  */
+#define R_OK 4 /* Test for read permission.  */
+#define W_OK 2 /* Test for write permission.  */
+#define X_OK 1 /* Test for execute permission.  */
+#define F_OK 0 /* Test for existence.  */
 
 #define access _access
 #define ftruncate _chsize
 
 #define ssize_t int
-#define usleep(val) ::Sleep(val/1000)
+#define usleep(val) ::Sleep(val / 1000)
 
 #ifndef S_ISDIR
-#define S_ISDIR(mode)  (((mode) & S_IFMT) == S_IFDIR)
+#define S_ISDIR(mode) (((mode)&S_IFMT) == S_IFDIR)
 #endif
 
 #ifndef S_ISREG
-#define S_ISREG(mode)  (((mode) & S_IFMT) == S_IFREG)
+#define S_ISREG(mode) (((mode)&S_IFMT) == S_IFREG)
 #endif
 
 #endif /* unistd.h  */
