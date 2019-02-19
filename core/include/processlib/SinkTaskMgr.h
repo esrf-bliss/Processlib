@@ -35,7 +35,7 @@
 #include "processlib/PoolThreadMgr.h"
 
 template <class Result>
-class DLL_EXPORT SinkTaskMgr
+class PROCESSLIB_EXPORT SinkTaskMgr
 {
     typedef std::vector<Result> FrameResultList;
 

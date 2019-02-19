@@ -22,7 +22,7 @@
 //###########################################################################
 #include "processlib/LinkTask.h"
 namespace Tasks {
-class DLL_EXPORT FlatfieldCorrection : public LinkTask
+class PROCESSLIB_EXPORT FlatfieldCorrection : public LinkTask
 {
   public:
     FlatfieldCorrection();

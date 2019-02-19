@@ -23,7 +23,7 @@
 #include "processlib/LinkTask.h"
 
 namespace Tasks {
-class DLL_EXPORT Mask : public LinkTask
+class PROCESSLIB_EXPORT Mask : public LinkTask
 {
   public:
     enum Type { STANDARD, DUMMY };

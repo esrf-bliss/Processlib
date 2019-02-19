@@ -178,6 +178,7 @@ endif(PROCESSLIB_ENABLE_GSL)
 target_include_directories(processlib PUBLIC
     "$<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/core/include>"
     "$<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/tasks/include>"
+    "$<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}>"
     "$<INSTALL_INTERFACE:${CMAKE_INSTALL_INCLUDEDIR}>"
 )
 if(WIN32)
@@ -195,7 +196,7 @@ if(CMAKE_THREAD_LIBS_INIT)
 endif()
 
 if(WIN32)
-    target_compile_definitions(processlib PRIVATE LIBPROCESSLIB_EXPORTS)
+    target_compile_definitions(processlib PRIVATE processlib_EXPORTS)
     set_target_properties(processlib PROPERTIES PREFIX "lib")
     set_target_properties(processlib PROPERTIES IMPORT_PREFIX "lib")
 endif()
@@ -209,6 +210,7 @@ if(PROCESSLIB_ENABLE_PYTHON)
         set(SIP_DISABLE_FEATURES "BPM_SUPPORT")
     endif(NOT PROCESSLIB_ENABLE_GSL)
     add_sip_python_module(processlib "${CMAKE_CURRENT_BINARY_DIR}/sip/processlib.sip")
+    target_compile_definitions(python_module_processlib PRIVATE processlib_EXPORTS)
     target_include_directories(python_module_processlib PRIVATE ${PYTHON_INCLUDE_DIRS} ${CMAKE_CURRENT_SOURCE_DIR}/sip)
     target_link_libraries(python_module_processlib PRIVATE processlib)
 endif()

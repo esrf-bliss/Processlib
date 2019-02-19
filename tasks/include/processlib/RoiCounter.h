@@ -31,7 +31,7 @@ struct RoiCounterResult;
 
 typedef SinkTaskMgr<RoiCounterResult> RoiCounterManager;
 
-struct DLL_EXPORT RoiCounterResult
+struct PROCESSLIB_EXPORT RoiCounterResult
 {
     RoiCounterResult()
         : sum(0.), average(0.), std(0.), minValue(0.), maxValue(0.), frameNumber(-1), errorCode(RoiCounterManager::OK)
@@ -61,7 +61,7 @@ inline std::ostream &operator<<(std::ostream &os, const RoiCounterResult &aRoiRe
     return os;
 }
 
-class DLL_EXPORT RoiCounterTask : public SinkTask<RoiCounterResult>
+class PROCESSLIB_EXPORT RoiCounterTask : public SinkTask<RoiCounterResult>
 {
   public:
     enum type { UNDEF, SQUARE, ARC, LUT, MASK };

@@ -30,7 +30,7 @@ struct Roi2SpectrumResult;
 
 typedef SinkTaskMgr<Roi2SpectrumResult> Roi2SpectrumManager;
 
-struct DLL_EXPORT Roi2SpectrumResult
+struct PROCESSLIB_EXPORT Roi2SpectrumResult
 {
     Roi2SpectrumResult() : frameNumber(-1), errorCode(Roi2SpectrumManager::OK) {}
     explicit Roi2SpectrumResult(Roi2SpectrumManager::ErrorCode code) : errorCode(code) {}
@@ -49,7 +49,7 @@ inline std::ostream &operator<<(std::ostream &os, const Roi2SpectrumResult &aRes
     return os;
 }
 
-class DLL_EXPORT Roi2SpectrumTask : public SinkTask<Roi2SpectrumResult>
+class PROCESSLIB_EXPORT Roi2SpectrumTask : public SinkTask<Roi2SpectrumResult>
 {
   public:
     enum Mode { LINES_SUM, COLUMN_SUM };

@@ -37,12 +37,12 @@
 #include <thread>
 #include <vector>
 
-#include "processlib/Compatibility.h"
+#include <processlib_export.h>
 
 class TaskMgr;
 struct Data;
 
-class DLL_EXPORT PoolThreadMgr
+class PROCESSLIB_EXPORT PoolThreadMgr
 {
   public:
     typedef std::pair<int, int> TaskPriority;

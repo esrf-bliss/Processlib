@@ -24,7 +24,7 @@
 #define __BACKGROUNDSUBSTRACTION__H_
 #include "processlib/LinkTask.h"
 namespace Tasks {
-class DLL_EXPORT BackgroundSubstraction : public LinkTask
+class PROCESSLIB_EXPORT BackgroundSubstraction : public LinkTask
 {
   public:
     BackgroundSubstraction();

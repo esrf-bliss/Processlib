@@ -39,12 +39,12 @@
 #include <string>
 #include <vector>
 
-#include "processlib/Compatibility.h"
+#include <processlib_export.h>
 #include "processlib/ProcessExceptions.h"
 
-struct DLL_EXPORT Buffer
+struct PROCESSLIB_EXPORT Buffer
 {
-    class DLL_EXPORT Callback
+    class PROCESSLIB_EXPORT Callback
     {
       public:
         virtual ~Callback() {}
@@ -93,9 +93,9 @@ struct DLL_EXPORT Buffer
     std::mutex _mutex;
     Callback *callback;
 };
-struct DLL_EXPORT Data
+struct PROCESSLIB_EXPORT Data
 {
-    class DLL_EXPORT HeaderContainer
+    class PROCESSLIB_EXPORT HeaderContainer
     {
       public:
         typedef std::map<std::string, std::string> Header;
@@ -567,7 +567,7 @@ Data Data::cast(Data::TYPE aType)
     return aReturnData;
 }
 
-DLL_EXPORT std::ostream &operator<<(std::ostream &os, const Data::HeaderContainer &aHeader);
+PROCESSLIB_EXPORT std::ostream &operator<<(std::ostream &os, const Data::HeaderContainer &aHeader);
 
 inline std::ostream &operator<<(std::ostream &os, const Buffer &aBuffer)
 {

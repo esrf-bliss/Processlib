@@ -31,7 +31,7 @@ struct PeakFinderResult;
 
 typedef SinkTaskMgr<PeakFinderResult> PeakFinderManager;
 
-struct DLL_EXPORT PeakFinderResult
+struct PROCESSLIB_EXPORT PeakFinderResult
 {
     PeakFinderResult() : x_peak(0.), y_peak(0.), frameNumber(-1), errorCode(PeakFinderManager::OK) {}
     explicit PeakFinderResult(PeakFinderManager::ErrorCode code) : errorCode(code) {}
@@ -52,7 +52,7 @@ inline std::ostream &operator<<(std::ostream &os, const PeakFinderResult &aPeakR
     return os;
 }
 
-class DLL_EXPORT PeakFinderTask : public SinkTask<PeakFinderResult>
+class PROCESSLIB_EXPORT PeakFinderTask : public SinkTask<PeakFinderResult>
 {
   public:
     enum ComputingMode { MAXIMUM, CM };
