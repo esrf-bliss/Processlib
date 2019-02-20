@@ -138,7 +138,6 @@ set(processlib_srcs
     tasks/src/PeakFinder.cpp
 )
 
-
 file(GLOB_RECURSE core_incs "core/include/*.h")
 file(GLOB_RECURSE tasks_incs "tasks/include/*.h")
 
@@ -167,13 +166,6 @@ else()
     )
 endif(PROCESSLIB_ENABLE_GSL)
 
-# The following might work with cmake 3.12
-# Add the library processlib definition
-# add_subdirectory(core)
-# add_subdirectory(tasks)
-# target_link_libraries(processlib
-#   PRIVATE core
-#   PRIVATE tasks)
 
 target_include_directories(processlib PUBLIC
     "$<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/core/include>"
@@ -181,12 +173,6 @@ target_include_directories(processlib PUBLIC
     "$<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}>"
     "$<INSTALL_INTERFACE:${CMAKE_INSTALL_INCLUDEDIR}>"
 )
-if(WIN32)
-    target_include_directories(processlib PUBLIC
-        "$<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/core/include/WindowSpecific>"
-        "$<INSTALL_INTERFACE:${CMAKE_INSTALL_INCLUDEDIR}/processlib/WindowSpecific>"
-    )
-endif()
 
 if(THREADS_HAVE_PTHREAD_ARG)
     target_compile_options(PUBLIC processlib "-pthread")
