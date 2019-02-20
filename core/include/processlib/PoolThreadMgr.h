@@ -47,9 +47,7 @@ class DLL_EXPORT PoolThreadMgr
   public:
     typedef std::pair<int, int> TaskPriority;
 
-    PoolThreadMgr()  = default;
-    ~PoolThreadMgr() = default;
-    static PoolThreadMgr &get() throw();
+    static PoolThreadMgr &get();
 
     void addProcess(TaskMgr *aProcess, bool lock = true);
     void removeProcess(TaskMgr *aProcess, bool lock = true);
@@ -63,6 +61,12 @@ class DLL_EXPORT PoolThreadMgr
     void quit();
 
   private:
+    // Thread safe Singleton (guaranted in C++11)
+    PoolThreadMgr() : _stopFlag(false), _suspendFlag(false), _runningThread(0), _taskMgr(NULL) {}
+    ~PoolThreadMgr()= default;
+    PoolThreadMgr(const PoolThreadMgr&)= delete;
+    PoolThreadMgr& operator=(const PoolThreadMgr&)= delete;
+
     struct cmp
     {
         bool operator()(const TaskPriority &a, const TaskPriority &b)

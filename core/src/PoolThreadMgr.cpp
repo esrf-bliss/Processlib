@@ -194,9 +194,12 @@ void PoolThreadMgr::_createProcessThread(size_t aNumber)
         m_threads.emplace_back(_run, this);
 }
 
-PoolThreadMgr &PoolThreadMgr::get() throw()
+PoolThreadMgr &PoolThreadMgr::get()
 {
+    static PoolThreadMgr singleton;
+
     // Defere the creation of the threads to the first call of get
-    std::call_once(PoolThreadMgr::init_flag, []() { _processMgrPt->_createProcessThread(NB_DEFAULT_THREADS); });
-    return *_processMgrPt;
+    std::call_once(PoolThreadMgr::init_flag, []() { singleton._createProcessThread(NB_DEFAULT_THREADS); });
+
+    return singleton;
 }
