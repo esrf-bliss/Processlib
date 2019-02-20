@@ -41,7 +41,7 @@ std::once_flag PoolThreadMgr::init_flag;
 void PoolThreadMgr::addProcess(TaskMgr *aProcess, bool aFlag)
 {
     std::lock_guard<std::mutex> lock(m_mutex);
-    _processQueue.insert(QueueType::value_type(aProcess->priority(), aProcess));
+    _processQueue.push(aProcess);
     aProcess->_pool = this;
     m_cond.notify_all();
 }
@@ -49,14 +49,7 @@ void PoolThreadMgr::addProcess(TaskMgr *aProcess, bool aFlag)
 void PoolThreadMgr::removeProcess(TaskMgr *aProcess, bool aFlag)
 {
     std::lock_guard<std::mutex> lock(m_mutex);
-    for (QueueType::iterator i = _processQueue.begin(); i != _processQueue.end(); ++i)
-    {
-        if (i->second == aProcess)
-        {
-            _processQueue.erase(i);
-            break;
-        }
-    }
+    _processQueue.remove(aProcess);
 }
 
 /** @brief change the number of thread in the pool
@@ -115,8 +108,9 @@ void PoolThreadMgr::abort()
 
     m_cond.wait(lock, [&] { return _runningThread; });
 
-    for (QueueType::iterator i = _processQueue.begin(); i != _processQueue.end(); ++i)
-        delete i->second;
+    for (auto &&proc : _processQueue)
+        delete proc;
+
     _processQueue.clear();
     _suspendFlag = false;
 }
@@ -164,8 +158,7 @@ void *PoolThreadMgr::_run(void *arg)
 
         if (!that->_processQueue.empty())
         {
-            QueueType::iterator i        = that->_processQueue.begin();
-            TaskMgr *processPt           = i->second;
+            TaskMgr *processPt = that->_processQueue.top();
             TaskMgr::TaskWrap *aNextTask = processPt->next();
             // aLock.unLock();
 

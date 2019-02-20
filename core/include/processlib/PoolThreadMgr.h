@@ -30,6 +30,7 @@
 #pragma warning(disable : 4251)
 #endif
 
+#include <algorithm>
 #include <condition_variable>
 #include <map>
 #include <mutex>
@@ -42,11 +43,44 @@
 class TaskMgr;
 struct Data;
 
+namespace detail {
+// Add a remove method to std::priority_queue
+template <typename T, typename Container = std::vector<T>, typename Compare = std::less<typename Container::value_type>>
+class priority_queue : public std::priority_queue<T, Container, Compare>
+{
+  public:
+    bool remove(const T &value)
+    {
+        auto it = std::find(this->c.cbegin(), this->c.cend(), value);
+        if (it != this->c.cend())
+        {
+            this->c.erase(it);
+            std::make_heap(this->c.begin(), this->c.end(), this->comp);
+            return true;
+        } else
+            return false;
+    }
+
+    auto begin() noexcept { return this->c.begin(); }
+    auto end() noexcept { return this->c.end(); }
+    void clear() noexcept { return this->c.clear(); }
+};
+} // namespace detail
+
+/// Task priority is set with two levels (first = major and second = minor)
+using TaskPriority = std::pair<int, int>;
+
+inline bool operator<(const TaskPriority &a, const TaskPriority &b)
+{
+    if (a.first == b.first)
+        return b.second < a.second;
+    else
+        return b.first < a.first;
+}
+
 class PROCESSLIB_EXPORT PoolThreadMgr
 {
   public:
-    typedef std::pair<int, int> TaskPriority;
-
     static PoolThreadMgr &get();
 
     void addProcess(TaskMgr *aProcess, bool lock = true);
@@ -67,17 +101,17 @@ class PROCESSLIB_EXPORT PoolThreadMgr
     PoolThreadMgr(const PoolThreadMgr&)= delete;
     PoolThreadMgr& operator=(const PoolThreadMgr&)= delete;
 
-    struct cmp
+    /// Compare two Process by priority
+    struct less_than
     {
-        bool operator()(const TaskPriority &a, const TaskPriority &b)
+        template <typename Process>
+        bool operator()(Process const *const lhs, Process const *const rhs) const
         {
-            if (a.first == b.first)
-                return b.second < a.second;
-            else
-                return b.first < a.first;
+            return lhs->priority() < rhs->priority();
         }
     };
-    typedef std::multimap<TaskPriority, TaskMgr *, cmp> QueueType;
+
+    using QueueType = detail::priority_queue<TaskMgr *, std::vector<TaskMgr *>, less_than>;
 
     std::mutex m_mutex;
     std::condition_variable m_cond;
