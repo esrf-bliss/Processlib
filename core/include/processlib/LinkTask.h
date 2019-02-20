@@ -29,7 +29,8 @@
 #include "processlib/Data.h"
 #include "processlib/TaskEventCallback.h"
 
-class DLL_EXPORT LinkTask
+
+class PROCESSLIB_EXPORT LinkTask
 {
   public:
     LinkTask();

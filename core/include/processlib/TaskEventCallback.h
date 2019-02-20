@@ -30,7 +30,7 @@
 
 #include "processlib/Data.h"
 
-class DLL_EXPORT TaskEventCallback
+class PROCESSLIB_EXPORT TaskEventCallback
 {
   public:
     TaskEventCallback();

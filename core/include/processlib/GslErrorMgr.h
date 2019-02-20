@@ -35,11 +35,11 @@
 #include <string>
 #include <thread>
 
-#include "processlib/Compatibility.h"
+#include <processlib_export.h>
 
 /** @brief this class manage error message in thread safe maner
  */
-class DLL_EXPORT GslErrorMgr
+class PROCESSLIB_EXPORT GslErrorMgr
 {
     typedef std::map<std::thread::id, std::string> ErrorMessageType;
     typedef std::map<std::thread::id, int> ErrnoType;

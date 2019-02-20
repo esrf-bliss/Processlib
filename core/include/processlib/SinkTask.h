@@ -32,7 +32,7 @@
 #include "processlib/SinkTaskMgr.h"
 #include "processlib/TaskEventCallback.h"
 
-class DLL_EXPORT SinkTaskBase
+class PROCESSLIB_EXPORT SinkTaskBase
 {
   public:
     SinkTaskBase();

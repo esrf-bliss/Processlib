@@ -26,7 +26,7 @@
 #if !defined(PROCESSLIB_TASKMGR_H)
 #define PROCESSLIB_TASKMGR_H
 
-#include "processlib/Compatibility.h"
+#include <processlib_export.h>
 #include "processlib/Data.h"
 #include <deque>
 
@@ -34,7 +34,7 @@ class LinkTask;
 class SinkTaskBase;
 class PoolThreadMgr;
 
-class DLL_EXPORT TaskMgr
+class PROCESSLIB_EXPORT TaskMgr
 {
     friend class PoolThreadMgr;
     struct Task
