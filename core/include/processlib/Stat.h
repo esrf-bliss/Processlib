@@ -52,7 +52,7 @@ public:
 	std::stringstream str;
 	str << "take : " << diff << "s";
 
-	_data.header.insertOrIncKey(_info,str.str());
+	_data.header.insertOrIncKey(_info.c_str(), str.str().c_str());
       }
   }
 private:
