@@ -2,10 +2,12 @@
 // This file is part of ProcessLib, a submodule of LImA project the
 // Library for Image Acquisition
 //
-// Copyright (C) : 2009-2011
+// Copyright (C) : 2009-2019
 // European Synchrotron Radiation Facility
-// BP 220, Grenoble 38043
+// CS40220 38043 Grenoble Cedex 9 
 // FRANCE
+//
+// Contact: lima@esrf.fr
 //
 // This is free software; you can redistribute it and/or modify
 // it under the terms of the GNU General Public License as published by
@@ -31,7 +33,7 @@
 #include "numpy/npy_3kcompat.h"
 #endif
 
-#if PY_VERSION_HEX >= 0x03000000
+#if PY_MAJOR_VERSION >= 3
 extern "C" { int processlib_import_array();}
 #else
 extern "C" { void processlib_import_array();}
@@ -45,8 +47,8 @@ struct Data_HeaderContainer_itemIterator
     _cur(cnt.header().begin()),_end(cnt.header().end())
   {}
 
-  std::map<std::string,std::string>::iterator _cur;
-  std::map<std::string,std::string>::iterator _end;
+  Data::HeaderContainer::Header::iterator _cur;
+  Data::HeaderContainer::Header::iterator _end;
 };
 %End
 
@@ -54,25 +56,64 @@ struct Data_HeaderContainer_itemIterator
 processlib_import_array();
 %End
 
-%UnitCode
+%ModuleHeaderCode
+#include <string>
 #include <Python.h>
 
-#ifndef LIMA_REPR_CODE
-#if PY_VERSION_HEX >= 0x03000000
-#define LIMA_REPR_CODE \
-	std::ostringstream str; \
-	str << *sipCpp;	\
-	const std::string& tmpString = str.str(); \
-	sipRes = PyUnicode_FromString(tmpString.c_str());
+inline PyObject *sipConvertToPyStr(const std::string& s)
+{
+    PyObject *newstring;
+
+#if PY_MAJOR_VERSION >= 3
+    // convert an std::string to a Python (unicode) string
+    newstring = PyUnicode_FromStringAndSize(s.c_str(), s.length());
+    if (newstring == NULL) {
+        PyErr_Clear();
+        newstring = PyString_FromString(s.c_str());
+    }
 #else
-#define LIMA_REPR_CODE \
-	std::ostringstream str; \
-	str << *sipCpp;	\
-	const std::string& tmpString = str.str(); \
-	sipRes = PyString_FromString(tmpString.c_str());
+    // convert an std::string to a Python string - assume an ASCII string
+    newstring = PyString_FromString(s.c_str());
 #endif
+
+  return newstring;
+}
+
+inline bool sipCheckConvertFromPyStr(PyObject *sipPy)
+{
+    return (PyString_Check(sipPy) || PyUnicode_Check(sipPy));
+}
+
+inline std::string sipConvertFromPyStr(PyObject *sipPy)
+{
+    std::string s;
+    // Allow a Python string (or a unicode string) whenever a string is
+    // expected.
+    // If argument is a Unicode string, just decode it to UTF-8
+    // If argument is a Python string, assume it's UTF-8
+    if (PyUnicode_Check(sipPy)) {
+        PyObject *pyS = PyUnicode_AsEncodedString(sipPy, "UTF-8", "");
+        s = PyString_AS_STRING(pyS);
+        Py_DECREF(pyS);
+    } else if (PyString_Check(sipPy)) {
+        s = PyString_AS_STRING(sipPy);
+    } else if (sipPy != Py_None) {
+        throw std::exception();
+    }
+    return s;
+}
+
+#ifndef LIMA_REPR_CODE
+#define LIMA_REPR_CODE \
+	do { \
+		std::ostringstream str; \
+		str << *sipCpp;	\
+		sipRes = sipConvertToPyStr(str.str()); \
+	} while (0);
 #endif //LIMA_REPR_CODE
+
 %End
+
 
 %Exception Data_Header_Iter_Stop_iteration /PyName=StopIteration/
 {
@@ -92,13 +133,13 @@ public:
   Data_HeaderContainer_itemIterator(Data::HeaderContainer&);
   SIP_PYOBJECT __next__();
 %MethodCode
-if(sipCpp->_cur != sipCpp->_end)
-{
-  sipRes = Py_BuildValue("(ss)",sipCpp->_cur->first.c_str(),sipCpp->_cur->second.c_str());
+if(sipCpp->_cur != sipCpp->_end) {
+  sipRes = PyTuple_Pack(2, sipConvertToPyStr(sipCpp->_cur->first),
+			   sipConvertToPyStr(sipCpp->_cur->second));
   ++(sipCpp->_cur);
+} else {
+  PyErr_SetString(PyExc_StopIteration,"");
 }
-else
- PyErr_SetString(PyExc_StopIteration,"");
 %End
 
 Data_HeaderContainer_itemIterator* __iter__();
@@ -117,89 +158,87 @@ struct Data
 
   class HeaderContainer
   {
+%TypeHeaderCode
+#ifndef SIP_DATA_HEADERCONTAINER
+#define SIP_DATA_HEADERCONTAINER
+inline PyObject *sipDataHeaderContainerRepr(Data::HeaderContainer *sipCpp)
+{
+    std::stringstream str;
+    str << "{";
+    PoolThreadMgr::Lock aLock(sipCpp->mutex());
+    typedef Data::HeaderContainer::Header Header;
+    Header &header = sipCpp->header();
+    Header::iterator it, end = header.end();
+    bool first = true;
+    for (it = header.begin(); it != end; ++it, first = false) {
+        if (!first)
+            str << ", ";
+        str << "'" << it->first << "': ";
+        str << "'" << it->second << "'";
+    }
+    str << "}";
+    return sipConvertToPyStr(str.str());
+}
+#endif SIP_DATA_HEADERCONTAINER
+%End
+
   public:
     HeaderContainer();
 
 
-SIP_PYOBJECT pop(const char *,const char * = NULL);
+SIP_PYOBJECT pop(SIP_PYOBJECT,SIP_PYOBJECT = NULL);
 %MethodCode
-PoolThreadMgr::Lock aLock(sipCpp->mutex());
-Data::HeaderContainer::Header &header = sipCpp->header();
-std::map<std::string,std::string>::iterator i = header.find(a0);
-if(i != header.end())
-  sipRes = PyString_FromStringAndSize(i->second.c_str(),i->second.size());
-else if (a1)
-  sipRes = PyString_FromString(a1);
-else
-  {
-   Py_INCREF(Py_None);
-   sipRes = Py_None;
-  }
+if (!sipCheckConvertFromPyStr(a0) || (a1!=NULL && !sipCheckConvertFromPyStr(a1))) {
+    PyErr_SetString(PyExc_TypeError,"Only string key and string value are supported");
+    sipIsErr = 1;
+} else {
+    std::string key = sipConvertFromPyStr(a0);
+    PoolThreadMgr::Lock aLock(sipCpp->mutex());
+    const char *value = sipCpp->get(key.c_str());
+    if (value != NULL) {
+       sipRes = sipConvertToPyStr(value);
+       sipCpp->erase(key.c_str());
+    } else if (a1) {
+        Py_INCREF(a1);
+        sipRes = a1;
+    } else {
+        PyErr_Format(PyExc_KeyError,"Header has no key %s", key.c_str());
+        sipIsErr = 1;
+    }
+}
 %End
 
 void update(SIP_PYDICT);
 %MethodCode
 PyObject *key, *value;
 SIP_SSIZE_T pos = 0;
-PoolThreadMgr::Lock aLock(sipCpp->mutex());
-Data::HeaderContainer::Header &header = sipCpp->header();
-while (PyDict_Next(a0, &pos, &key, &value))
- {
-  const char* keystr = PyString_AsString(key);
-  const char* valuestr = PyString_AsString(value);
-  if(!keystr || !valuestr)
-   {
-    std::cout << "Only string key and value are allowed" << std::endl;
-    break;
-   }
-std::pair<std::map<std::string,std::string>::iterator, bool> result =
-header.insert(std::pair<std::string,std::string>(PyString_AsString(key),PyString_AsString(value)));
-if(!result.second)
-  result.first->second = PyString_AsString(value);
- }
+while (PyDict_Next(a0, &pos, &key, &value)) {
+    if (!sipCheckConvertFromPyStr(key) || !sipCheckConvertFromPyStr(value)) {
+        PyErr_SetString(PyExc_TypeError,"Only string key and string value are supported");
+        sipIsErr = 1;
+        break;
+    }
+}
+if (!sipIsErr) {
+    PoolThreadMgr::Lock aLock(sipCpp->mutex());
+    pos = 0;
+    while (PyDict_Next(a0, &pos, &key, &value))
+        sipCpp->insert(sipConvertFromPyStr(key).c_str(),
+                       sipConvertFromPyStr(value).c_str());
+}
 %End
 
 SIP_PYOBJECT __repr__() const;
 %MethodCode
-std::stringstream str;
-str << "{";
-PoolThreadMgr::Lock aLock(sipCpp->mutex());
-Data::HeaderContainer::Header &header = sipCpp->header();
-for(std::map<std::string,std::string>::iterator i = header.begin();
-    i != header.end();++i)
-    {
-	str << "'" << i->first << "':";
-	str << "'" << i->second << "',";
-    }
-if(str.str().size() > 1)
-  str.seekp (-1, str.end);
-str << "}";
-const std::string& tmpString = str.str();
-#if PY_VERSION_HEX >= 0x03000000
-sipRes = PyUnicode_FromString(tmpString.c_str());
-#else
-sipRes = PyString_FromString(tmpString.c_str());
-#endif
+sipRes = sipDataHeaderContainerRepr(sipCpp);
 %End
 
-const char* __str__();
+SIP_PYOBJECT __str__();
 %MethodCode
 std::stringstream str;
-str << "{";
-PoolThreadMgr::Lock aLock(sipCpp->mutex());
-Data::HeaderContainer::Header &header = sipCpp->header();
-for(std::map<std::string,std::string>::iterator i = header.begin();
-    i != header.end();++i)
-    {
-	str << "'" << i->first << "':";
-	str << "'" << i->second << "',";
-    }
-if(str.str().size() > 1)
-  str.seekp (-1, str.end);
-str << "}";
-const std::string& tmpString = str.str();
-sipRes = tmpString.c_str();
+sipRes = sipDataHeaderContainerRepr(sipCpp);
 %End
+
 void __enter__();
 %MethodCode
 sipCpp->lock();
@@ -212,50 +251,58 @@ sipCpp->unlock();
 
 SIP_PYOBJECT values();
 %MethodCode
+typedef Data::HeaderContainer::Header Header;
 PoolThreadMgr::Lock aLock(sipCpp->mutex());
-Data::HeaderContainer::Header &header = sipCpp->header();
+Header &header = sipCpp->header();
 sipRes = PyList_New(header.size());
 int index = 0;
-for(std::map<std::string,std::string>::iterator i = header.begin();
-    i != header.end();++i,++index)
-	PyList_SetItem(sipRes,index,
-	               Py_BuildValue("s",i->second.c_str()));
+Header::iterator it, end = header.end();
+for (it = header.begin(); it != end; ++it, ++index)
+    PyList_SetItem(sipRes, index, sipConvertToPyStr(it->second));
 %End
 
 SIP_PYOBJECT keys();
 %MethodCode
+typedef Data::HeaderContainer::Header Header;
 PoolThreadMgr::Lock aLock(sipCpp->mutex());
-Data::HeaderContainer::Header &header = sipCpp->header();
+Header &header = sipCpp->header();
 sipRes = PyList_New(header.size());
 int index = 0;
-for(std::map<std::string,std::string>::iterator i = header.begin();
-    i != header.end();++i,++index)
-	PyList_SetItem(sipRes,index,
-	               Py_BuildValue("s",i->first.c_str()));
+Header::iterator it, end = header.end();
+for (it = header.begin(); it != end; ++it, ++index)
+    PyList_SetItem(sipRes, index, sipConvertToPyStr(it->first));
 %End
 
 SIP_PYOBJECT items();
 %MethodCode
+typedef Data::HeaderContainer::Header Header;
 PoolThreadMgr::Lock aLock(sipCpp->mutex());
-Data::HeaderContainer::Header &header = sipCpp->header();
+Header &header = sipCpp->header();
 sipRes = PyList_New(header.size());
 int index = 0;
-for(std::map<std::string,std::string>::iterator i = header.begin();
-    i != header.end();++i,++index)
-	PyList_SetItem(sipRes,index,
-	               Py_BuildValue("(ss)",i->first.c_str(),i->second.c_str()));
+Header::iterator it, end = header.end();
+for (it = header.begin(); it != end; ++it, ++index) {
+    PyObject *val = PyTuple_Pack(2, sipConvertToPyStr(it->first),
+				    sipConvertToPyStr(it->second));
+    PyList_SetItem(sipRes, index, val);
+}
 %End
+
 Data_HeaderContainer_itemIterator iteritems();
 %MethodCode
 sipRes = new Data_HeaderContainer_itemIterator(*sipCpp);
 %End
 
-bool has_key(const char*);
+bool has_key(SIP_PYOBJECT);
 %MethodCode
-PoolThreadMgr::Lock aLock(sipCpp->mutex());
-Data::HeaderContainer::Header &header = sipCpp->header();
-std::map<std::string,std::string>::iterator i = header.find(a0);
-sipRes = i != header.end();
+if (!sipCheckConvertFromPyStr(a0)) {
+    PyErr_Format(PyExc_TypeError, "Only string key is supported, but got %s",
+                 Py_TYPE(a0)->tp_name);    
+    sipIsErr = 1;
+} else {
+    std::string key = sipConvertFromPyStr(a0);
+    sipRes = (sipCpp->get(key.c_str()) != NULL);
+}
 %End
 
 int __len__();
@@ -263,13 +310,56 @@ int __len__();
 sipRes = sipCpp->size();
 %End
 
-void  __setitem__(const char*,const char*);
+void  __setitem__(SIP_PYOBJECT, SIP_PYOBJECT);
 %MethodCode
-sipCpp->insert(a0,a1);
+if (!sipCheckConvertFromPyStr(a0) || !sipCheckConvertFromPyStr(a1)) {
+    PyErr_SetString(PyExc_TypeError,"Only string key and string value are supported");    
+    sipIsErr = 1;
+} else {
+    std::string key, value;
+    key = sipConvertFromPyStr(a0); value = sipConvertFromPyStr(a1);
+    sipCpp->insert(key.c_str(), value.c_str());
+}
 %End
 
-    const char* get(const char *key,const char *defaultValue = NULL) const;
-    const char* operator[](const char *aKey) const;
+SIP_PYOBJECT __getitem__(SIP_PYOBJECT) const;
+%MethodCode
+if (!sipCheckConvertFromPyStr(a0)) {
+    PyErr_Format(PyExc_TypeError,"Only string key is supported");    
+    sipIsErr = 1;   
+} else {
+    std::string key = sipConvertFromPyStr(a0);
+    const char *value = sipCpp->get(key.c_str());
+    if (value != NULL) {
+        sipRes = sipConvertToPyStr(value);
+    } else {
+        PyErr_Format(PyExc_KeyError,"Header has no key %s", key.c_str());
+        sipIsErr = 1;
+    }
+}
+%End
+
+SIP_PYOBJECT get(SIP_PYOBJECT, SIP_PYOBJECT = NULL) const;
+%MethodCode
+if (!sipCheckConvertFromPyStr(a0) || (a1!=NULL && !sipCheckConvertFromPyStr(a1))) {
+    PyErr_SetString(PyExc_TypeError,"Only string key and string value are supported");
+    sipIsErr = 1;
+} else {
+    std::string key = sipConvertFromPyStr(a0);
+    const char *value = sipCpp->get(key.c_str());
+    if (value != NULL) {
+       sipRes = sipConvertToPyStr(value);
+    } else if (a1) {
+        Py_INCREF(a1);
+        sipRes = a1;
+    } else {
+        Py_INCREF(Py_None);
+        sipRes = Py_None;
+    }
+}
+%End
+
+    // const char* operator[](const char *aKey) const;
     int size() const;
     void clear();
   };

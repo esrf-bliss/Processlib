@@ -114,7 +114,7 @@ struct DLL_EXPORT Data
     ~HeaderContainer();
 
     void insert(const char *key,const char *value);
-    void insertOrIncKey(const std::string &key,const std::string &value);
+    void insertOrIncKey(const char *key,const char *value);
     void erase(const char *key);
     void clear();
 
@@ -131,7 +131,11 @@ struct DLL_EXPORT Data
     pthread_mutex_t* mutex() const;
     Header& header();
     const Header& header() const;
+
   private:
+    typedef Header::value_type HeaderValue;
+    typedef std::pair<Header::iterator, bool> HeaderInsert;
+
     struct HeaderHolder;
     HeaderHolder *_header;
   };

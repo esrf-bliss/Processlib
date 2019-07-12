@@ -100,34 +100,36 @@ Data::HeaderContainer::~HeaderContainer()
 void Data::HeaderContainer::insert(const char *key,const char *value)
 {
   _header->lock();
-  std::pair<std::map<std::string,std::string>::iterator, bool> result = 
-    _header->header.insert(std::pair<std::string,std::string>(key,value));
+  Header& header = _header->header;
+  HeaderInsert result = header.insert(HeaderValue(key,value));
   if(!result.second)
     result.first->second = value;
   _header->unlock();
 }
-void Data::HeaderContainer::insertOrIncKey(const std::string &key,
-					   const std::string &value)
+
+void Data::HeaderContainer::insertOrIncKey(const char *key,const char *value)
 {
   _header->lock();
-std::pair<std::map<std::string,std::string>::iterator, bool> result = 
-  _header->header.insert(std::pair<std::string,std::string>(key,value));
+  Header& header = _header->header;
+  HeaderInsert result = header.insert(HeaderValue(key,value));
   int aNumber = 0;
   std::stringstream aTmpKey;
   while(!result.second)
     {
       aTmpKey << key << '_' << ++aNumber;
-      result = _header->header.insert(std::pair<std::string,std::string>(aTmpKey.str(),value));
+      result = header.insert(HeaderValue(aTmpKey.str(),value));
       aTmpKey.seekp(0,aTmpKey.beg);
     }
   _header->unlock();
 }
+
 void Data::HeaderContainer::erase(const char *key)
 {
   _header->lock();
-  std::map<std::string,std::string>::iterator i = _header->header.find(key);
-  if(i != _header->header.end())
-    _header->header.erase(i);
+  Header& header = _header->header;
+  Header::iterator i = header.find(key);
+  if(i != header.end())
+    header.erase(i);
   _header->unlock();
 }
 
@@ -143,8 +145,9 @@ const char * Data::HeaderContainer::get(const char *key,
 {
   const char *aReturnValue = defaultValue;
   _header->lock();
-  std::map<std::string,std::string>::const_iterator i = _header->header.find(key);
-  if(i != _header->header.end())
+  Header& header = _header->header;
+  Header::const_iterator i = header.find(key);
+  if(i != header.end())
     aReturnValue = i->second.c_str();
   _header->unlock();
   return aReturnValue;
