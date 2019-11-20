@@ -5,7 +5,6 @@ c_compiler:
 cxx_compiler:
   - vs2017                     # [win]
 python:
-  - 2.7                        # [linux]
   - 3.6
   - 3.7
 numpy:
