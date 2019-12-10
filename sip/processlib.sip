@@ -215,7 +215,7 @@ inline PyObject *sipDataHeaderContainerRepr(Data::HeaderContainer *sipCpp)
     str << "}";
     return sipConvertToPyStr(str.str());
 }
-#endif SIP_DATA_HEADERCONTAINER
+#endif //SIP_DATA_HEADERCONTAINER
 %End
 
   public:
