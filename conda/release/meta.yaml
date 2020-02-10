@@ -27,7 +27,7 @@ requirements:
     - {{ compiler('cxx') }}
   run:
     - python
-    - numpy-devel
+    - {{ pin_compatible('numpy') }}
     - sip >=4.19.4, <=4.19.8 # For compatibility with pyqt 5.9.2
     - {{ pin_compatible('gsl', max_pin='x.x') }}
 
