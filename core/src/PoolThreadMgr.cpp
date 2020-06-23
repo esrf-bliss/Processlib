@@ -101,14 +101,25 @@ void PoolThreadMgr::removeProcess(TaskMgr *aProcess,bool aFlag)
  */
 void PoolThreadMgr::setNumberOfThread(int nbThread) 
 {
-  if(int(_threadID.size()) <= nbThread)
-    _createProcessThread(nbThread - int(_threadID.size()));
+  int curr_nbThread = getNumberOfThread();
+  if(curr_nbThread <= nbThread)
+    _createProcessThread(nbThread - curr_nbThread);
   else
     {
       quit();
       _createProcessThread(nbThread);
     }
 }
+
+/** @brief return the number of thread in the pool
+ * @warning this method is not MT-Safe
+ */
+
+int PoolThreadMgr::getNumberOfThread()
+{
+  return int(_threadID.size());
+}
+
 /** @brief set the image processing mgr 
  *
  *  this is the way to defined the chained process of all images.
