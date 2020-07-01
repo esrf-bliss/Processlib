@@ -175,9 +175,10 @@ static void _max_intensity(const Data &aSrc,
       // Center left Pixel
       aSrcPt += yMaxPos * aSrc.dimensions[0] + xMaxPos - 1;
       unsigned long long aBeamSum = *aSrcPt;
-      aResult.max_pixel_value = (unsigned int)aBeamSum;
-     // Center Pixel
+      // Center Pixel
       ++aSrcPt;
+      // keep the intensity of the center pixel as the maximum value
+      aResult.max_pixel_value = (unsigned int)*aSrcPt;
       aBeamSum += *aSrcPt;
       // Center right Pixel
       ++aSrcPt;
