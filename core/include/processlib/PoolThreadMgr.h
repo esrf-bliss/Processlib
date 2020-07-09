@@ -51,6 +51,7 @@ public:
   void addProcess(TaskMgr *aProcess,bool lock = true);
   void removeProcess(TaskMgr *aProcess,bool lock = true);
   void setNumberOfThread(int);
+  int getNumberOfThread();
   void setTaskMgr(const TaskMgr *);
   void abort();
   void suspend(bool);
