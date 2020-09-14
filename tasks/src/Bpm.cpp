@@ -152,13 +152,13 @@ static void _max_intensity(const Data &aSrc,
 			   const Buffer &projection_x,const Buffer & projection_y,
 			   BpmResult &aResult)
 {
-  Buffer *aBufferPt = aSrc.buffer;
-  INPUT *aSrcPt = (INPUT*)aBufferPt->data;
-  
-  int yMaxPos = _max_intensity_position<SUMMTYPE>(projection_y,aSrc.dimensions[1]);
-  int xMaxPos = _max_intensity_position<SUMMTYPE>(projection_x,aSrc.dimensions[0]);
-  bool xPositionFound = xMaxPos > 0 && xMaxPos < (aSrc.dimensions[0] - 1);
-  bool yPositionFound = yMaxPos > 0 && yMaxPos < (aSrc.dimensions[1] - 1);
+  const int& width = aSrc.dimensions[0];
+  const int& height = aSrc.dimensions[1];
+
+  int yMaxPos = _max_intensity_position<SUMMTYPE>(projection_y,height);
+  int xMaxPos = _max_intensity_position<SUMMTYPE>(projection_x,width);
+  bool xPositionFound = xMaxPos > 0 && xMaxPos < (width - 1);
+  bool yPositionFound = yMaxPos > 0 && yMaxPos < (height - 1);
   if(xPositionFound)
     {
       aResult.max_pixel_x = xMaxPos;
@@ -169,26 +169,25 @@ static void _max_intensity(const Data &aSrc,
       aResult.max_pixel_y = yMaxPos;
       aResult.beam_center_y = (double)yMaxPos;
     }
-  // get the five pixel values around x_max_pos and y_max_pos
   if(xPositionFound && yPositionFound)
     {
-      // Center left Pixel
-      aSrcPt += yMaxPos * aSrc.dimensions[0] + xMaxPos - 1;
-      unsigned long long aBeamSum = *aSrcPt;
+      Buffer *aBufferPt = aSrc.buffer;
+      INPUT *aSrcPt = (INPUT*)aBufferPt->data;
+
       // Center Pixel
-      ++aSrcPt;
+      aSrcPt += yMaxPos * width + xMaxPos;
       // keep the intensity of the center pixel as the maximum value
       aResult.max_pixel_value = (unsigned int)*aSrcPt;
-      aBeamSum += *aSrcPt;
+      // average the five pixels around x_max_pos and y_max_pos
+      unsigned long long aBeamSum = *aSrcPt;
+      // Center left Pixel
+      aBeamSum += *(aSrcPt - 1);
       // Center right Pixel
-      ++aSrcPt;
-      aBeamSum += *aSrcPt;
+      aBeamSum += *(aSrcPt + 1);
       // Top Pixel
-      aSrcPt -= aSrc.dimensions[0] + 1;
-      aBeamSum += *aSrcPt;
+      aBeamSum += *(aSrcPt - width);
       // Bottom Pixel
-      aSrcPt += aSrc.dimensions[0] << 1;
-      aBeamSum += *aSrcPt;
+      aBeamSum += *(aSrcPt + width);
       aResult.beam_intensity = (double)(aBeamSum) / 5.;
     }
   else
