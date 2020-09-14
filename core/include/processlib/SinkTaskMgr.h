@@ -195,7 +195,7 @@ void SinkTaskMgr<Result>::getHistory(std::list<Result> & anHistory,int fromFrame
 
   int current_index = _currentFrameNumber % _historyResult.size();
   int from_index = fromFrameNumber % _historyResult.size();
-  if(_currentFrameNumber - fromFrameNumber >= _historyResult.size()) // return all history
+  if(_currentFrameNumber - fromFrameNumber >= int(_historyResult.size())) // return all history
     {
       from_index = 0;
       current_index = int(_historyResult.size()) - 1;
