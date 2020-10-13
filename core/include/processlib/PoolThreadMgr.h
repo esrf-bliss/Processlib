@@ -89,7 +89,7 @@ private:
   struct cmp
   {
     bool operator()(const TaskPriority& a,
-		    const TaskPriority& b)
+		    const TaskPriority& b) const
     {
       if(a.first == b.first)
 	return b.second < a.second;
