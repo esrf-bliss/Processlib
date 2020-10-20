@@ -181,6 +181,7 @@ Data Rotation::process(Data &aData)
 	{
 	  memcpy(aData.data(),aNewData.data(),aNewData.size());
 	  aData.dimensions = aNewData.dimensions;
+	  return aData;
 	}
     }
   return aNewData;
