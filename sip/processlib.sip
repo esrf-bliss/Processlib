@@ -615,3 +615,4 @@ class PoolThreadMgr
 %Include RoiCounter.sip
 %Include Rotation.sip
 %Include SoftRoi.sip
+%Include RoiCollection.sip

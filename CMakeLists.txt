@@ -136,6 +136,7 @@ set(processlib_srcs
     tasks/src/Roi2Spectrum.cpp
     tasks/src/Rotation.cpp
     tasks/src/PeakFinder.cpp
+    tasks/src/RoiCollection.cpp
 )
 if(WIN32)
     list(APPEND processlib_srcs
