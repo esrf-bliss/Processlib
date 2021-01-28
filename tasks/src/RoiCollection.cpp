@@ -110,7 +110,7 @@ void RoiCollectionManager::_process_with_no_mask(Data &aData,RoiCollectionCounte
   const INPUT *aSrcPt = (INPUT*)aData.data();
   int widthStep = aData.dimensions[0];
 
-  for(const auto task: _roi_tasks)
+  for(const auto &task: _roi_tasks)
     {
       const INPUT *src = aSrcPt + task.x + task.y * widthStep;
       INPUT sum_val = INPUT(0);
@@ -129,7 +129,7 @@ void RoiCollectionManager::_process_with_mask(Data &aData,RoiCollectionCounterRe
   
   int widthStep = aData.dimensions[0];
 
-  for(const auto task: _roi_tasks)
+  for(const auto &task: _roi_tasks)
     {
       const INPUT *src = aSrcPt + task.x + task.y * widthStep;
       const char* mask = aMaskPt + task.x + task.y * widthStep;
