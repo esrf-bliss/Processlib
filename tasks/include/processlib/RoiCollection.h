@@ -89,7 +89,7 @@ namespace Tasks
      explicit RoiCollectionCounterResult(RoiCollectionManager::ErrorCode code) :
     errorCode(code) {}
 
-    std::vector<double>			spectrum;
+    std::vector<int>			spectrum;
     int					frameNumber;
     RoiCollectionManager::ErrorCode	errorCode;
   };
