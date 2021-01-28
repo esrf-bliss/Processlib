@@ -77,17 +77,14 @@ protected:
    if(sipCpp->spectrum.empty())
      Py_RETURN_NONE;
 
-   void *data = &sipCpp->spectrum[0];
+   void *data = sipCpp->spectrum.data();
    npy_intp dims[] = {sipCpp->spectrum.size()};
-   //This doesn't work :( don't know yet why
-   //sipPy = PyArray_SimpleNewFromData(1,dims,NPY_DOUBLE,data);
-
-   //Copy instead
-   sipPy = PyArray_SimpleNew(1,dims,NPY_DOUBLE);
+   sipPy = PyArray_SimpleNew(1,dims,NPY_INT32);
    PyArrayObject *tmpObject = (PyArrayObject*)PyArray_ContiguousFromObject(sipPy,NPY_NOTYPE,0,0);
    Py_BEGIN_ALLOW_THREADS
-   memcpy(PyArray_DATA(tmpObject),data,dims[0]*sizeof(double));
+   memcpy(PyArray_DATA(tmpObject),data,dims[0]*sizeof(int));
    Py_END_ALLOW_THREADS
+
 %End
 %SetCode
 //Not needed

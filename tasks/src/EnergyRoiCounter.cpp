@@ -116,7 +116,7 @@ void EnergyRoiCounterManager::_process_with_no_mask(Data &aData,EnergyCounterRes
       INPUT sum_val = INPUT(0);
       for(int c=0;c<task.width;++c,++src)
 	sum_val += *src;
-      double& total_val = aResult.spectrum[task.roi_id];
+      int& total_val = aResult.spectrum[task.roi_id];
       total_val += sum_val;
     }
 }
@@ -137,7 +137,7 @@ void EnergyRoiCounterManager::_process_with_mask(Data &aData,EnergyCounterResult
       for(int c=0;c<task.width;++c,++src,++mask)
 	if(*mask)
 	  sum_val += *src;
-      double& total_val = aResult.spectrum[task.roi_id];
+      int& total_val = aResult.spectrum[task.roi_id];
       total_val += sum_val;
     }
 }

@@ -89,7 +89,7 @@ namespace Tasks
      explicit EnergyCounterResult(EnergyRoiCounterManager::ErrorCode code) :
     errorCode(code) {}
 
-    std::vector<double>			spectrum;
+    std::vector<int>			spectrum;
     int					frameNumber;
     EnergyRoiCounterManager::ErrorCode	errorCode;
   };
