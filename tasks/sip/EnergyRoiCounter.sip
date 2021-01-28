@@ -31,6 +31,28 @@ namespace Tasks
   enum ErrorCode {OK,NOT_MANAGED,NO_MORE_AVAILABLE,TIMEDOUT};
   EnergyRoiCounterManager(int=4);
   Tasks::EnergyCounterResult	getResult(double = 0.,int = -1) const;
+  SIP_PYOBJECT	getHistory(int fromFrameNumber = 0) const;
+%MethodCode
+  std::list<Tasks::EnergyCounterResult> return_list;
+  Py_BEGIN_ALLOW_THREADS
+  sipCpp->getHistory(return_list,a0);
+  Py_END_ALLOW_THREADS
+  sipRes = PyList_New(return_list.size());
+  int index = 0;
+  for(const auto &src: return_list)
+  {
+    PyObject *wobj;
+    Tasks::EnergyCounterResult *aResult = new Tasks::EnergyCounterResult(src);
+    if(!(wobj = sipConvertFromNewType(aResult,sipType_Tasks_EnergyCounterResult,SIP_NULLPTR)))
+    {
+      delete aResult;
+      Py_DECREF(sipRes);
+    }
+    PyList_SET_ITEM(sipRes,index,wobj);
+    ++index;
+  }
+  
+%End
   void resizeHistory(int);
   void resetHistory();
   int historySize() const;
