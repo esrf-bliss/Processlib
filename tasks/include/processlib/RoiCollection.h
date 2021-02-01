@@ -25,7 +25,7 @@
 
 #include <sstream>
 #include <vector>
-#include <map>
+#include <list>
 #include <pthread.h>
 
 #include "processlib/SinkTask.h"
@@ -37,13 +37,17 @@ namespace Tasks
   class DLL_EXPORT RoiCollectionManager : public SinkTaskMgr<RoiCollectionCounterResult>
   {
   public:
+    struct Roi
+    {
+      int x,y;
+      int width,height;
+    };
+
     RoiCollectionManager(int historySize);
     ~RoiCollectionManager();
     
-    void addRoi(int x,int y,int width,int height,double energy);
+    void setRoi(const std::list<Roi>& rois);
     void clearRoi();
-    void getEnergy(std::vector<double>&);
-
     void setMask(Data &aMask) {_mask = aMask;}
 
     // will build the lut
@@ -54,11 +58,6 @@ namespace Tasks
     template<class INPUT> void _process_with_mask(Data&,RoiCollectionCounterResult&);
     void _check_roi_with_data_size(Data&);
     
-    struct Roi
-    {
-      int x,y;
-      int width,height;
-    };
 
     struct BBox
     {
@@ -74,7 +73,7 @@ namespace Tasks
     };
 
     mutable pthread_mutex_t	_roi_lock;
-    std::map<double,Roi>	_rois;
+    std::vector<Roi>		_rois;
     std::vector<RoiLineTask>	_roi_tasks;
     BBox 			_bbox;
     Data			_mask;

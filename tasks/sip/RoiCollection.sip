@@ -58,24 +58,40 @@ namespace Tasks
   int historySize() const;
   int lastFrameNumber() const;
 
-  void addRoi(int x,int y,int width,int height,double energy);
-  void clearRoi();
-  SIP_PYOBJECT getEnergy();
+  void setRoi(SIP_PYOBJECT);
 %MethodCode
-  double *data;
-  std::vector<double> result;
-  Py_BEGIN_ALLOW_THREADS
-  sipCpp->getEnergy(result);
-  data = &result[0];
-  Py_END_ALLOW_THREADS
-  npy_intp dims[] = {result.size()};
-  sipRes = PyArray_SimpleNew(1, dims,NPY_DOUBLE);
-  PyArrayObject *tmpObject = (PyArrayObject*)PyArray_ContiguousFromObject(sipRes,NPY_NOTYPE,0,0);
+	  std::list<Tasks::RoiCollectionManager::Roi> rois;
+	  int sequence_flag = PySequence_Check(a0);
+	  if(!sequence_flag)
+	    return SIP_NULLPTR;	// raise a not very useful exception
+	  Py_ssize_t sequence_size = PySequence_Size(a0);
+	  for(int i=0;i<sequence_size;++i)
+	    {
+	      PyObject* roi_value = PySequence_GetItem(a0,i);
+	      sequence_flag = PySequence_Check(roi_value);
+	      int nb_roi_values = PySequence_Size(roi_value);
+	      if(nb_roi_values != 4)
+		return SIP_NULLPTR;
 
-  Py_BEGIN_ALLOW_THREADS
-  memcpy(PyArray_DATA(tmpObject),data,result.size()*sizeof(double));
-  Py_END_ALLOW_THREADS
+	      int x,y,width,height;
+	      std::vector<std::tuple<int,int&>> tuple_values = {{0,x},{1,y},{2,width},{3,height}};
+	      for(const auto& val: tuple_values)
+		{
+		  PyObject* obj = PySequence_GetItem(roi_value,std::get<0>(val));
+		  PyObject* py_long = PyNumber_Long(obj);
+		  if(!py_long)
+		    return SIP_NULLPTR;
+		  long value = PyLong_AsLong(py_long);
+		  Py_DECREF(py_long);
+		  std::get<1>(val) = value;
+		}
+	      rois.push_back({x,y,width,height});
+	    }
+	  Py_BEGIN_ALLOW_THREADS
+	  sipCpp->setRoi(rois);
+	  Py_END_ALLOW_THREADS
 %End
+  void clearRoi();
   void setMask(Data&);
   void prepare();
   void process(Data&);

@@ -38,11 +38,14 @@ RoiCollectionManager::~RoiCollectionManager()
   pthread_mutex_destroy(&_roi_lock);
 }
 
-void RoiCollectionManager::addRoi(int x,int y,int width,int height,double energy)
+void RoiCollectionManager::setRoi(const std::list<Roi>& rois)
 {
   PoolThreadMgr::Lock aLock(&_roi_lock);
   _roi_tasks.clear();
-  _rois.insert({energy, {x,y,width,height}});
+  _rois.clear();
+  _rois.reserve(rois.size());
+  for(const auto& roi: rois)
+    _rois.push_back({roi.x,roi.y,roi.width,roi.height});
 }
 
 void RoiCollectionManager::clearRoi()
@@ -52,16 +55,6 @@ void RoiCollectionManager::clearRoi()
   _rois.clear();
 }
 
-void RoiCollectionManager::getEnergy(std::vector<double>& energy)
-{
-  energy.clear();
-  energy.reserve(_rois.size());
-
-  PoolThreadMgr::Lock aLock(&_roi_lock);
-  for(const auto& i : _rois)
-    energy.push_back(i.first);
-}
-
 void RoiCollectionManager::prepare()
 {
   PoolThreadMgr::Lock aLock(&_roi_lock);
@@ -69,9 +62,8 @@ void RoiCollectionManager::prepare()
     {
       int roi_id = 0;
       _bbox = {std::numeric_limits<int>::max(),std::numeric_limits<int>::max(), 0,0};
-      for(const auto& i: _rois)
+      for(const auto& roi: _rois)
 	{
-	  const Roi& roi = i.second;
 	  int m = std::min(0,2);
 	  _bbox = {std::min(_bbox.x,roi.x),std::min(_bbox.y,roi.y),
 		   std::max(_bbox.lastx,roi.x + roi.width),
