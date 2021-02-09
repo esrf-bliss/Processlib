@@ -27,6 +27,11 @@
 
 #include "processlib/RoiCollection.h"
 
+#ifndef __unix
+#undef max
+#undef min
+#endif
+
 using namespace Tasks;
 
 RoiCollectionManager::RoiCollectionManager(int historySize) :
