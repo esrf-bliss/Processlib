@@ -2,7 +2,7 @@
 // This file is part of ProcessLib, a submodule of LImA project the
 // Library for Image Acquisition
 //
-// Copyright (C) : 2009-2019
+// Copyright (C) : 2009-2021
 // European Synchrotron Radiation Facility
 // CS40220 38043 Grenoble Cedex 9 
 // FRANCE
