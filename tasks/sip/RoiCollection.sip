@@ -2,10 +2,12 @@
 // This file is part of ProcessLib, a submodule of LImA project the
 // Library for Image Acquisition
 //
-// Copyright (C) : 2009-2011
+// Copyright (C) : 2009-2021
 // European Synchrotron Radiation Facility
-// BP 220, Grenoble 38043
+// CS40220 38043 Grenoble Cedex 9 
 // FRANCE
+//
+// Contact: lima@esrf.fr
 //
 // This is free software; you can redistribute it and/or modify
 // it under the terms of the GNU General Public License as published by
@@ -30,10 +32,10 @@ namespace Tasks
   public:
   enum ErrorCode {OK,NOT_MANAGED,NO_MORE_AVAILABLE,TIMEDOUT};
   RoiCollectionManager(int=4);
-  Tasks::RoiCollectionCounterResult	getResult(double = 0.,int = -1) const;
+  Tasks::RoiCollectionResult	getResult(double = 0.,int = -1) const;
   SIP_PYOBJECT	getHistory(int fromFrameNumber = 0) const;
 %MethodCode
-  std::list<Tasks::RoiCollectionCounterResult> return_list;
+  std::list<Tasks::RoiCollectionResult> return_list;
   Py_BEGIN_ALLOW_THREADS
   sipCpp->getHistory(return_list,a0);
   Py_END_ALLOW_THREADS
@@ -42,8 +44,8 @@ namespace Tasks
   for(const auto &src: return_list)
   {
     PyObject *wobj;
-    Tasks::RoiCollectionCounterResult *aResult = new Tasks::RoiCollectionCounterResult(src);
-    if(!(wobj = sipConvertFromNewType(aResult,sipType_Tasks_RoiCollectionCounterResult,SIP_NULLPTR)))
+    Tasks::RoiCollectionResult *aResult = new Tasks::RoiCollectionResult(src);
+    if(!(wobj = sipConvertFromNewType(aResult,sipType_Tasks_RoiCollectionResult,NULL)))
     {
       delete aResult;
       Py_DECREF(sipRes);
@@ -58,12 +60,12 @@ namespace Tasks
   int historySize() const;
   int lastFrameNumber() const;
 
-  void setRoi(SIP_PYOBJECT);
+  void setRois(SIP_PYOBJECT);
 %MethodCode
 	  std::list<Tasks::RoiCollectionManager::Roi> rois;
 	  int sequence_flag = PySequence_Check(a0);
 	  if(!sequence_flag)
-	    return SIP_NULLPTR;	// raise a not very useful exception
+	    return NULL;	// raise a not very useful exception
 	  Py_ssize_t sequence_size = PySequence_Size(a0);
 	  for(int i=0;i<sequence_size;++i)
 	    {
@@ -71,7 +73,7 @@ namespace Tasks
 	      sequence_flag = PySequence_Check(roi_value);
 	      int nb_roi_values = PySequence_Size(roi_value);
 	      if(nb_roi_values != 4)
-		return SIP_NULLPTR;
+		return NULL;
 
 	      int x,y,width,height;
 	      std::vector<std::tuple<int,int&>> tuple_values = {{0,x},{1,y},{2,width},{3,height}};
@@ -80,7 +82,7 @@ namespace Tasks
 		  PyObject* obj = PySequence_GetItem(roi_value,std::get<0>(val));
 		  PyObject* py_long = PyNumber_Long(obj);
 		  if(!py_long)
-		    return SIP_NULLPTR;
+		    return NULL;
 		  long value = PyLong_AsLong(py_long);
 		  Py_DECREF(py_long);
 		  std::get<1>(val) = value;
@@ -88,10 +90,10 @@ namespace Tasks
 	      rois.push_back({x,y,width,height});
 	    }
 	  Py_BEGIN_ALLOW_THREADS
-	  sipCpp->setRoi(rois);
+	  sipCpp->setRois(rois);
 	  Py_END_ALLOW_THREADS
 %End
-  void clearRoi();
+  void clearRois();
   void setMask(Data&);
   void prepare();
   void process(Data&);
@@ -105,7 +107,7 @@ protected:
 %End
   };
 
- struct RoiCollectionCounterResult
+ struct RoiCollectionResult
  {
    int frameNumber;
    Tasks::RoiCollectionManager::ErrorCode errorCode;
@@ -116,7 +118,7 @@ protected:
      Py_RETURN_NONE;
 
    void *data = sipCpp->spectrum.data();
-   npy_intp dims[] = {sipCpp->spectrum.size()};
+   npy_intp dims[] = {int(sipCpp->spectrum.size())};
    sipPy = PyArray_SimpleNew(1,dims,NPY_INT32);
    PyArrayObject *tmpObject = (PyArrayObject*)PyArray_ContiguousFromObject(sipPy,NPY_NOTYPE,0,0);
    Py_BEGIN_ALLOW_THREADS
@@ -131,14 +133,14 @@ sipErr=1;
    };
 };
 
-class RoiCollectionCounterTask : SinkTaskBase
+class RoiCollectionTask : SinkTaskBase
 {
 %TypeHeaderCode
 #include "processlib/RoiCollection.h"
 %End
 public:
-  RoiCollectionCounterTask(Tasks::RoiCollectionManager&);
-  RoiCollectionCounterTask(const Tasks::RoiCollectionCounterTask&);
+  RoiCollectionTask(Tasks::RoiCollectionManager&);
+  RoiCollectionTask(const Tasks::RoiCollectionTask&);
   virtual void process(Data&);
 };
 

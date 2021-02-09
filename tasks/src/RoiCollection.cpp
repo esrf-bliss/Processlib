@@ -2,10 +2,12 @@
 // This file is part of ProcessLib, a submodule of LImA project the
 // Library for Image Acquisition
 //
-// Copyright (C) : 2009-2011
+// Copyright (C) : 2009-2021
 // European Synchrotron Radiation Facility
-// BP 220, Grenoble 38043
+// CS40220 38043 Grenoble Cedex 9 
 // FRANCE
+//
+// Contact: lima@esrf.fr
 //
 // This is free software; you can redistribute it and/or modify
 // it under the terms of the GNU General Public License as published by
@@ -28,7 +30,7 @@
 using namespace Tasks;
 
 RoiCollectionManager::RoiCollectionManager(int historySize) :
-  SinkTaskMgr<RoiCollectionCounterResult>(historySize)
+  SinkTaskMgr<RoiCollectionResult>(historySize)
 {
   pthread_mutex_init(&_roi_lock,NULL);
 }
@@ -38,7 +40,7 @@ RoiCollectionManager::~RoiCollectionManager()
   pthread_mutex_destroy(&_roi_lock);
 }
 
-void RoiCollectionManager::setRoi(const std::list<Roi>& rois)
+void RoiCollectionManager::setRois(const std::list<Roi>& rois)
 {
   PoolThreadMgr::Lock aLock(&_roi_lock);
   _roi_tasks.clear();
@@ -48,7 +50,7 @@ void RoiCollectionManager::setRoi(const std::list<Roi>& rois)
     _rois.push_back({roi.x,roi.y,roi.width,roi.height});
 }
 
-void RoiCollectionManager::clearRoi()
+void RoiCollectionManager::clearRois()
 {
   PoolThreadMgr::Lock aLock(&_roi_lock);
   _roi_tasks.clear();
@@ -97,7 +99,7 @@ void RoiCollectionManager::_check_roi_with_data_size(Data &aData)
 }
 
 template<class INPUT>
-void RoiCollectionManager::_process_with_no_mask(Data &aData,RoiCollectionCounterResult& aResult)
+void RoiCollectionManager::_process_with_no_mask(Data &aData,RoiCollectionResult& aResult)
 {
   const INPUT *aSrcPt = (INPUT*)aData.data();
   int widthStep = aData.dimensions[0];
@@ -114,7 +116,7 @@ void RoiCollectionManager::_process_with_no_mask(Data &aData,RoiCollectionCounte
 }
 
 template<class INPUT>
-void RoiCollectionManager::_process_with_mask(Data &aData,RoiCollectionCounterResult& aResult)
+void RoiCollectionManager::_process_with_mask(Data &aData,RoiCollectionResult& aResult)
 {
   const INPUT *aSrcPt = (INPUT*)aData.data();
   const char *aMaskPt = (char*)_mask.data();
@@ -144,7 +146,7 @@ void RoiCollectionManager::process(Data& aData)
 
   _check_roi_with_data_size(aData);
 
-  RoiCollectionCounterResult aResult(_rois.size());
+  RoiCollectionResult aResult(_rois.size());
   aResult.frameNumber = aData.frameNumber;
   
   if(_mask.empty())
@@ -232,12 +234,12 @@ void RoiCollectionManager::process(Data& aData)
   setResult(aResult);
 }
 
-RoiCollectionCounterTask::RoiCollectionCounterTask(RoiCollectionManager &aMgr) :
-  SinkTask<RoiCollectionCounterResult>(aMgr)
+RoiCollectionTask::RoiCollectionTask(RoiCollectionManager &aMgr) :
+  SinkTask<RoiCollectionResult>(aMgr)
 {
 }
 
-void RoiCollectionCounterTask::process(Data& aData)
+void RoiCollectionTask::process(Data& aData)
 {
   dynamic_cast<RoiCollectionManager&>(_mgr).process(aData);
 }

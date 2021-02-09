@@ -2,10 +2,12 @@
 // This file is part of ProcessLib, a submodule of LImA project the
 // Library for Image Acquisition
 //
-// Copyright (C) : 2009-2011
+// Copyright (C) : 2009-2021
 // European Synchrotron Radiation Facility
-// BP 220, Grenoble 38043
+// CS40220 38043 Grenoble Cedex 9 
 // FRANCE
+//
+// Contact: lima@esrf.fr
 //
 // This is free software; you can redistribute it and/or modify
 // it under the terms of the GNU General Public License as published by
@@ -32,9 +34,9 @@
 
 namespace Tasks
 {
-  struct RoiCollectionCounterResult;
+  struct RoiCollectionResult;
   
-  class DLL_EXPORT RoiCollectionManager : public SinkTaskMgr<RoiCollectionCounterResult>
+  class DLL_EXPORT RoiCollectionManager : public SinkTaskMgr<RoiCollectionResult>
   {
   public:
     struct Roi
@@ -46,16 +48,16 @@ namespace Tasks
     RoiCollectionManager(int historySize);
     ~RoiCollectionManager();
     
-    void setRoi(const std::list<Roi>& rois);
-    void clearRoi();
+    void setRois(const std::list<Roi>& rois);
+    void clearRois();
     void setMask(Data &aMask) {_mask = aMask;}
 
     // will build the lut
     void prepare();
     void process(Data&);
   private:
-    template<class INPUT> void _process_with_no_mask(Data&,RoiCollectionCounterResult&);
-    template<class INPUT> void _process_with_mask(Data&,RoiCollectionCounterResult&);
+    template<class INPUT> void _process_with_no_mask(Data&,RoiCollectionResult&);
+    template<class INPUT> void _process_with_mask(Data&,RoiCollectionResult&);
     void _check_roi_with_data_size(Data&);
     
 
@@ -79,13 +81,13 @@ namespace Tasks
     Data			_mask;
   };
   
-  struct DLL_EXPORT RoiCollectionCounterResult
+  struct DLL_EXPORT RoiCollectionResult
   {
-  RoiCollectionCounterResult(int spectrum_size=0) :
+  RoiCollectionResult(int spectrum_size=0) :
     spectrum(spectrum_size),
     frameNumber(-1),errorCode(RoiCollectionManager::OK)
       {};
-     explicit RoiCollectionCounterResult(RoiCollectionManager::ErrorCode code) :
+     explicit RoiCollectionResult(RoiCollectionManager::ErrorCode code) :
     errorCode(code) {}
 
     std::vector<int>			spectrum;
@@ -93,7 +95,7 @@ namespace Tasks
     RoiCollectionManager::ErrorCode	errorCode;
   };
 
-  inline std::ostream& operator<<(std::ostream &os,const RoiCollectionCounterResult &aResult)
+  inline std::ostream& operator<<(std::ostream &os,const RoiCollectionResult &aResult)
   {
     os << "<"
        << "frameNumber=" << aResult.frameNumber << ", "
@@ -102,10 +104,10 @@ namespace Tasks
     return os;
   }
 
-  class DLL_EXPORT RoiCollectionCounterTask : public SinkTask<RoiCollectionCounterResult>
+  class DLL_EXPORT RoiCollectionTask : public SinkTask<RoiCollectionResult>
   {
   public:
-    RoiCollectionCounterTask(RoiCollectionManager&);
+    RoiCollectionTask(RoiCollectionManager&);
     virtual void process(Data&);
   };
 }
