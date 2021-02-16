@@ -288,6 +288,7 @@ if(PROCESSLIB_ENABLE_PYTHON AND PROCESSLIB_MASTER_PROJECT)
               tasks/sip/RoiCounter.sip
               tasks/sip/Rotation.sip
               tasks/sip/SoftRoi.sip
+              tasks/sip/RoiCollection.sip
         COMPONENT devel
         DESTINATION ${SIP_INSTALL_DIR}
     )
