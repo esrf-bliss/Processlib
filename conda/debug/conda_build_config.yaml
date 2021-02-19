@@ -6,6 +6,7 @@ cxx_compiler:
   - vs2017                     # [win]
 python:
   - 3.7
+  - 3.8
 numpy:
   - 1.18
 # This differs from target_platform in that it determines what subdir the compiler
