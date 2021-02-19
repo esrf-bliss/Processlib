@@ -79,7 +79,6 @@ namespace Tasks
     enum Mode {LINES_SUM,COLUMN_SUM};
 
     Roi2SpectrumTask(Tasks::Roi2SpectrumManager&);
-    Roi2SpectrumTask(const Tasks::Roi2SpectrumTask&);
     virtual void process(Data&);
 
     void setMode(Mode aMode);
@@ -87,5 +86,7 @@ namespace Tasks
 
     void setRoi(int x,int y,int width,int height);
     void getRoi(int &x /Out/,int &y /Out/,int &width /Out/,int &height /Out/);
+  private:
+    Roi2SpectrumTask(const Tasks::Roi2SpectrumTask&);
   };
 };
