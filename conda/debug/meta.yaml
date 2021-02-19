@@ -21,7 +21,7 @@ requirements:
   host:
     - python {{ python }}
     - numpy {{ numpy }}
-    - sip 4.19.8             # For compatibility with pyqt 5.9.2
+    - sip
     - gsl 2.2.*
   build:
     - git
@@ -30,7 +30,7 @@ requirements:
   run:
     - python
     - {{ pin_compatible('numpy') }}
-    - sip >=4.19.4, <=4.19.8 # For compatibility with pyqt 5.9.2
+    - {{ pin_compatible('sip', max_pin='x.x.x') }}
     - {{ pin_compatible('gsl', max_pin='x.x') }}
 
 test:
