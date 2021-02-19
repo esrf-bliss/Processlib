@@ -145,8 +145,9 @@ class RoiCollectionTask : SinkTaskBase
 %End
 public:
   RoiCollectionTask(Tasks::RoiCollectionManager&);
-  RoiCollectionTask(const Tasks::RoiCollectionTask&);
   virtual void process(Data&);
+private:
+  RoiCollectionTask(const Tasks::RoiCollectionTask&);
 };
 
 };
