@@ -117,7 +117,6 @@ for(std::list<Tasks::BpmResult>::iterator i = results.begin();
 %End
   public:
     BpmTask(Tasks::BpmManager &);
-    BpmTask(const Tasks::BpmTask&);
     virtual void process(Data&); 
     void setRoi(int x1,int x2,
 		int y1,int y2);
@@ -133,6 +132,8 @@ for(std::list<Tasks::BpmResult>::iterator i = results.begin();
     bool		mEnableY;
     bool		mEnableBackgroundSubstration;
     bool		mRoiAutomatic;
+  private:
+    BpmTask(const Tasks::BpmTask&);
   };
 
 
