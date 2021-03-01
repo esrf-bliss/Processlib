@@ -103,7 +103,7 @@ void RoiCollectionManager::_check_roi_with_data_size(Data &aData)
     throw ProcessException("RoiCollectionManager : some roi are outside the image");
 }
 
-template<class INPUT>
+template<class INPUT,class SUM>
 void RoiCollectionManager::_process_with_no_mask(Data &aData,RoiCollectionResult& aResult)
 {
   const INPUT *aSrcPt = (INPUT*)aData.data();
@@ -112,7 +112,7 @@ void RoiCollectionManager::_process_with_no_mask(Data &aData,RoiCollectionResult
   for(const auto &task: _roi_tasks)
     {
       const INPUT *src = aSrcPt + task.x + task.y * widthStep;
-      INPUT sum_val = INPUT(0);
+      SUM sum_val = SUM(0);
       for(int c=0;c<task.width;++c,++src)
 	sum_val += *src;
       int& total_val = aResult.spectrum[task.roi_id];
@@ -120,7 +120,7 @@ void RoiCollectionManager::_process_with_no_mask(Data &aData,RoiCollectionResult
     }
 }
 
-template<class INPUT>
+template<class INPUT,class SUM>
 void RoiCollectionManager::_process_with_mask(Data &aData,RoiCollectionResult& aResult)
 {
   const INPUT *aSrcPt = (INPUT*)aData.data();
@@ -132,7 +132,7 @@ void RoiCollectionManager::_process_with_mask(Data &aData,RoiCollectionResult& a
     {
       const INPUT *src = aSrcPt + task.x + task.y * widthStep;
       const char* mask = aMaskPt + task.x + task.y * widthStep;
-      INPUT sum_val = INPUT(0);
+      SUM sum_val = SUM(0);
       for(int c=0;c<task.width;++c,++src,++mask)
 	if(*mask)
 	  sum_val += *src;
@@ -159,35 +159,35 @@ void RoiCollectionManager::process(Data& aData)
       switch(aData.type)
 	{
 	case Data::UINT8: 
-	  _process_with_no_mask<unsigned char>(aData,aResult);
+	  _process_with_no_mask<unsigned char,unsigned int>(aData,aResult);
 	  break;
 	case Data::INT8:
-	  _process_with_no_mask<char>(aData,aResult);
+	  _process_with_no_mask<char,int>(aData,aResult);
 	  break;
 	case Data::UINT16:
-	  _process_with_no_mask<unsigned short>(aData,aResult);
+	  _process_with_no_mask<unsigned short,unsigned int>(aData,aResult);
 	  break;
 	case Data::INT16:
-	  _process_with_no_mask<short>(aData,aResult);
+	  _process_with_no_mask<short,int>(aData,aResult);
 	  break;
 	case Data::UINT32:
-	  _process_with_no_mask<unsigned int>(aData,aResult);
+	  _process_with_no_mask<unsigned int,unsigned long long>(aData,aResult);
 	  break;
 	case Data::INT32:
-	  _process_with_no_mask<int>(aData,aResult);
+	  _process_with_no_mask<int,long long>(aData,aResult);
 	  break;
 	case Data::UINT64:
-	  _process_with_no_mask<unsigned long long>(aData,aResult);
+	  _process_with_no_mask<unsigned long long,unsigned long long>(aData,aResult);
 	  break;
 	case Data::INT64:
-	  _process_with_no_mask<long long>(aData,aResult);
+	  _process_with_no_mask<long long,long long>(aData,aResult);
 	  break;
 
 	case Data::FLOAT:
-	  _process_with_no_mask<float>(aData,aResult);
+	  _process_with_no_mask<float,double>(aData,aResult);
 	  break;
 	case Data::DOUBLE:
-	  _process_with_no_mask<double>(aData,aResult);
+	  _process_with_no_mask<double,double>(aData,aResult);
 	  break;
 	default: 
 	  break;				// error
@@ -198,35 +198,35 @@ void RoiCollectionManager::process(Data& aData)
       switch(aData.type)
 	{
 	case Data::UINT8: 
-	  _process_with_mask<unsigned char>(aData,aResult);
+	  _process_with_mask<unsigned char,unsigned int>(aData,aResult);
 	  break;
 	case Data::INT8:
-	  _process_with_mask<char>(aData,aResult);
+	  _process_with_mask<char,int>(aData,aResult);
 	  break;
 	case Data::UINT16:
-	  _process_with_mask<unsigned short>(aData,aResult);
+	  _process_with_mask<unsigned short,unsigned int>(aData,aResult);
 	  break;
 	case Data::INT16:
-	  _process_with_mask<short>(aData,aResult);
+	  _process_with_mask<short,int>(aData,aResult);
 	  break;
 	case Data::UINT32:
-	  _process_with_mask<unsigned int>(aData,aResult);
+	  _process_with_mask<unsigned int,unsigned long long>(aData,aResult);
 	  break;
 	case Data::INT32:
-	  _process_with_mask<int>(aData,aResult);
+	  _process_with_mask<int,long long>(aData,aResult);
 	  break;
 	case Data::UINT64:
-	  _process_with_mask<unsigned long long>(aData,aResult);
+	  _process_with_mask<unsigned long long,unsigned long long>(aData,aResult);
 	  break;
 	case Data::INT64:
-	  _process_with_mask<long long>(aData,aResult);
+	  _process_with_mask<long long,long long>(aData,aResult);
 	  break;
 
 	case Data::FLOAT:
-	  _process_with_mask<float>(aData,aResult);
+	  _process_with_mask<float,double>(aData,aResult);
 	  break;
 	case Data::DOUBLE:
-	  _process_with_mask<double>(aData,aResult);
+	  _process_with_mask<double,double>(aData,aResult);
 	  break;
 	default: 
 	  break;				// error
