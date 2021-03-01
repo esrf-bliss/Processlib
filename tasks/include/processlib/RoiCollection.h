@@ -56,8 +56,8 @@ namespace Tasks
     void prepare();
     void process(Data&);
   private:
-    template<class INPUT> void _process_with_no_mask(Data&,RoiCollectionResult&);
-    template<class INPUT> void _process_with_mask(Data&,RoiCollectionResult&);
+    template<class INPUT,class SUM> void _process_with_no_mask(Data&,RoiCollectionResult&);
+    template<class INPUT,class SUM> void _process_with_mask(Data&,RoiCollectionResult&);
     void _check_roi_with_data_size(Data&);
     
 
