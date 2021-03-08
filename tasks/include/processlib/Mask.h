@@ -20,6 +20,8 @@
 // You should have received a copy of the GNU General Public License
 // along with this program; if not, see <http://www.gnu.org/licenses/>.
 //###########################################################################
+#ifndef PROCESSLIB_MASK_H
+#define PROCESSLIB_MASK_H
 #include "processlib/LinkTask.h"
 
 namespace Tasks
@@ -39,3 +41,4 @@ namespace Tasks
     Type _type;
   };
 }
+#endif

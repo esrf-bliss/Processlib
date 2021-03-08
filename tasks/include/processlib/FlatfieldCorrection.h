@@ -20,6 +20,8 @@
 // You should have received a copy of the GNU General Public License
 // along with this program; if not, see <http://www.gnu.org/licenses/>.
 //###########################################################################
+#ifndef PROCESSLIB_FLATFIELD_CORRECTION_H
+#define PROCESSLIB_FLATFIELD_CORRECTION_H
 #include "processlib/LinkTask.h"
 namespace Tasks
 {
@@ -34,3 +36,4 @@ namespace Tasks
     Data _flatFieldImage;
   };
 }
+#endif

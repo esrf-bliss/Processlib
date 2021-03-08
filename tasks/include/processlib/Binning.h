@@ -20,6 +20,8 @@
 // You should have received a copy of the GNU General Public License
 // along with this program; if not, see <http://www.gnu.org/licenses/>.
 //###########################################################################
+#ifndef PROCESSLIB_BINNING_H
+#define PROCESSLIB_BINNING_H
 #include "processlib/LinkTask.h"
 namespace Tasks
 {
@@ -35,3 +37,4 @@ namespace Tasks
     int mYFactor;
   };
 }
+#endif
