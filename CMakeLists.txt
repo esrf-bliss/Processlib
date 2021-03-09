@@ -136,6 +136,7 @@ set(processlib_srcs
     tasks/src/Roi2Spectrum.cpp
     tasks/src/Rotation.cpp
     tasks/src/PeakFinder.cpp
+    tasks/src/RoiCollection.cpp
 )
 if(WIN32)
     list(APPEND processlib_srcs
@@ -287,6 +288,7 @@ if(PROCESSLIB_ENABLE_PYTHON AND PROCESSLIB_MASTER_PROJECT)
               tasks/sip/RoiCounter.sip
               tasks/sip/Rotation.sip
               tasks/sip/SoftRoi.sip
+              tasks/sip/RoiCollection.sip
         COMPONENT devel
         DESTINATION ${SIP_INSTALL_DIR}
     )

@@ -280,7 +280,7 @@ int SinkTaskMgr<Result>::lastFrameNumber() const
       typename std::list<Result>::iterator i;
       for(i = anHistory.begin();i != anHistory.end();++i)
 	{
-	  if(i->frameNumber > aLastFrameNumber + 1)
+	  if(i->frameNumber == aLastFrameNumber + 1)
 	    aLastFrameNumber = i->frameNumber;
 	  else
 	    break;
