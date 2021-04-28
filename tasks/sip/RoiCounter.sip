@@ -31,12 +31,15 @@ namespace Tasks
     enum ErrorCode {OK,NOT_MANAGED,NO_MORE_AVAILABLE,TIMEDOUT};
     enum RUN_MODE {Counter,Monitor};
     RoiCounterManager(int = 4);
+    void getOverflowThreshold(unsigned long long& threshold /Out/);
+    void setOverflowThreshold(unsigned long long threshold);
 
     Tasks::RoiCounterResult	getResult(double = 0.,int = -1) const;
     void	resizeHistory(int aSize);
     void  resetHistory();
     int	  historySize() const;
     int   lastFrameNumber() const;
+
     protected:
     virtual ~RoiCounterManager();
 %MethodCode

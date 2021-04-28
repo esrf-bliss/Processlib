@@ -25,10 +25,27 @@
 #endif
 #include <cmath>
 #include <cstdio>
+#include <limits>
 
 #include "processlib/ProcessExceptions.h"
 #include "processlib/RoiCounter.h"
 using namespace Tasks;
+
+RoiCounterManager::RoiCounterManager(int historySize) :
+  SinkTaskMgr<RoiCounterResult>(historySize),
+  overflow_threshold(0)
+{
+}
+
+void RoiCounterManager::getOverflowThreshold(unsigned long long& threshold)
+{
+  threshold = overflow_threshold;
+}
+
+void RoiCounterManager::setOverflowThreshold(unsigned long long threshold)
+{
+  overflow_threshold = threshold;
+}
 
 RoiCounterTask::RoiCounterTask(RoiCounterManager &aMgr) :
   SinkTask<RoiCounterResult>(aMgr),
@@ -259,6 +276,68 @@ template<class INPUT> static void _get_average_std(const Data& aData,
     }
   aSum /= width * height;
   aResult.std = sqrt(aSum);
+}
+template<class INPUT>
+inline long long gv(INPUT value,unsigned long long threshold)
+{
+  long long return_value = value;
+  if(value > threshold)
+    {
+      if(threshold <= std::numeric_limits<unsigned char>::max())
+	return_value = (char)value;
+      else if(threshold <= std::numeric_limits<unsigned short>::max())
+	return_value = (short)value;
+      else if(threshold <= std::numeric_limits<unsigned int>::max())
+	return_value = (int)value;
+    }
+  return return_value;
+}
+template<class INPUT> static void _get_average_std_with_threshold(const Data& aData,
+								  int x,int y,
+								  int width,int height,
+								  unsigned long long threshold,
+								  RoiCounterResult &aResult)
+{
+  const INPUT *aSrcPt = (const INPUT*)aData.data();
+  int widthStep = aData.dimensions[0];
+  long long aMin,aMax;
+  long long value = gv(*(aSrcPt + y * widthStep + x),threshold);
+  aMin = aMax = value; // Init
+  unsigned long long aSum = 0;
+  for(int lineId = y;lineId < y + height;++lineId)
+    {
+      const INPUT *aLinePt = aSrcPt + lineId * widthStep + x;
+      for(int i = 0;i < width;++i,++aLinePt)
+	{
+	  value = gv(*aLinePt,threshold);
+	  aSum += value;
+	  if(value > aMax)
+	    aMax = value;
+	  else if(value < aMin)
+	    aMin = value;
+	}
+    }
+
+  aResult.sum = aSum;
+  aResult.average = double(aSum) / (width * height);
+  aResult.minValue = double(aMin);
+  aResult.maxValue = double(aMax);
+
+  //STD
+  double sum_diff = 0.;
+  for(int lineId = y;lineId < y + height;++lineId)
+    {
+      const INPUT *aLinePt = aSrcPt + lineId * widthStep + x;
+      for(int i = 0;i < width;++i,++aLinePt)
+	{
+	  value = gv(*aLinePt,threshold);
+	  double diff = value - aResult.average;
+	  diff *= diff;
+	  sum_diff += diff;
+	}
+    }
+  sum_diff /= (width * height);
+  aResult.std = sqrt(sum_diff);
 }
 
 template<class INPUT> static void _get_average_std_with_mask(const Data& aData,
@@ -570,9 +649,14 @@ void RoiCounterTask::_check_roi_with_data_size(Data& data)
 }
 
 #define GET_AVERAGE_STD(TYPE)					\
-  {								\
+  {									\
+    const RoiCounterManager *mgr = (RoiCounterManager*)(&_mgr);		\
+    unsigned long long threshold = mgr->overflow_threshold;	\
   if(_type == SQUARE)						\
-    _get_average_std<TYPE>(aData,_x,_y,_width,_height,aResult);	\
+    if(!threshold)				\
+      _get_average_std<TYPE>(aData,_x,_y,_width,_height,aResult);	\
+    else								\
+      _get_average_std_with_threshold<TYPE>(aData,_x,_y,_width,_height,threshold,aResult); \
   else if(_type == LUT)						\
     _lut_get_average_std<TYPE>(aData,_x,_y,_lut,aResult);	\
   else if((_type == MASK) || (_type == ARC))			\

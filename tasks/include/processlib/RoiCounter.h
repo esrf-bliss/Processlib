@@ -30,8 +30,16 @@ namespace Tasks
 {
   struct RoiCounterResult;
   
-  typedef SinkTaskMgr<RoiCounterResult> RoiCounterManager;
+  class RoiCounterManager: public SinkTaskMgr<RoiCounterResult>
+  {
+  public:
+    RoiCounterManager(int historySize = 4);
+    void getOverflowThreshold(unsigned long long& threshold);
+    void setOverflowThreshold(unsigned long long threshold);
 
+    unsigned long long overflow_threshold;
+  };
+  
   struct DLL_EXPORT RoiCounterResult
   {
     RoiCounterResult() : 
