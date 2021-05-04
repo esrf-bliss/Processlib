@@ -95,6 +95,10 @@ namespace Tasks
 %End
   void clearRois();
   void setMask(Data&);
+
+  void getOverflowThreshold(long long& /Out/) const;
+  void setOverflowThreshold(long long);
+ 
   void prepare();
   void process(Data&);
 protected:

@@ -52,12 +52,17 @@ namespace Tasks
     void clearRois();
     void setMask(Data &aMask) {_mask = aMask;}
 
+    void getOverflowThreshold(long long&) const;
+    void setOverflowThreshold(long long);
+    
     // will build the lut
     void prepare();
     void process(Data&);
   private:
     template<class INPUT,class SUM> void _process_with_no_mask(Data&,RoiCollectionResult&);
     template<class INPUT,class SUM> void _process_with_mask(Data&,RoiCollectionResult&);
+    template<class INPUT,class SUM> void _process_with_no_mask_with_threshold(Data&,RoiCollectionResult&,long long);
+    template<class INPUT,class SUM> void _process_with_mask_with_threshold(Data&,RoiCollectionResult&,long long);
     void _check_roi_with_data_size(Data&);
     
 
@@ -79,6 +84,7 @@ namespace Tasks
     std::vector<RoiLineTask>	_roi_tasks;
     BBox 			_bbox;
     Data			_mask;
+    long long			_overflow_threshold;
   };
   
   struct DLL_EXPORT RoiCollectionResult
