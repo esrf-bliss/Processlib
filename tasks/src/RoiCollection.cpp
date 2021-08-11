@@ -35,7 +35,8 @@
 using namespace Tasks;
 
 RoiCollectionManager::RoiCollectionManager(int historySize) :
-  SinkTaskMgr<RoiCollectionResult>(historySize)
+  SinkTaskMgr<RoiCollectionResult>(historySize),
+  _overflow_threshold(0)
 {
   pthread_mutex_init(&_roi_lock,NULL);
 }
@@ -60,6 +61,16 @@ void RoiCollectionManager::clearRois()
   PoolThreadMgr::Lock aLock(&_roi_lock);
   _roi_tasks.clear();
   _rois.clear();
+}
+
+void RoiCollectionManager::getOverflowThreshold(long long &threshold) const
+{
+  threshold = _overflow_threshold;
+}
+
+void RoiCollectionManager::setOverflowThreshold(long long threshold)
+{
+  _overflow_threshold = threshold;
 }
 
 void RoiCollectionManager::prepare()
@@ -141,6 +152,87 @@ void RoiCollectionManager::_process_with_mask(Data &aData,RoiCollectionResult& a
     }
 }
 
+template<class INPUT>
+inline long long gv(INPUT value,unsigned long long threshold)
+{
+  long long return_value = value;
+  if(value > threshold)
+    {
+      if(threshold <= std::numeric_limits<unsigned char>::max())
+	return_value = (char)value;
+      else if(threshold <= std::numeric_limits<unsigned short>::max())
+	return_value = (short)value;
+      else if(threshold <= std::numeric_limits<unsigned int>::max())
+	return_value = (int)value;
+    }
+  return return_value;
+}
+
+
+template<class INPUT,class SUM>
+void RoiCollectionManager::_process_with_no_mask_with_threshold(Data &aData,
+								RoiCollectionResult& aResult,
+								long long threshold)
+{
+  const INPUT *aSrcPt = (INPUT*)aData.data();
+  int widthStep = aData.dimensions[0];
+
+  for(const auto &task: _roi_tasks)
+    {
+      const INPUT *src = aSrcPt + task.x + task.y * widthStep;
+      SUM sum_val = SUM(0);
+      for(int c=0;c<task.width;++c,++src)
+	sum_val += gv(*src,threshold);
+      int& total_val = aResult.spectrum[task.roi_id];
+      total_val += sum_val;
+    }
+}
+
+template<class INPUT,class SUM>
+void RoiCollectionManager::_process_with_mask_with_threshold(Data &aData,
+							     RoiCollectionResult& aResult,
+							     long long threshold)
+{
+  const INPUT *aSrcPt = (INPUT*)aData.data();
+  const char *aMaskPt = (char*)_mask.data();
+  
+  int widthStep = aData.dimensions[0];
+
+  for(const auto &task: _roi_tasks)
+    {
+      const INPUT *src = aSrcPt + task.x + task.y * widthStep;
+      const char* mask = aMaskPt + task.x + task.y * widthStep;
+      SUM sum_val = SUM(0);
+      for(int c=0;c<task.width;++c,++src,++mask)
+	if(*mask)
+	  sum_val += gv(*src,threshold);
+      int& total_val = aResult.spectrum[task.roi_id];
+      total_val += sum_val;
+    }
+}
+
+#define PROCESS_SWITCH(SRC,SUM)						\
+{									\
+  if(_mask.empty())							\
+    {									\
+      if(_overflow_threshold)						\
+	_process_with_no_mask_with_threshold<SRC,SUM>(aData,aResult,	\
+						      _overflow_threshold); \
+      else								\
+	_process_with_no_mask<SRC,SUM>(aData,aResult);			\
+    }									\
+  else if(_mask.dimensions == aData.dimensions)				\
+    {									\
+      if(_overflow_threshold)						\
+	_process_with_mask_with_threshold<SRC,SUM>(aData,aResult,	\
+						   _overflow_threshold); \
+      else								\
+	_process_with_mask<SRC,SUM>(aData,aResult);			\
+    }									\
+  else									\
+    throw ProcessException("RoiCollectionManager : Source image size differ from mask"); \
+}
+
 void RoiCollectionManager::process(Data& aData)
 {
   if(aData.dimensions.size() != 2)
@@ -154,87 +246,42 @@ void RoiCollectionManager::process(Data& aData)
   RoiCollectionResult aResult(_rois.size());
   aResult.frameNumber = aData.frameNumber;
   
-  if(_mask.empty())
+  switch(aData.type)
     {
-      switch(aData.type)
-	{
-	case Data::UINT8: 
-	  _process_with_no_mask<unsigned char,unsigned int>(aData,aResult);
-	  break;
-	case Data::INT8:
-	  _process_with_no_mask<char,int>(aData,aResult);
-	  break;
-	case Data::UINT16:
-	  _process_with_no_mask<unsigned short,unsigned int>(aData,aResult);
-	  break;
-	case Data::INT16:
-	  _process_with_no_mask<short,int>(aData,aResult);
-	  break;
-	case Data::UINT32:
-	  _process_with_no_mask<unsigned int,unsigned long long>(aData,aResult);
-	  break;
-	case Data::INT32:
-	  _process_with_no_mask<int,long long>(aData,aResult);
-	  break;
-	case Data::UINT64:
-	  _process_with_no_mask<unsigned long long,unsigned long long>(aData,aResult);
-	  break;
-	case Data::INT64:
-	  _process_with_no_mask<long long,long long>(aData,aResult);
-	  break;
+    case Data::UINT8: 
+      PROCESS_SWITCH(unsigned char,int);
+      break;
+    case Data::INT8:
+      PROCESS_SWITCH(char,int);
+      break;
+    case Data::UINT16:
+      PROCESS_SWITCH(unsigned short,int);
+      break;
+    case Data::INT16:
+      PROCESS_SWITCH(short,int);
+      break;
+    case Data::UINT32:
+      PROCESS_SWITCH(unsigned int,long long);
+      break;
+    case Data::INT32:
+      PROCESS_SWITCH(int,long long);
+      break;
+    case Data::UINT64:
+      PROCESS_SWITCH(unsigned long long,long long);
+      break;
+    case Data::INT64:
+      PROCESS_SWITCH(long long,long long);
+      break;
 
-	case Data::FLOAT:
-	  _process_with_no_mask<float,double>(aData,aResult);
-	  break;
-	case Data::DOUBLE:
-	  _process_with_no_mask<double,double>(aData,aResult);
-	  break;
-	default: 
-	  break;				// error
-	}
+    case Data::FLOAT:
+      PROCESS_SWITCH(float,double);
+      break;
+    case Data::DOUBLE:
+      PROCESS_SWITCH(double,double);
+      break;
+    default: 
+      break;				// error
     }
-  else if(_mask.dimensions == aData.dimensions)
-    {
-      switch(aData.type)
-	{
-	case Data::UINT8: 
-	  _process_with_mask<unsigned char,unsigned int>(aData,aResult);
-	  break;
-	case Data::INT8:
-	  _process_with_mask<char,int>(aData,aResult);
-	  break;
-	case Data::UINT16:
-	  _process_with_mask<unsigned short,unsigned int>(aData,aResult);
-	  break;
-	case Data::INT16:
-	  _process_with_mask<short,int>(aData,aResult);
-	  break;
-	case Data::UINT32:
-	  _process_with_mask<unsigned int,unsigned long long>(aData,aResult);
-	  break;
-	case Data::INT32:
-	  _process_with_mask<int,long long>(aData,aResult);
-	  break;
-	case Data::UINT64:
-	  _process_with_mask<unsigned long long,unsigned long long>(aData,aResult);
-	  break;
-	case Data::INT64:
-	  _process_with_mask<long long,long long>(aData,aResult);
-	  break;
-
-	case Data::FLOAT:
-	  _process_with_mask<float,double>(aData,aResult);
-	  break;
-	case Data::DOUBLE:
-	  _process_with_mask<double,double>(aData,aResult);
-	  break;
-	default: 
-	  break;				// error
-	}
-    }
-  else
-    throw ProcessException("RoiCollectionManager : Source image size differ from mask");
-
   
   setResult(aResult);
 }
