@@ -2,7 +2,7 @@
 // This file is part of ProcessLib, a submodule of LImA project the
 // Library for Image Acquisition
 //
-// Copyright (C) : 2009-2011
+// Copyright (C) : 2009-2021
 // European Synchrotron Radiation Facility
 // BP 220, Grenoble 38043
 // FRANCE
@@ -30,7 +30,7 @@ namespace Tasks
 {
   struct RoiCounterResult;
   
-  class RoiCounterManager: public SinkTaskMgr<RoiCounterResult>
+  class DLL_EXPORT RoiCounterManager: public SinkTaskMgr<RoiCounterResult>
   {
   public:
     RoiCounterManager(int historySize = 4);
