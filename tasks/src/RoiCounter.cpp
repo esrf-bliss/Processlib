@@ -283,11 +283,11 @@ inline long long gv(INPUT value,unsigned long long threshold)
   long long return_value = value;
   if(value > threshold)
     {
-      if(threshold <= std::numeric_limits<unsigned char>::max())
+      if(threshold <= (std::numeric_limits<unsigned char>::max)())
 	return_value = (char)value;
-      else if(threshold <= std::numeric_limits<unsigned short>::max())
+      else if(threshold <= (std::numeric_limits<unsigned short>::max)())
 	return_value = (short)value;
-      else if(threshold <= std::numeric_limits<unsigned int>::max())
+      else if(threshold <= (std::numeric_limits<unsigned int>::max)())
 	return_value = (int)value;
     }
   return return_value;
