@@ -31,3 +31,7 @@ r=m.getResult(0)
 s=r.spectrum
 print (f"Processed {len(s)} roi counters successfully")
 
+
+print (f"check now your RAM usage, we loop on reading the spectrum (issue #22 in Processlib")
+while True:
+  r.spectrum

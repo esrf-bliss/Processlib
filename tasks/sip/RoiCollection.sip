@@ -115,7 +115,7 @@ protected:
  {
    int frameNumber;
    Tasks::RoiCollectionManager::ErrorCode errorCode;
-   double *spectrum
+   int *spectrum
    {
 %GetCode
    if(sipCpp->spectrum.empty())
@@ -128,6 +128,7 @@ protected:
    Py_BEGIN_ALLOW_THREADS
    memcpy(PyArray_DATA(tmpObject),data,dims[0]*sizeof(int));
    Py_END_ALLOW_THREADS
+   Py_DECREF(tmpObject);
 
 %End
 %SetCode
