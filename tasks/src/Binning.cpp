@@ -163,8 +163,12 @@ Data Binning::process(Data &aData)
 		  throw ProcessException("Binning : Data type not managed");
 		  break;
 		}
-	       if(_processingInPlaceFlag)
-		 memcpy(aData.data(),aNewData.data(),aNewData.size());
+                if(_processingInPlaceFlag) {
+                   memcpy(aData.data(),aNewData.data(),aNewData.size());
+                   aData.dimensions[0] = newWidth;
+                   aData.dimensions[1] = newHeight;
+                   return aData;
+                }
 	    }
 	}
       else
