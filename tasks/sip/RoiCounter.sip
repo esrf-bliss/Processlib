@@ -78,7 +78,6 @@ namespace Tasks
   public:
     enum type {UNDEF,SQUARE,ARC,LUT,MASK};
     RoiCounterTask(Tasks::RoiCounterManager&);
-    RoiCounterTask(const Tasks::RoiCounterTask&);
     virtual void process(Data&);
 
     void setMask(Data &aMask);
@@ -100,5 +99,7 @@ namespace Tasks
     void getArcMask(double &centerX /Out/,double &centerY /Out/,
 		    double &rayon1 /Out/,double &rayon2 /Out/,
 		    double &angle_start /Out/,double &angle_end /Out/);
+  private:
+    RoiCounterTask(const Tasks::RoiCounterTask&);
   };
 };
