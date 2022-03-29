@@ -5,7 +5,7 @@ stages:
 build-linux:
   stage: build
   script:
-    - conda build --output-folder=dist conda/release
+    - conda mambabuild --output-folder=dist conda/release
   artifacts:
     paths:
       - dist/
@@ -16,7 +16,7 @@ build-linux:
 build-win:
   stage: build
   script:
-    - call conda build --output-folder=dist conda/release
+    - call conda mambabuild --output-folder=dist conda/release
   artifacts:
     paths:
       - dist/
