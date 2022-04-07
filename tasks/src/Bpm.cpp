@@ -239,13 +239,7 @@ double BpmTask::_calculate_fwhm(const Buffer &projectionBuffer,int size,
   double val_l = aProjectionPt[index];
   double locut;
   if(!(val_h> val_l && val_h> hm && hm> val_l))
-    {
-      std::cout << "val_h" << val_h
-		<< "val_l" << val_l
-		<< "hm" << hm
-		<< std::endl;
       return -1.;
-    }
 
   locut = index + (hm - val_l)/(val_h-val_l);
   // NOW ON THE RIGHT SIDE OF THE CURVE
@@ -261,13 +255,7 @@ double BpmTask::_calculate_fwhm(const Buffer &projectionBuffer,int size,
   val_h = aProjectionPt[index - 1];
   val_l = aProjectionPt[index];
   if(!(val_h> val_l && val_h> hm && hm> val_l))
-    {
-      std::cout << "val_h" << val_h
-		<< "val_l" << val_l
-		<< "hm" << hm
-		<< std::endl;
       return -1.;
-    }
 
   double hicut;
   hicut = index - (hm - val_l)/(val_h-val_l);
