@@ -33,7 +33,7 @@
 # default is the python installation directory, for UNIX it
 # can be /usr/lib/python2.7/dist-packages/ .
 
-cmake_minimum_required(VERSION 3.1)
+cmake_minimum_required(VERSION 3.8)
 
 project (processlib)
 include(cmake/project_version.cmake)
@@ -140,14 +140,8 @@ set(processlib_srcs
 )
 if(WIN32)
     list(APPEND processlib_srcs
-        core/src/WindowSpecific/pthread_cancelling.cpp
-        core/src/WindowSpecific/pthread_cond.cpp
-        core/src/WindowSpecific/pthread_key.cpp
-        core/src/WindowSpecific/pthread_mutex.cpp
-        core/src/WindowSpecific/pthread_rwlock.cpp
-        core/src/WindowSpecific/pthread_thread.cpp
-        core/src/WindowSpecific/stdio_compat.cpp
-        core/src/WindowSpecific/time_compat.cpp
+        core/src/win/stdio_compat.cpp
+        core/src/win/time_compat.cpp
     )
 endif()
 
@@ -179,32 +173,13 @@ else()
     )
 endif(PROCESSLIB_ENABLE_GSL)
 
-# The following might work with cmake 3.12
-# Add the library processlib definition
-# add_subdirectory(core)
-# add_subdirectory(tasks)
-# target_link_libraries(processlib
-#   PRIVATE core
-#   PRIVATE tasks)
-
 target_include_directories(processlib PUBLIC
     "$<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/core/include>"
     "$<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/tasks/include>"
     "$<INSTALL_INTERFACE:${CMAKE_INSTALL_INCLUDEDIR}>"
 )
-if(WIN32)
-    target_include_directories(processlib PUBLIC
-        "$<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/core/include/WindowSpecific>"
-        "$<INSTALL_INTERFACE:${CMAKE_INSTALL_INCLUDEDIR}/processlib/WindowSpecific>"
-    )
-endif()
 
-if(THREADS_HAVE_PTHREAD_ARG)
-    target_compile_options(PUBLIC processlib "-pthread")
-endif()
-if(CMAKE_THREAD_LIBS_INIT)
-    target_link_libraries(processlib PRIVATE "${CMAKE_THREAD_LIBS_INIT}")
-endif()
+target_link_libraries(processlib PUBLIC Threads::Threads)
 
 if(WIN32)
     target_compile_definitions(processlib PRIVATE LIBPROCESSLIB_EXPORTS)
@@ -267,7 +242,7 @@ install(
 
 if(WIN32)
     install(
-        DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/core/include/WindowSpecific
+        DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/core/include/win
         COMPONENT devel
         DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}/processlib
         FILES_MATCHING PATTERN "*.h"

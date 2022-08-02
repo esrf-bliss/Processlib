@@ -20,23 +20,37 @@
 // You should have received a copy of the GNU General Public License
 // along with this program; if not, see <http://www.gnu.org/licenses/>.
 //###########################################################################
-#ifndef __PTHREAD_H__
-#define __PTHREAD_H__
-#define PTHREAD_CANCEL_DISABLE 0
-#define PTHREAD_CANCEL_ENABLE 0x01
+#include <win/time_compat.h>
 
-#define PTHREAD_CANCEL_DEFERRED 0
-#define PTHREAD_CANCEL_ASYNCHRONOUS 0x02
+int gettimeofday(struct timeval *tv, struct compat_timezone *tz)
+{
+  FILETIME ft;
+  unsigned __int64 t = 0;
+  ULARGE_INTEGER li;
+  static int tzflag;
 
-#define PTHREAD_CANCELED ((void *) int(0xDEADBEEF))
-#include "stdio_compat.h"
-#include "time_compat.h"
-#include "pthread_mutex.h"
-#include "pthread_rwlock.h"
-#include "pthread_key.h"
-#include "pthread_thread.h"
-#include "pthread_cancelling.h"
-#include "pthread_cond.h"
+  if (NULL != tv)
+  {
+    GetSystemTimeAsFileTime(&ft);
+	li.LowPart  = ft.dwLowDateTime;
+    li.HighPart = ft.dwHighDateTime;
+    t = li.QuadPart;       /* In 100-nanosecond intervals */
+    t /= 10;                /* In microseconds */
+	t -= DELTA_EPOCH_IN_MICROSECS;     /* Offset to the Epoch time */
+	tv->tv_sec  = (long)(t / 1000000UL);
+    tv->tv_usec = (long)(t % 1000000UL);
+  }
 
-#endif
+  if (NULL != tz)
+  {
+    if (!tzflag)
+    {
+      _tzset();
+      tzflag++;
+    }
+    tz->tz_minuteswest = _get_timezone(NULL) / 60;
+    tz->tz_dsttime = _get_daylight(NULL);
+  }
 
+  return 0;
+}
