@@ -25,6 +25,9 @@
 #include <sys/time.h>
 #endif
 #include <errno.h>
+#ifdef _WIN32
+#include "win/time_compat.h"
+#endif
 #include "processlib/PoolThreadMgr.h"
 #include "processlib/TaskMgr.h"
 #include "processlib/ProcessExceptions.h"

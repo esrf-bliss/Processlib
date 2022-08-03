@@ -33,6 +33,9 @@
 #include <stdlib.h>
 #include <sstream>
 #include <string>
+#ifdef _WIN32
+#include "win/time_compat.h"
+#endif
 
 class DLL_EXPORT Stat
 {
