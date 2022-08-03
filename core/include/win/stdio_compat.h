@@ -35,6 +35,4 @@
 double NAN_func();
 #endif
 
-double win_specific_round(double a);
-
 #endif
