@@ -71,6 +71,7 @@ endif()
 set(CMAKE_MODULE_PATH ${CMAKE_CURRENT_SOURCE_DIR}/cmake ${CMAKE_MODULE_PATH})
 
 # Threads lib required
+set(THREADS_PREFER_PTHREAD_FLAG ON)
 find_package(Threads REQUIRED)
 
 # Enable GSL processing
@@ -182,6 +183,8 @@ target_include_directories(processlib PUBLIC
 target_link_libraries(processlib PUBLIC Threads::Threads)
 
 if(WIN32)
+    find_library(PTHREAD_WIN32_LIB pthread)
+    target_link_libraries(processlib PUBLIC ${PTHREAD_WIN32_LIB})
     target_compile_definitions(processlib PRIVATE LIBPROCESSLIB_EXPORTS)
     set_target_properties(processlib PROPERTIES PREFIX "lib")
     set_target_properties(processlib PROPERTIES IMPORT_PREFIX "lib")
