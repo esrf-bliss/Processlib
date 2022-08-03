@@ -269,11 +269,7 @@ void PoolThreadMgr::_createProcessThread(int aNumber)
 
 PoolThreadMgr& PoolThreadMgr::get() throw()
 {
-#ifdef WIN32
-  _pthread_once_raw(&_init,_processMgrInit);
-#else
   pthread_once(&_init,_processMgrInit);
-#endif
   return *_processMgrPt;
 }
 
