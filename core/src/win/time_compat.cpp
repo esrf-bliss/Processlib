@@ -20,25 +20,37 @@
 // You should have received a copy of the GNU General Public License
 // along with this program; if not, see <http://www.gnu.org/licenses/>.
 //###########################################################################
-#ifndef __PTHREAD_KEY_H__
-#define __PTHREAD_KEY_H__
+#include <win/time_compat.h>
 
-#include "processlib/Compatibility.h"
+int gettimeofday(struct timeval *tv, struct compat_timezone *tz)
+{
+  FILETIME ft;
+  unsigned __int64 t = 0;
+  ULARGE_INTEGER li;
+  static int tzflag;
 
-typedef long pthread_key_t;
+  if (NULL != tv)
+  {
+    GetSystemTimeAsFileTime(&ft);
+	li.LowPart  = ft.dwLowDateTime;
+    li.HighPart = ft.dwHighDateTime;
+    t = li.QuadPart;       /* In 100-nanosecond intervals */
+    t /= 10;                /* In microseconds */
+	t -= DELTA_EPOCH_IN_MICROSECS;     /* Offset to the Epoch time */
+	tv->tv_sec  = (long)(t / 1000000UL);
+    tv->tv_usec = (long)(t % 1000000UL);
+  }
 
-#ifdef __cplusplus
-extern "C"{
-#endif
+  if (NULL != tz)
+  {
+    if (!tzflag)
+    {
+      _tzset();
+      tzflag++;
+    }
+    tz->tz_minuteswest = _get_timezone(NULL) / 60;
+    tz->tz_dsttime = _get_daylight(NULL);
+  }
 
-  DLL_EXPORT int pthread_key_create(pthread_key_t *key, void (* dest)(void *));
-
-  DLL_EXPORT int pthread_key_delete(pthread_key_t key);
-
-  DLL_EXPORT void* pthread_getspecific(pthread_key_t key);
-  DLL_EXPORT int pthread_setspecific(pthread_key_t key,
-				     const void *pointer);
-#ifdef __cplusplus
-} //  Assume C declarations for C++
-#endif
-#endif
+  return 0;
+}

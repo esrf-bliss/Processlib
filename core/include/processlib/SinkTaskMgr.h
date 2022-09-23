@@ -32,13 +32,14 @@
 #endif
 #include <time.h>
 #include <errno.h>
+#ifdef _WIN32
+#include "win/time_compat.h"
+#endif
 
 #include <list>
 #include <vector>
 
-
 #include "processlib/PoolThreadMgr.h"
-
 
 template<class Result>
 class DLL_EXPORT SinkTaskMgr

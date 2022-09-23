@@ -36,7 +36,18 @@
 
 #include "processlib/Compatibility.h"
 
-/** @brief this class manage error message in thread safe maner
+#if defined(_WIN32)
+template <>
+struct std::less<pthread_t>
+{
+   bool operator()(pthread_t const& lhs, pthread_t const& rhs) const
+   {
+      return lhs.p < rhs.p;
+   }
+};
+#endif //defined(_WIN32)
+
+/** @brief this class manage error message in a thread safe manner
  */
 class DLL_EXPORT GslErrorMgr
 {

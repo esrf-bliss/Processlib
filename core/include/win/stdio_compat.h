@@ -20,23 +20,19 @@
 // You should have received a copy of the GNU General Public License
 // along with this program; if not, see <http://www.gnu.org/licenses/>.
 //###########################################################################
-#ifndef __PTHREAD_H__
-#define __PTHREAD_H__
-#define PTHREAD_CANCEL_DISABLE 0
-#define PTHREAD_CANCEL_ENABLE 0x01
+#ifndef __STDIO_COMPAT_H__
+#define __STDIO_COMPAT_H__
+#include <math.h>
 
-#define PTHREAD_CANCEL_DEFERRED 0
-#define PTHREAD_CANCEL_ASYNCHRONOUS 0x02
-
-#define PTHREAD_CANCELED ((void *) int(0xDEADBEEF))
-#include "stdio_compat.h"
-#include "time_compat.h"
-#include "pthread_mutex.h"
-#include "pthread_rwlock.h"
-#include "pthread_key.h"
-#include "pthread_thread.h"
-#include "pthread_cancelling.h"
-#include "pthread_cond.h"
-
+#if _MSC_VER < 1900
+#ifndef snprintf
+#define snprintf sprintf_s
+#endif
 #endif
 
+#ifndef NAN
+#define NAN NAN_func()
+double NAN_func();
+#endif
+
+#endif
