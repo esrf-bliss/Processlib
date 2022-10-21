@@ -165,8 +165,8 @@ set_target_properties(processlib PROPERTIES
 
 if(PROCESSLIB_ENABLE_GSL)
     target_link_libraries(processlib
-        PUBLIC GSL::gsl
-        PUBLIC GSL::gslcblas
+        PRIVATE GSL::gsl
+        PRIVATE GSL::gslcblas
     )
 else()
     target_compile_definitions(processlib
