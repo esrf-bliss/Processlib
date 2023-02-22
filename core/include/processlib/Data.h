@@ -41,6 +41,7 @@
 
 #include "processlib/Compatibility.h"
 #include "processlib/ProcessExceptions.h"
+#include "processlib/Sideband/DataContainer.h"
 
 struct DLL_EXPORT Buffer
 {
@@ -229,6 +230,7 @@ struct DLL_EXPORT Data
     aReturnData.frameNumber = frameNumber;
     aReturnData.timestamp = timestamp;
     aReturnData.header = header;
+    aReturnData.sidebandData = sidebandData;
     aReturnData.buffer = new Buffer(aReturnData.size());
     return aReturnData;
   }
@@ -240,6 +242,7 @@ struct DLL_EXPORT Data
     aReturnData.frameNumber = frameNumber;
     aReturnData.timestamp = timestamp;
     aReturnData.header = header;
+    aReturnData.sidebandData = sidebandData;
     if(buffer)
       {
 	aReturnData.buffer = new Buffer(size());
@@ -257,6 +260,7 @@ struct DLL_EXPORT Data
     aReturnData.frameNumber = frameNumber;
     aReturnData.timestamp = timestamp;
     aReturnData.header = header;
+    aReturnData.sidebandData = sidebandData;
     if(depth() != 1)
       {
 	aReturnData.type = INT8;
@@ -294,6 +298,7 @@ struct DLL_EXPORT Data
       frameNumber = aData.frameNumber;
       timestamp = aData.timestamp;
       header    = aData.header;
+      sidebandData = aData.sidebandData;
       setBuffer(aData.buffer);
       return *this;
     }
@@ -303,6 +308,7 @@ struct DLL_EXPORT Data
   int       			frameNumber;
   double    			timestamp;
   mutable HeaderContainer 	header;
+  mutable Sideband::DataContainer sidebandData;
   mutable Buffer *		buffer;
 
  private:
@@ -339,6 +345,7 @@ Data Data::cast(Data::TYPE aType)
   aReturnData.frameNumber = frameNumber;
   aReturnData.timestamp = timestamp;
   aReturnData.header = header;
+  aReturnData.sidebandData = sidebandData;
 
   aReturnData.buffer = new Buffer(aReturnData.size());
   int nbItems = aReturnData.size() / aReturnData.depth();
@@ -660,6 +667,16 @@ inline std::ostream& operator<<(std::ostream &os,const Data &aData)
   os << "frameNumber=" << aData.frameNumber << ", "
      << "timestamp=" << aData.timestamp << ", "
      << "header=" << aData.header << ", ";
+  if(!aData.sidebandData.empty())
+  {
+    os << "sidebandData=<";
+    typedef Sideband::DataContainer Container;
+    const char *sep = "";
+    for(Container::const_iterator i = aData.sidebandData.begin();
+	i != aData.sidebandData.end();++i, sep = ", ")
+      os << sep << i->first;
+    os << ">, ";
+  }
   if(aData.buffer)
     os << "buffer=" << *aData.buffer;
   else
