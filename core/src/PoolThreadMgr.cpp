@@ -249,7 +249,7 @@ void* PoolThreadMgr::_run(void *arg)
 	    }
 	  catch(...)
 	    {
-	      aNextTask->error("Unknowed exception!");
+	      aNextTask->error("Unknown exception!");
 	    }
 	  aLock.lock();
 	  delete aNextTask;
