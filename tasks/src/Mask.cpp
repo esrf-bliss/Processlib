@@ -141,6 +141,26 @@ Data Mask::process(Data &aData)
 		    goto error;
 		  }
 		break;
+	      case Data::INT16:
+		switch(_MaskImage.type)
+		  {
+		  case Data::UINT8:
+		    _INPLACE((short*)aData.data(),aData.size(),
+			     (unsigned char*)_MaskImage.data());
+		    break;
+		  case Data::UINT16:
+		    _INPLACE((short*)aData.data(),aData.size(),
+			     (unsigned short*)_MaskImage.data());
+		    break;
+		  case Data::INT16:
+		    _INPLACE((short*)aData.data(),aData.size(),
+			     (short*)_MaskImage.data());
+		    break;
+		  default:
+		    errorMsgPt = "mask image must be an unsigned char, unsigned short or short";
+		    goto error;
+		  }
+		break;
 	      case Data::UINT32:
 		switch(_MaskImage.type)
 		  {
@@ -222,6 +242,26 @@ Data Mask::process(Data &aData)
 		    break;
 		  default:
 		    errorMsgPt = "mask image must be an unsigned char or unsigned short";
+		    goto error;
+		  }
+		break;
+	      case Data::INT16:
+		switch(_MaskImage.type)
+		  {
+		  case Data::UINT8:
+		    _COPY((short*)aData.data(),(short*)aNewData.data(),
+			  aData.size(),(unsigned char*)_MaskImage.data());
+		    break;
+		  case Data::UINT16:
+		    _COPY((short*)aData.data(),(short*)aNewData.data(),
+			  aData.size(),(unsigned short*)_MaskImage.data());
+		    break;
+		  case Data::INT16:
+		    _COPY((short*)aData.data(),(short*)aNewData.data(),
+			  aData.size(),(short*)_MaskImage.data());
+		    break;
+		  default:
+		    errorMsgPt = "mask image must be an unsigned char, unsigned short or short";
 		    goto error;
 		  }
 		break;
