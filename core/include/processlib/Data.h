@@ -41,7 +41,7 @@
 
 #include "processlib/Compatibility.h"
 #include "processlib/ProcessExceptions.h"
-#include "processlib/Sideband/DataContainer.h"
+#include "processlib/sideband/DataContainer.h"
 
 struct DLL_EXPORT Buffer
 {
@@ -308,7 +308,7 @@ struct DLL_EXPORT Data
   int       			frameNumber;
   double    			timestamp;
   mutable HeaderContainer 	header;
-  mutable Sideband::DataContainer sidebandData;
+  mutable sideband::DataContainer sidebandData;
   mutable Buffer *		buffer;
 
  private:
@@ -670,7 +670,7 @@ inline std::ostream& operator<<(std::ostream &os,const Data &aData)
   if(!aData.sidebandData.empty())
   {
     os << "sidebandData=<";
-    typedef Sideband::DataContainer Container;
+    typedef sideband::DataContainer Container;
     const char *sep = "";
     for(Container::const_iterator i = aData.sidebandData.begin();
 	i != aData.sidebandData.end();++i, sep = ", ")

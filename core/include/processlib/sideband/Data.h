@@ -23,33 +23,32 @@
 
 #pragma once
 
-#if !defined(PROCESSLIB_SIDEBAND_COMPRESSEDDATA_H)
-#define PROCESSLIB_SIDEBAND_COMPRESSEDDATA_H
+#if !defined(PROCESSLIB_SIDEBAND_DATA_H)
+#define PROCESSLIB_SIDEBAND_DATA_H
 
-#include <utility>
-#include <vector>
+#include <memory>
 
-#include "processlib/Sideband/Data.h"
+#include "processlib/Compatibility.h"
 
-namespace Sideband
+namespace sideband
 {
-  // A Blob is a block of bytes, which can be copied & xferred
-  typedef std::pair<std::shared_ptr<void>, std::size_t> Blob;
-  typedef std::vector<Blob> BlobList;
 
-  // Sideband data providing compressed blobs for a frame
-  class CompressedData : public Sideband::Data
+  // base class for all Sideband data
+  class DLL_EXPORT Data
   {
   public:
-    std::vector<int> decomp_dims;
-    int pixel_depth;
-    BlobList comp_blobs;
-
-    CompressedData(std::vector<int> dims, int depth, BlobList blobs)
-      : decomp_dims(std::move(dims)), pixel_depth(depth),
-	comp_blobs(std::move(blobs)) {}
+    virtual ~Data() {}
   };
 
-} // namespace Sideband
+  typedef std::shared_ptr<Data> DataPtr;
 
-#endif // PROCESSLIB_SIDEBAND_COMPRESSEDDATA_H
+  // cast a Sideband data into its original type
+  template <typename T>
+  std::shared_ptr<T> DataCast(DataPtr p)
+  {
+    return std::dynamic_pointer_cast<T>(p);
+  }
+
+} // namespace sideband
+
+#endif // PROCESSLIB_SIDEBAND_DATA_H

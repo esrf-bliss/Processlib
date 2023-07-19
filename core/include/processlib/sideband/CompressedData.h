@@ -23,31 +23,33 @@
 
 #pragma once
 
-#if !defined(PROCESSLIB_SIDEBANDDATA_H)
-#define PROCESSLIB_SIDEBANDDATA_H
+#if !defined(PROCESSLIB_SIDEBAND_COMPRESSEDDATA_H)
+#define PROCESSLIB_SIDEBAND_COMPRESSEDDATA_H
 
-#include "processlib/Data.h"
+#include <utility>
+#include <vector>
 
-namespace Sideband
+#include "processlib/sideband/Data.h"
+
+namespace sideband
 {
-  // processlib ::Data API
-  template <typename T>
-  void AddData(const std::string& key, ::Data& data, std::shared_ptr<T> sb_data)
+  // A Blob is a block of bytes, which can be copied & xferred
+  typedef std::pair<std::shared_ptr<void>, std::size_t> Blob;
+  typedef std::vector<Blob> BlobList;
+
+  // Sideband data providing compressed blobs for a frame
+  class CompressedData : public sideband::Data
   {
-    AddContainerData<T>(key, data.sidebandData, sb_data);
-  }
+  public:
+    std::vector<int> decomp_dims;
+    int pixel_depth;
+    BlobList comp_blobs;
 
-  template <typename T>
-  std::shared_ptr<T> GetData(const std::string& key, ::Data& data)
-  {
-    return GetContainerData<T>(key, data.sidebandData);
-  }
+    CompressedData(std::vector<int> dims, int depth, BlobList blobs)
+      : decomp_dims(std::move(dims)), pixel_depth(depth),
+	comp_blobs(std::move(blobs)) {}
+  };
 
-  inline bool RemoveData(const std::string& key, ::Data& data)
-  {
-    return RemoveContainerData(key, data.sidebandData);
-  }
+} // namespace sideband
 
-} // namespace Sideband
-
-#endif // PROCESSLIB_SIDEBANDDATA_H
+#endif // PROCESSLIB_SIDEBAND_COMPRESSEDDATA_H

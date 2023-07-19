@@ -26,21 +26,39 @@
 #if !defined(PROCESSLIB_SIDEBAND_DATACONTAINER_H)
 #define PROCESSLIB_SIDEBAND_DATACONTAINER_H
 
-#include "processlib/Sideband/Data.h"
+#include "processlib/sideband/Data.h"
 #include <string>
 #include <map>
 
 #include "processlib/Compatibility.h"
 
-namespace Sideband
+namespace sideband
 {
 
   // Sideband container API
   typedef std::map<std::string, DataPtr> DataContainer;
 
-  // add sideband data T to the container
+  // check if container has sideband data
   template <typename T>
-  void AddContainerData(const std::string& key, DataContainer& cont,
+  bool HasContainerData(const std::string& key, DataContainer& cont)
+  {
+    DataContainer::iterator sit = cont.find(key);
+    return (sit != cont.end()) ? bool(DataCast<T>(sit->second)) : false;
+  }
+
+  // add sideband data T to the container, return true if really added
+  template <typename T>
+  bool AddContainerData(const std::string& key, DataContainer& cont,
+			std::shared_ptr<T> sb_data)
+  {
+    if (HasContainerData<T>(key, cont))
+      return false;
+    return cont.emplace(key, sb_data).second;
+  }
+
+  // set sideband data T into the container (add-or-replace)
+  template <typename T>
+  void SetContainerData(const std::string& key, DataContainer& cont,
 			std::shared_ptr<T> sb_data)
   {
     cont[key] = sb_data;
@@ -65,6 +83,6 @@ namespace Sideband
     return (nb_erased > 0);
   }
 
-} // namespace Sideband
+} // namespace sideband
 
 #endif // PROCESSLIB_SIDEBAND_DATACONTAINER_H

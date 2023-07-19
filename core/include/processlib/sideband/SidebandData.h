@@ -23,32 +23,43 @@
 
 #pragma once
 
-#if !defined(PROCESSLIB_SIDEBAND_DATA_H)
-#define PROCESSLIB_SIDEBAND_DATA_H
+#if !defined(PROCESSLIB_SIDEBANDDATA_SIDEBANDDATA_H)
+#define PROCESSLIB_SIDEBANDDATA_SIDEBANDDATA_H
 
-#include <memory>
+#include "processlib/Data.h"
 
-#include "processlib/Compatibility.h"
-
-namespace Sideband
+namespace sideband
 {
-
-  // base class for all Sideband data
-  class DLL_EXPORT Data
-  {
-  public:
-    virtual ~Data() {}
-  };
-
-  typedef std::shared_ptr<Data> DataPtr;
-
-  // cast a Sideband data into its original type
+  // processlib ::Data API
   template <typename T>
-  std::shared_ptr<T> DataCast(DataPtr p)
+  bool HasData(const std::string& key, ::Data& data)
   {
-    return std::dynamic_pointer_cast<T>(p);
+    return HasContainerData<T>(key, data.sidebandData);
   }
 
-} // namespace Sideband
+  template <typename T>
+  bool AddData(const std::string& key, ::Data& data, std::shared_ptr<T> sb_data)
+  {
+    return AddContainerData<T>(key, data.sidebandData, sb_data);
+  }
 
-#endif // PROCESSLIB_SIDEBAND_DATA_H
+  template <typename T>
+  void SetData(const std::string& key, ::Data& data, std::shared_ptr<T> sb_data)
+  {
+    SetContainerData<T>(key, data.sidebandData, sb_data);
+  }
+
+  template <typename T>
+  std::shared_ptr<T> GetData(const std::string& key, ::Data& data)
+  {
+    return GetContainerData<T>(key, data.sidebandData);
+  }
+
+  inline bool RemoveData(const std::string& key, ::Data& data)
+  {
+    return RemoveContainerData(key, data.sidebandData);
+  }
+
+} // namespace sideband
+
+#endif // PROCESSLIB_SIDEBANDDATA_SIDEBANDDATA_H
