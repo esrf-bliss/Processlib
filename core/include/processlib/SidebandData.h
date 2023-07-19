@@ -32,18 +32,18 @@ namespace Sideband
 {
   // processlib ::Data API
   template <typename T>
-  void AddData(const char *key, ::Data& data, std::shared_ptr<T> sb_data)
+  void AddData(const std::string& key, ::Data& data, std::shared_ptr<T> sb_data)
   {
     AddContainerData<T>(key, data.sidebandData, sb_data);
   }
 
   template <typename T>
-  std::shared_ptr<T> GetData(const char *key, ::Data& data)
+  std::shared_ptr<T> GetData(const std::string& key, ::Data& data)
   {
     return GetContainerData<T>(key, data.sidebandData);
   }
 
-  inline bool RemoveData(const char *key, ::Data& data)
+  inline bool RemoveData(const std::string& key, ::Data& data)
   {
     return RemoveContainerData(key, data.sidebandData);
   }

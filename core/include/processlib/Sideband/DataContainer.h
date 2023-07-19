@@ -40,7 +40,7 @@ namespace Sideband
 
   // add sideband data T to the container
   template <typename T>
-  void AddContainerData(const char *key, DataContainer& cont,
+  void AddContainerData(const std::string& key, DataContainer& cont,
 			std::shared_ptr<T> sb_data)
   {
     cont[key] = sb_data;
@@ -48,7 +48,7 @@ namespace Sideband
 
   // return sideband data T from the container
   template <typename T>
-  std::shared_ptr<T> GetContainerData(const char *key, DataContainer& cont)
+  std::shared_ptr<T> GetContainerData(const std::string& key, DataContainer& cont)
   {
     // Find Sideband
     typename DataContainer::iterator sit = cont.find(key);
@@ -59,7 +59,7 @@ namespace Sideband
   }
 
   // remove sideband data from the container, return true if key existed
-  inline bool RemoveContainerData(const char *key, DataContainer& cont)
+  inline bool RemoveContainerData(const std::string& key, DataContainer& cont)
   {
     std::size_t nb_erased = cont.erase(key);
     return (nb_erased > 0);
