@@ -26,7 +26,9 @@
 #if !defined(PROCESSLIB_SIDEBAND_DATA_H)
 #define PROCESSLIB_SIDEBAND_DATA_H
 
+#include <iostream>
 #include <memory>
+#include <string>
 
 #include "processlib/Compatibility.h"
 
@@ -38,9 +40,17 @@ namespace sideband
   {
   public:
     virtual ~Data() {}
+
+    virtual std::string repr() { return "Unknown"; }
   };
 
   typedef std::shared_ptr<Data> DataPtr;
+
+  inline std::ostream& operator<<(std::ostream& os, DataPtr ptr)
+  {
+      os << ptr->repr();
+      return os;
+  }
 
   // cast a Sideband data into its original type
   template <typename T>

@@ -41,7 +41,8 @@
 
 #include "processlib/Compatibility.h"
 #include "processlib/ProcessExceptions.h"
-#include "processlib/sideband/DataContainer.h"
+#include "processlib/Container.h"
+#include "processlib/sideband/Data.h"
 
 struct DLL_EXPORT Buffer
 {
@@ -103,44 +104,14 @@ struct DLL_EXPORT Buffer
   pthread_mutex_t	_lock;
   Callback*		callback;
 };
+
 struct DLL_EXPORT Data
 {
-  class DLL_EXPORT HeaderContainer
-  {
-  public:
-    typedef std::map<std::string,std::string> Header;
+  typedef Container<std::string> HeaderContainer;
+  typedef Container<sideband::DataPtr> SidebandContainer;
 
-    HeaderContainer();
-    HeaderContainer(const HeaderContainer &cnt);
-    ~HeaderContainer();
-
-    void insert(const char *key,const char *value);
-    void insertOrIncKey(const char *key,const char *value);
-    void erase(const char *key);
-    void clear();
-
-    const char* get(const char *key,const char *defaultValue = NULL) const;
-    int size() const;
-
-    const char* operator[](const char *aKey) const {return get(aKey);}
-
-    HeaderContainer& operator=(const HeaderContainer&);
-
-    // ExpertMethodes for macro insertion a loop
-    void lock();
-    void unlock();
-    pthread_mutex_t* mutex() const;
-    Header& header();
-    const Header& header() const;
-
-  private:
-    typedef Header::value_type HeaderValue;
-    typedef std::pair<Header::iterator, bool> HeaderInsert;
-
-    struct HeaderHolder;
-    HeaderHolder *_header;
-  };
   enum TYPE {UNDEF,UINT8,INT8,UINT16,INT16,UINT32,INT32,UINT64,INT64,FLOAT,DOUBLE};
+
   Data() : type(UNDEF),frameNumber(-1),timestamp(0.),buffer(NULL) {}
   Data(const Data &aData) : buffer(NULL)
   {
@@ -230,7 +201,7 @@ struct DLL_EXPORT Data
     aReturnData.frameNumber = frameNumber;
     aReturnData.timestamp = timestamp;
     aReturnData.header = header;
-    aReturnData.sidebandData = sidebandData;
+    aReturnData.sideband = sideband;
     aReturnData.buffer = new Buffer(aReturnData.size());
     return aReturnData;
   }
@@ -242,7 +213,7 @@ struct DLL_EXPORT Data
     aReturnData.frameNumber = frameNumber;
     aReturnData.timestamp = timestamp;
     aReturnData.header = header;
-    aReturnData.sidebandData = sidebandData;
+    aReturnData.sideband = sideband;
     if(buffer)
       {
 	aReturnData.buffer = new Buffer(size());
@@ -260,7 +231,7 @@ struct DLL_EXPORT Data
     aReturnData.frameNumber = frameNumber;
     aReturnData.timestamp = timestamp;
     aReturnData.header = header;
-    aReturnData.sidebandData = sidebandData;
+    aReturnData.sideband = sideband;
     if(depth() != 1)
       {
 	aReturnData.type = INT8;
@@ -298,7 +269,7 @@ struct DLL_EXPORT Data
       frameNumber = aData.frameNumber;
       timestamp = aData.timestamp;
       header    = aData.header;
-      sidebandData = aData.sidebandData;
+      sideband = aData.sideband;
       setBuffer(aData.buffer);
       return *this;
     }
@@ -308,7 +279,7 @@ struct DLL_EXPORT Data
   int       			frameNumber;
   double    			timestamp;
   mutable HeaderContainer 	header;
-  mutable sideband::DataContainer sidebandData;
+  mutable SidebandContainer sideband;
   mutable Buffer *		buffer;
 
  private:
@@ -345,7 +316,7 @@ Data Data::cast(Data::TYPE aType)
   aReturnData.frameNumber = frameNumber;
   aReturnData.timestamp = timestamp;
   aReturnData.header = header;
-  aReturnData.sidebandData = sidebandData;
+  aReturnData.sideband = sideband;
 
   aReturnData.buffer = new Buffer(aReturnData.size());
   int nbItems = aReturnData.size() / aReturnData.depth();
@@ -624,9 +595,6 @@ Data Data::cast(Data::TYPE aType)
   return aReturnData;
 }
 
-DLL_EXPORT std::ostream& operator<<(std::ostream &os,
-				    const Data::HeaderContainer &aHeader);
-
 inline std::ostream& operator<<(std::ostream &os,const Buffer &aBuffer)
 {
   const char *anOwnerShip = (aBuffer.owner ==
@@ -666,17 +634,8 @@ inline std::ostream& operator<<(std::ostream &os,const Data &aData)
 
   os << "frameNumber=" << aData.frameNumber << ", "
      << "timestamp=" << aData.timestamp << ", "
-     << "header=" << aData.header << ", ";
-  if(!aData.sidebandData.empty())
-  {
-    os << "sidebandData=<";
-    typedef sideband::DataContainer Container;
-    const char *sep = "";
-    for(Container::const_iterator i = aData.sidebandData.begin();
-	i != aData.sidebandData.end();++i, sep = ", ")
-      os << sep << i->first;
-    os << ">, ";
-  }
+     << "header=" << aData.header << ", "
+	 << "sideband=" << aData.sideband << ", ";
   if(aData.buffer)
     os << "buffer=" << *aData.buffer;
   else

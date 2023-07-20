@@ -125,7 +125,6 @@ set(processlib_srcs
     core/src/LinkTask.cpp
     core/src/SinkTask.cpp
     core/src/TaskMgr.cpp
-    core/src/HeaderContainer.cpp
     tasks/src/BackgroundSubstraction.cpp
     tasks/src/FlatfieldCorrection.cpp
     tasks/src/RoiCounter.cpp

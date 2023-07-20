@@ -26,6 +26,7 @@
 #if !defined(PROCESSLIB_SIDEBAND_COMPRESSEDDATA_H)
 #define PROCESSLIB_SIDEBAND_COMPRESSEDDATA_H
 
+#include <sstream>
 #include <utility>
 #include <vector>
 
@@ -48,6 +49,12 @@ namespace sideband
     CompressedData(std::vector<int> dims, int depth, BlobList blobs)
       : decomp_dims(std::move(dims)), pixel_depth(depth),
 	comp_blobs(std::move(blobs)) {}
+
+    virtual std::string repr() override {
+        std::ostringstream os;
+        os << "compressed_data=" << decomp_dims[0] << " x " << decomp_dims[1] << " [" << pixel_depth << " ]";
+        return os.str();
+    }
   };
 
 } // namespace sideband
