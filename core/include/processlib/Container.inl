@@ -166,9 +166,9 @@ typename Container<T>::Optional Container<T>::get(const std::string& key) const
 }
 
 template <typename T>
-T const& Container<T>::get(const std::string& key, const T& defaultValue) const
+T Container<T>::get(const std::string& key, const T& defaultValue) const
 {
-	T const& aReturnValue = defaultValue;
+	T aReturnValue = defaultValue;
 	_ptr->lock();
 	Map& map = _ptr->map;
 	const_iterator i = map.find(key);

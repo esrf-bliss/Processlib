@@ -80,7 +80,7 @@ public:
     bool contains(const std::string& key) const;
     int count(const std::string& key) const;
     Optional get(const std::string& key) const;
-    T const& get(const std::string& key, const T& defaultValue) const;
+    T get(const std::string& key, const T& defaultValue) const;
     int size() const;
     bool empty() const;
 
@@ -93,6 +93,7 @@ public:
     void lock() { _ptr->lock(); }
     void unlock() { _ptr->unlock(); }
     pthread_mutex_t* mutex() const { return &_ptr->_lock; }
+
     Map& map() { return _ptr->map; }
     const Map& map() const { return _ptr->map; }
     // }
