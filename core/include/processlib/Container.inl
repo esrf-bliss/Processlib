@@ -106,12 +106,11 @@ Container<T>& Container<T>::operator=(const Container& cnt)
 template <typename T>
 bool Container<T>::insert(const std::string& key, const T& value)
 {
-	_ptr->lock();
-	Map& map = _ptr->map;
+	LockedRef locked_ref(*this);
+	Map& map = locked_ref.get();
 	insert_type result = map.insert(value_type(key, value));
 	if (!result.second)
 		result.first->second = value;
-	_ptr->unlock();
 
 	return result.second;
 }
@@ -119,8 +118,8 @@ bool Container<T>::insert(const std::string& key, const T& value)
 template <typename T>
 void Container<T>::insertOrIncKey(const std::string& key, const T& value)
 {
-	_ptr->lock();
-	Map& map = _ptr->map;
+	LockedRef locked_ref(*this);
+	Map& map = locked_ref.get();
 	insert_type result = map.insert(value_type(key, value));
 	int aNumber = 0;
 	std::stringstream aTmpKey;
@@ -130,26 +129,24 @@ void Container<T>::insertOrIncKey(const std::string& key, const T& value)
 		result = map.insert(value_type(aTmpKey.str(), value));
 		aTmpKey.seekp(0, aTmpKey.beg);
 	}
-	_ptr->unlock();
 }
 
 template <typename T>
 void Container<T>::erase(const std::string& key)
 {
-	_ptr->lock();
-	Map& map = _ptr->map;
+	LockedRef locked_ref(*this);
+	Map& map = locked_ref.get();
 	iterator i = map.find(key);
 	if (i != map.end())
 		map.erase(i);
-	_ptr->unlock();
 }
 
 template <typename T>
 void Container<T>::clear()
 {
-	_ptr->lock();
-	_ptr->map.clear();
-	_ptr->unlock();
+	LockedRef locked_ref(*this);
+	Map& map = locked_ref.get();
+	map.clear();
 }
 
 template <typename T>
@@ -164,12 +161,11 @@ template <typename T>
 typename Container<T>::Optional Container<T>::get(const std::string& key) const
 {
 	Optional aReturnValue;
-	_ptr->lock();
-	Map& map = _ptr->map;
+	LockedRef locked_ref(*this);
+	Map& map = locked_ref.get();
 	const_iterator i = map.find(key);
 	if (i != map.end())
 		aReturnValue = i->second;
-	_ptr->unlock();
 	return aReturnValue;
 }
 
@@ -177,49 +173,47 @@ template <typename T>
 T Container<T>::get(const std::string& key, const T& defaultValue) const
 {
 	T aReturnValue = defaultValue;
-	_ptr->lock();
-	Map& map = _ptr->map;
+	LockedRef locked_ref(*this);
+	Map& map = locked_ref.get();
 	const_iterator i = map.find(key);
 	if (i != map.end())
 		aReturnValue = i->second.c_str();
-	_ptr->unlock();
 	return aReturnValue;
 }
 
 template <typename T>
 bool Container<T>::contains(const std::string& key) const
 {
-	_ptr->lock();
-	Map& map = _ptr->map;
-	const_iterator i = _ptr->map.find(key);
-	_ptr->unlock();
+	LockedRef locked_ref(*this);
+	Map& map = locked_ref.get();
+	const_iterator i = map.find(key);
 	return (i != map.end());
 }
 
 template <typename T>
 int Container<T>::count(const std::string& key) const
 {
-	_ptr->lock();
-	int aReturnCount = int(_ptr->map.count(key));
-	_ptr->unlock();
+	LockedRef locked_ref(*this);
+	Map& map = locked_ref.get();
+	int aReturnCount = int(map.count(key));
 	return aReturnCount;
 }
 
 template <typename T>
 int Container<T>::size() const
 {
-	_ptr->lock();
-	int aReturnSize = int(_ptr->map.size());
-	_ptr->unlock();
+	LockedRef locked_ref(*this);
+	Map& map = locked_ref.get();
+	int aReturnSize = int(map.size());
 	return aReturnSize;
 }
 
 template <typename T>
 bool Container<T>::empty() const
 {
-	_ptr->lock();
-	bool res = _ptr->map.empty();
-	_ptr->unlock();
+	LockedRef locked_ref(*this);
+	Map& map = locked_ref.get();
+	bool res = map.empty();
 	return res;
 }
 
@@ -227,9 +221,9 @@ template <typename T>
 std::ostream& operator<<(std::ostream& os, const Container<T>& cont)
 {
 	os << "< ";
-	PoolThreadMgr::Lock aLock(cont.mutex());
-	//const Container<T>::Map& m = aHeader.map();
-	for (typename Container<T>::value_type const& v : cont.map())
+	typename Container<T>::LockedRef locked_ref(cont);
+	typename Container<T>::Map& map = locked_ref.get();
+	for (typename Container<T>::value_type const& v : map)
 		os << "(" << v.first << "," << v.second << ") ";
 	os << ">";
 	return os;

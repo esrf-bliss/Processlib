@@ -30,8 +30,11 @@
 #include <memory>
 #include <utility>
 
+#include <iostream> // TO BE REMOVED
+
 #include "processlib/Compatibility.h"
 #include "processlib/ProcessExceptions.h"
+#include "processlib/PoolThreadMgr.h"
 
 template <typename T>
 class DLL_EXPORT Container
@@ -89,22 +92,70 @@ public:
 
     Container& operator=(const Container&);
 
-    // For sip binding
-    // {
-    void lock() { _ptr->lock(); }
-    void unlock() { _ptr->unlock(); }
-    pthread_mutex_t* mutex() const { return &_ptr->_lock; }
+    // ensure that Container is locked while a reference to the map is exposed
+    friend class LockedRef;
 
-    Map& map() { return _ptr->map; }
-    const Map& map() const { return _ptr->map; }
-    // }
+    class LockedRef
+    {
+    public:
+        typedef Container::Map Map;
+        // For backward compatibility with HeaderContainer
+        typedef Map Header;
 
-    // For backward compatibility with HeaderContainer
-    // {
-    typedef Map Header;
-    Header& header() { return _ptr->map; }
-    const Header& header() const { return _ptr->map; }
-    // }
+	LockedRef() = default;
+	LockedRef(const LockedRef& o) = default;
+	LockedRef(LockedRef&& o) = default;
+
+	LockedRef(const Container& cont)
+	    : m_data(std::make_shared<Data>(cont))
+        {
+	}
+
+	LockedRef& operator=(const LockedRef& o) = default;
+	LockedRef& operator=(LockedRef&& o) = default;
+
+	LockedRef& operator=(const Container& cont)
+	{
+	    return *this = LockedRef(cont);
+	}
+
+        bool isLocked() const { return m_data && m_data->isLocked(); }
+
+	void unLock()
+	{
+	    if (m_data)
+		m_data->unLock();
+	}
+
+	Map& get()
+	{
+	    if (!isLocked())
+                throw ProcessException("Non-locked LockedRef");
+	    return *m_data->m_map;
+	}
+
+    private:
+	struct Data {
+	    PoolThreadMgr::Lock m_lock;
+	    Map *m_map;
+
+	    Data(const Container& cont)
+		: m_lock(&cont._ptr->_lock), m_map(&cont._ptr->map)
+	    {}
+
+	    bool isLocked() { return m_map; }
+
+	    void unLock()
+	    {
+	        if (!isLocked())
+		    return;
+		m_lock.unLock();
+		m_map = NULL;
+	    }
+	};
+
+	std::shared_ptr<Data> m_data;
+    };
 
 private:
     struct Holder
