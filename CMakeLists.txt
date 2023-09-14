@@ -146,11 +146,13 @@ if(WIN32)
 endif()
 
 file(GLOB_RECURSE core_incs "core/include/*.h")
+file(GLOB_RECURSE core_inls "core/include/*.inl")
 file(GLOB_RECURSE tasks_incs "tasks/include/*.h")
 
 add_library(processlib SHARED
     ${processlib_srcs}
     ${core_incs}
+    ${core_inls}
     ${tasks_incs}
 )
 
