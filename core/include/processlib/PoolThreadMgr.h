@@ -32,6 +32,7 @@
 
 #include <map>
 #include <vector>
+#include <string>
 #include <pthread.h>
 
 #include "processlib/Compatibility.h"
@@ -71,14 +72,38 @@ public:
     Lock(Lock const&) = delete;
     Lock& operator=(Lock const&) = delete;
 
+    //Movable
+    inline Lock(Lock&& o) :
+      _lock(o._lock),_lockFlag(o._lockFlag)
+    {
+      o._lock = NULL;
+      o._lockFlag = false;
+    }
+
+    inline Lock& operator=(Lock&& o)
+    {
+      if (&o != this) {
+	unLock();
+	_lock = o._lock;
+	_lockFlag = o._lockFlag;
+	o._lock = NULL;
+	o._lockFlag = false;
+      }
+      return *this;
+    }
+
     inline void lock()
     {
+      if(!_lock)
+	return;
       if(!_lockFlag)
 	while(pthread_mutex_lock(_lock)) ;
       _lockFlag = true;
     }
     inline void unLock()
     {
+      if(!_lock)
+	return;
       if(_lockFlag)
 	{
 	  _lockFlag = false;
