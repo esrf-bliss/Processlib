@@ -66,6 +66,11 @@ public:
     {if(aLockFlag) lock();}
 
     ~Lock() {unLock();}
+
+    //Non-copyable
+    Lock(Lock const&) = delete;
+    Lock& operator=(Lock const&) = delete;
+
     inline void lock()
     {
       if(!_lockFlag)
