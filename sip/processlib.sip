@@ -399,6 +399,9 @@ if (!sipCheckConvertFromPyStr(a0) || (a1!=NULL && !sipCheckConvertFromPyStr(a1))
     int size() const;
     void clear();
   };
+
+  enum TYPE { UNDEF,UINT8,INT8,UINT16,INT16,UINT32,INT32,UINT64,INT64,FLOAT,DOUBLE };
+
   int frameNumber;
   double timestamp;
   Data::HeaderContainer header;
