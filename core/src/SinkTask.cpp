@@ -47,7 +47,7 @@ SinkTaskBase::~SinkTaskBase()
 
 void SinkTaskBase:: setEventCallback(TaskEventCallback *aEventCbk)
 {
-  PoolThreadMgr::Lock aLock(&_lock);
+  PoolThreadMgr::LockGuard aLock(&_lock);
   if(aEventCbk)
       aEventCbk->ref();
   if(_eventCbkPt)
@@ -57,13 +57,13 @@ void SinkTaskBase:: setEventCallback(TaskEventCallback *aEventCbk)
 
 void SinkTaskBase::ref()
 {
-  PoolThreadMgr::Lock aLock(&_lock);
+  PoolThreadMgr::LockGuard aLock(&_lock);
   ++_refCounter;
 }
 
 void SinkTaskBase::unref()
 {
-  PoolThreadMgr::Lock aLock(&_lock);
+  PoolThreadMgr::LockGuard aLock(&_lock);
   if(!(--_refCounter))
     {
       aLock.unLock();
@@ -73,6 +73,6 @@ void SinkTaskBase::unref()
 
 int SinkTaskBase::getRefCounter() const
 {
-  PoolThreadMgr::Lock aLock(&_lock);
+  PoolThreadMgr::LockGuard aLock(&_lock);
   return _refCounter;
 }

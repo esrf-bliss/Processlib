@@ -107,7 +107,7 @@ SinkTaskMgr<Result>::~SinkTaskMgr()
 template<class Result>
 void SinkTaskMgr<Result>::setMode(typename SinkTaskMgr<Result>::RUN_MODE aMode)
 {
-  PoolThreadMgr::Lock aLock(&_lock);
+  PoolThreadMgr::LockGuard aLock(&_lock);
   _mode = aMode;
 }
 
@@ -131,7 +131,7 @@ Result SinkTaskMgr<Result>::getResult(double askedTimeout,
       if(timeout.tv_nsec >= 1000000000L) // Carry
 	++timeout.tv_sec,timeout.tv_nsec -= 1000000000L;
 
-      PoolThreadMgr::Lock aLock(&_lock);
+      PoolThreadMgr::LockGuard aLock(&_lock);
       while(!_isFrameAvailable(frameNumber))
 	{
 	  retcode = pthread_cond_timedwait(&_cond,&_lock,&timeout);
@@ -141,7 +141,7 @@ Result SinkTaskMgr<Result>::getResult(double askedTimeout,
     }
   else
     {
-      PoolThreadMgr::Lock aLock(&_lock);
+      PoolThreadMgr::LockGuard aLock(&_lock);
       while(!_isFrameAvailable(frameNumber))
 	pthread_cond_wait(&_cond,&_lock);
     }
@@ -158,7 +158,7 @@ Result SinkTaskMgr<Result>::getResult(double askedTimeout,
 template<class Result>
 void SinkTaskMgr<Result>::setResult(const Result &aResult)
 {
-  PoolThreadMgr::Lock aLock(&_lock);
+  PoolThreadMgr::LockGuard aLock(&_lock);
   if(aResult.frameNumber > _currentFrameNumber)
     _currentFrameNumber = aResult.frameNumber;
   int aResultPos = aResult.frameNumber % _historyResult.size();
@@ -177,7 +177,7 @@ void SinkTaskMgr<Result>::setResult(const Result &aResult)
 template<class Result>
 void SinkTaskMgr<Result>::resetHistory(bool lockFlag)
 {
-  PoolThreadMgr::Lock aLock(&_lock,lockFlag);
+  PoolThreadMgr::LockGuard aLock(&_lock,lockFlag);
   typename std::vector<Result>::iterator i;
   for(i = _historyResult.begin();i != _historyResult.end();++i)
     i->frameNumber = -1;
@@ -190,7 +190,7 @@ template<class Result>
 void SinkTaskMgr<Result>::getHistory(std::list<Result> & anHistory,int fromFrameNumber) const
 {
   bool sort_needed = false;
-  PoolThreadMgr::Lock aLock(&_lock);
+  PoolThreadMgr::LockGuard aLock(&_lock);
   if(fromFrameNumber > _currentFrameNumber) return; // not yet available
   else if (fromFrameNumber < 0) fromFrameNumber = 0;
 
@@ -256,7 +256,7 @@ template<class Result>
 void SinkTaskMgr<Result>::resizeHistory(int aSize)
 {
   if(aSize < 1) aSize = 1;
-  PoolThreadMgr::Lock aLock(&_lock);
+  PoolThreadMgr::LockGuard aLock(&_lock);
   _historyResult.resize(aSize);
   resetHistory(false);
 }
@@ -264,7 +264,7 @@ void SinkTaskMgr<Result>::resizeHistory(int aSize)
 template<class Result>
 int SinkTaskMgr<Result>::historySize() const
 {
-  PoolThreadMgr::Lock aLock(&_lock);
+  PoolThreadMgr::LockGuard aLock(&_lock);
   return int(_historyResult.size());
 }
 
@@ -313,14 +313,14 @@ bool SinkTaskMgr<Result>::_isFrameAvailable(int aFrameNumber) const
 template<class Result>
 void SinkTaskMgr<Result>::ref()
 {
-  PoolThreadMgr::Lock aLock(&_lock);
+  PoolThreadMgr::LockGuard aLock(&_lock);
   ++_refCounter;
 }
 
 template<class Result>
 void SinkTaskMgr<Result>::unref()
 {
-  PoolThreadMgr::Lock aLock(&_lock);
+  PoolThreadMgr::LockGuard aLock(&_lock);
   if(!(--_refCounter))
     {
       aLock.unLock();

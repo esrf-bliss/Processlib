@@ -59,28 +59,28 @@ public:
   bool wait(double timeout = -1.);
   void quit();
 
-  class Lock
+  class LockGuard
   {
   public:
-    Lock(pthread_mutex_t *aLock,bool aLockFlag = true) :
+    LockGuard(pthread_mutex_t *aLock,bool aLockFlag = true) :
       _lock(aLock),_lockFlag(false)
     {if(aLockFlag) lock();}
 
-    ~Lock() {unLock();}
+    ~LockGuard() {unLock();}
 
     //Non-copyable
-    Lock(Lock const&) = delete;
-    Lock& operator=(Lock const&) = delete;
+    LockGuard(LockGuard const&) = delete;
+    LockGuard& operator=(LockGuard const&) = delete;
 
     //Movable
-    inline Lock(Lock&& o) :
+    inline LockGuard(LockGuard&& o) :
       _lock(o._lock),_lockFlag(o._lockFlag)
     {
       o._lock = NULL;
       o._lockFlag = false;
     }
 
-    inline Lock& operator=(Lock&& o)
+    inline LockGuard& operator=(LockGuard&& o)
     {
       if (&o != this) {
 	unLock();

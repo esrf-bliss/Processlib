@@ -78,7 +78,7 @@ PoolThreadMgr::~PoolThreadMgr()
 */
 void PoolThreadMgr::addProcess(TaskMgr *aProcess,bool aFlag) 
 {
-  Lock aLock(&_lock,aFlag);
+  LockGuard aLock(&_lock,aFlag);
   _processQueue.insert(QueueType::value_type(aProcess->priority(),aProcess));
   aProcess->_pool = this;
   pthread_cond_broadcast(&_cond);
@@ -86,7 +86,7 @@ void PoolThreadMgr::addProcess(TaskMgr *aProcess,bool aFlag)
 
 void PoolThreadMgr::removeProcess(TaskMgr *aProcess,bool aFlag)
 {
-  Lock aLock(&_lock,aFlag);
+  LockGuard aLock(&_lock,aFlag);
   for(QueueType::iterator i = _processQueue.begin();
       i != _processQueue.end();++i)
     {
@@ -134,7 +134,7 @@ void PoolThreadMgr::setTaskMgr(const TaskMgr *aMgr)
   TaskMgr *refBackgrounMgr = NULL;
   if(aMgr)
     refBackgrounMgr = new TaskMgr(*aMgr);
-  Lock aLock(&_lock);
+  LockGuard aLock(&_lock);
   delete _taskMgr;
   _taskMgr = refBackgrounMgr;
 }
@@ -146,10 +146,11 @@ void PoolThreadMgr::setTaskMgr(const TaskMgr *aMgr)
 
 void PoolThreadMgr::quit()
 {
-  Lock aLock(&_lock);
-  _stopFlag = true;
-  pthread_cond_broadcast(&_cond);
-  aLock.unLock();
+  {
+    LockGuard aLock(&_lock);
+    _stopFlag = true;
+    pthread_cond_broadcast(&_cond);
+  }
 
   for(std::vector<pthread_t>::iterator i = _threadID.begin();
       i != _threadID.end();++i)
@@ -164,7 +165,7 @@ void PoolThreadMgr::quit()
  */
 void PoolThreadMgr::abort()
 {
-  Lock aLock(&_lock);
+  LockGuard aLock(&_lock);
   _suspendFlag = true;
   while(_runningThread) pthread_cond_wait(&_cond,&_lock);
   for(QueueType::iterator i = _processQueue.begin();
@@ -178,7 +179,7 @@ void PoolThreadMgr::abort()
  */
 void PoolThreadMgr::suspend(bool aFlag)
 {
-  Lock aLock(&_lock);
+  LockGuard aLock(&_lock);
   _suspendFlag = aFlag;
   if(!aFlag)
     pthread_cond_broadcast(&_cond);
@@ -198,14 +199,14 @@ bool PoolThreadMgr::wait(double askedTimeout)
 	long((askedTimeout - long(askedTimeout)) * 1e9);
       if(timeout.tv_nsec >= 1000000000L) // Carry
 	++timeout.tv_sec,timeout.tv_nsec -= 1000000000L;
-      Lock aLock(&_lock);
+      LockGuard aLock(&_lock);
       while(_runningThread && !retcode)
 	retcode = pthread_cond_timedwait(&_cond,&_lock,&timeout);
       return retcode != ETIMEDOUT;
     }
   else
     {
-      Lock aLock(&_lock);
+      LockGuard aLock(&_lock);
       while(_runningThread)
 	pthread_cond_wait(&_cond,&_lock);
       return true;
@@ -214,7 +215,7 @@ bool PoolThreadMgr::wait(double askedTimeout)
 void* PoolThreadMgr::_run(void *arg) 
 {
   PoolThreadMgr* processMgrPt = (PoolThreadMgr*)arg;
-  Lock aLock(&processMgrPt->_lock);
+  LockGuard aLock(&processMgrPt->_lock);
   processMgrPt->_runningThread++;
   while(1)
     {

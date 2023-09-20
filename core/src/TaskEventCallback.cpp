@@ -35,13 +35,13 @@ TaskEventCallback::~TaskEventCallback()
 
 void TaskEventCallback::ref()
 {
-  PoolThreadMgr::Lock aLock(&_lock);
+  PoolThreadMgr::LockGuard aLock(&_lock);
   ++_refCounter;
 }
 
 void TaskEventCallback::unref()
 {
-  PoolThreadMgr::Lock aLock(&_lock);
+  PoolThreadMgr::LockGuard aLock(&_lock);
   if(!(--_refCounter))
     {
       aLock.unLock();

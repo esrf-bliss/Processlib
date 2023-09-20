@@ -136,7 +136,7 @@ public:
 
     private:
 	struct Data {
-	    PoolThreadMgr::Lock m_lock;
+	    PoolThreadMgr::LockGuard m_lock;
 	    Map *m_map;
 
 	    Data(const Container& cont)
