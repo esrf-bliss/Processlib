@@ -171,7 +171,6 @@ private:
 
         int	refcount;
         pthread_mutex_t		_lock;
-        pthread_mutexattr_t _lock_attr;
         Map map;
     };
     Holder* _ptr;

@@ -29,16 +29,17 @@
 template <typename T>
 Container<T>::Holder::Holder() : refcount(1)
 {
-	pthread_mutexattr_init(&_lock_attr);
-	pthread_mutexattr_settype(&_lock_attr, PTHREAD_MUTEX_RECURSIVE);
-	pthread_mutex_init(&_lock, &_lock_attr);
+	pthread_mutexattr_t lock_attr;
+	pthread_mutexattr_init(&lock_attr);
+	pthread_mutexattr_settype(&lock_attr, PTHREAD_MUTEX_RECURSIVE);
+	pthread_mutex_init(&_lock, &lock_attr);
+	pthread_mutexattr_destroy(&lock_attr);
 }
 
 template <typename T>
 Container<T>::Holder::~Holder()
 {
 	pthread_mutex_destroy(&_lock);
-	pthread_mutexattr_destroy(&_lock_attr);
 }
 
 template <typename T>
