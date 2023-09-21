@@ -80,6 +80,11 @@ public:
       o._lockFlag = false;
     }
 
+    inline bool isLocked()
+    {
+      return _lock && _lockFlag;
+    }
+
     inline LockGuard& operator=(LockGuard&& o)
     {
       if (&o != this) {
@@ -102,13 +107,10 @@ public:
     }
     inline void unLock()
     {
-      if(!_lock)
+      if(!isLocked())
 	return;
-      if(_lockFlag)
-	{
-	  _lockFlag = false;
-	  pthread_mutex_unlock(_lock);
-	}
+      _lockFlag = false;
+       pthread_mutex_unlock(_lock);
     }
   private:
     pthread_mutex_t *_lock;

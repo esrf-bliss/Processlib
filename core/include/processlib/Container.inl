@@ -27,79 +27,158 @@
 #include <sstream>
 
 template <typename T>
-Container<T>::Holder::Holder() : refcount(1)
+Container<T>::Holder::Holder()
 {
-	pthread_mutexattr_t lock_attr;
-	pthread_mutexattr_init(&lock_attr);
-	pthread_mutexattr_settype(&lock_attr, PTHREAD_MUTEX_RECURSIVE);
-	pthread_mutex_init(&_lock, &lock_attr);
-	pthread_mutexattr_destroy(&lock_attr);
+	pthread_mutexattr_t mutex_attr;
+	pthread_mutexattr_init(&mutex_attr);
+	pthread_mutexattr_settype(&mutex_attr, PTHREAD_MUTEX_RECURSIVE);
+	pthread_mutex_init(&_mutex, &mutex_attr);
+	pthread_mutexattr_destroy(&mutex_attr);
 }
 
 template <typename T>
 Container<T>::Holder::~Holder()
 {
-	pthread_mutex_destroy(&_lock);
+	pthread_mutex_destroy(&_mutex);
 }
 
 template <typename T>
-inline void Container<T>::Holder::ref()
+typename Container<T>::LockGuard Container<T>::Holder::lock()
 {
-	while (pthread_mutex_lock(&_lock));
-	++refcount;
-	pthread_mutex_unlock(&_lock);
+	return LockGuard(&_mutex);
 }
 
 template <typename T>
-inline void Container<T>::Holder::unref()
+typename Container<T>::Map& Container<T>::Holder::get(LockGuard& l)
 {
-	while (pthread_mutex_lock(&_lock));
-	if (!(--refcount))
-	{
-		pthread_mutex_unlock(&_lock);
-		delete this;
-	}
-	else
-		pthread_mutex_unlock(&_lock);
+	if (!l.isLocked())
+		throw ProcessException("Getting ref. from unlocked Container");
+	return _map;
 }
 
 template <typename T>
-inline void Container<T>::Holder::lock()
-{
-	while (pthread_mutex_lock(&_lock));
-}
-
-template <typename T>
-inline void Container<T>::Holder::unlock()
-{
-	pthread_mutex_unlock(&_lock);
-}
-
-template <typename T>
-Container<T>::Container() :
-	_ptr(new Holder())
+Container<T>::Container() : _ptr(std::make_shared<Holder>())
 {
 }
 
 template <typename T>
-Container<T>::Container(const Container& cnt) :
-	_ptr(NULL)
+Container<T>::Container(const Container& cnt) :	_ptr(cnt._ptr)
 {
-	*this = cnt;
 }
 
 template <typename T>
-Container<T>::~Container()
+Container<T>::LockedPtr::LockedPtr(const Container& cont)
+	: _holder(cont._ptr), _lock(_holder->lock())
+{
+}
+
+template <typename T>
+bool Container<T>::LockedPtr::isLocked() const
+{
+	return bool(_holder);
+}
+
+template <typename T>
+void Container<T>::LockedPtr::unLock()
+{
+	if (!isLocked())
+		return;
+	_lock.unLock();
+	_holder.reset();
+}
+
+template <typename T>
+typename Container<T>::Map *Container<T>::LockedPtr::operator->()
+{
+	if (!isLocked())
+		throw ProcessException("De-referencing non-locked LockedPtr");
+	return &_holder->get(_lock);
+}
+
+template <typename T>
+const typename Container<T>::Map *Container<T>::LockedPtr::operator->() const
+{
+	if (!isLocked())
+		throw ProcessException("De-referencing non-locked LockedPtr");
+	return &_holder->get(_lock);
+}
+
+template <typename T>
+typename Container<T>::Map& Container<T>::LockedPtr::operator*()
+{
+	if (!isLocked())
+		throw ProcessException("De-referencing non-locked LockedPtr");
+	return _holder->get(_lock);
+}
+
+template <typename T>
+const typename Container<T>::Map& Container<T>::LockedPtr::operator*() const
+{
+	if (!isLocked())
+		throw ProcessException("De-referencing non-locked LockedPtr");
+	return _holder->get(_lock);
+}
+
+template <typename T>
+Container<T>::SharedLockedPtr::SharedLockedPtr(const Container& cont)
+	: _ptr(std::make_shared<LockedPtr>(cont))
+{
+}
+
+template <typename T>
+bool Container<T>::SharedLockedPtr::isLocked() const
+{
+	return _ptr && _ptr->isLocked();
+}
+
+template <typename T>
+void Container<T>::SharedLockedPtr::unLock()
 {
 	if (_ptr)
-		_ptr->unref();
+		_ptr->unLock();
+}
+
+template <typename T>
+typename Container<T>::Map *Container<T>::SharedLockedPtr::operator->()
+{
+	if (!_ptr)
+		throw ProcessException("De-referencing moved-from "
+		      		       "SharedLockedPtr");
+	return &(**_ptr);
+}
+
+template <typename T>
+const typename Container<T>::Map *Container<T>::SharedLockedPtr::operator->()
+									const
+{
+	if (!_ptr)
+		throw ProcessException("De-referencing moved-from "
+		      		       "SharedLockedPtr");
+	return &(**_ptr);
+}
+
+template <typename T>
+typename Container<T>::Map& Container<T>::SharedLockedPtr::operator*()
+{
+	if (!_ptr)
+		throw ProcessException("De-referencing moved-from "
+		      		       "SharedLockedPtr");
+	return **_ptr;
+}
+
+template <typename T>
+const typename Container<T>::Map& Container<T>::SharedLockedPtr::operator*()
+									const
+{
+	if (!_ptr)
+		throw ProcessException("De-referencing moved-from "
+		      		       "SharedLockedPtr");
+	return **_ptr;
 }
 
 template <typename T>
 Container<T>& Container<T>::operator=(const Container& cnt)
 {
-	cnt._ptr->ref();
-	if (_ptr) _ptr->unref();
 	_ptr = cnt._ptr;
 	return *this;
 }
@@ -107,9 +186,8 @@ Container<T>& Container<T>::operator=(const Container& cnt)
 template <typename T>
 bool Container<T>::insert(const std::string& key, const T& value)
 {
-	LockedRef locked_ref(*this);
-	Map& map = locked_ref.get();
-	insert_type result = map.insert(value_type(key, value));
+	LockedPtr l_ptr(*this);
+	insert_type result = l_ptr->insert(value_type(key, value));
 	if (!result.second)
 		result.first->second = value;
 
@@ -119,15 +197,14 @@ bool Container<T>::insert(const std::string& key, const T& value)
 template <typename T>
 void Container<T>::insertOrIncKey(const std::string& key, const T& value)
 {
-	LockedRef locked_ref(*this);
-	Map& map = locked_ref.get();
-	insert_type result = map.insert(value_type(key, value));
+	LockedPtr l_ptr(*this);
+	insert_type result = l_ptr->insert(value_type(key, value));
 	int aNumber = 0;
 	std::stringstream aTmpKey;
 	while (!result.second)
 	{
 		aTmpKey << key << '_' << ++aNumber;
-		result = map.insert(value_type(aTmpKey.str(), value));
+		result = l_ptr->insert(value_type(aTmpKey.str(), value));
 		aTmpKey.seekp(0, aTmpKey.beg);
 	}
 }
@@ -135,37 +212,32 @@ void Container<T>::insertOrIncKey(const std::string& key, const T& value)
 template <typename T>
 void Container<T>::erase(const std::string& key)
 {
-	LockedRef locked_ref(*this);
-	Map& map = locked_ref.get();
-	iterator i = map.find(key);
-	if (i != map.end())
-		map.erase(i);
+	LockedPtr l_ptr(*this);
+	iterator i = l_ptr->find(key);
+	if (i != l_ptr->end())
+		l_ptr->erase(i);
 }
 
 template <typename T>
 void Container<T>::clear()
 {
-	LockedRef locked_ref(*this);
-	Map& map = locked_ref.get();
-	map.clear();
+	LockedPtr l_ptr(*this);
+	l_ptr->clear();
 }
 
 template <typename T>
 void Container<T>::reset()
 {
-	if (_ptr)
-		_ptr->unref();
-	_ptr = new Holder();
+	_ptr = std::make_shared<Holder>();
 }
 
 template <typename T>
 typename Container<T>::Optional Container<T>::get(const std::string& key) const
 {
 	Optional aReturnValue;
-	LockedRef locked_ref(*this);
-	Map& map = locked_ref.get();
-	const_iterator i = map.find(key);
-	if (i != map.end())
+	LockedPtr l_ptr(*this);
+	const_iterator i = l_ptr->find(key);
+	if (i != l_ptr->end())
 		aReturnValue = i->second;
 	return aReturnValue;
 }
@@ -174,10 +246,9 @@ template <typename T>
 T Container<T>::get(const std::string& key, const T& defaultValue) const
 {
 	T aReturnValue = defaultValue;
-	LockedRef locked_ref(*this);
-	Map& map = locked_ref.get();
-	const_iterator i = map.find(key);
-	if (i != map.end())
+	LockedPtr l_ptr(*this);
+	const_iterator i = l_ptr->find(key);
+	if (i != l_ptr->end())
 		aReturnValue = i->second.c_str();
 	return aReturnValue;
 }
@@ -185,36 +256,32 @@ T Container<T>::get(const std::string& key, const T& defaultValue) const
 template <typename T>
 bool Container<T>::contains(const std::string& key) const
 {
-	LockedRef locked_ref(*this);
-	Map& map = locked_ref.get();
-	const_iterator i = map.find(key);
-	return (i != map.end());
+	LockedPtr l_ptr(*this);
+	const_iterator i = l_ptr->find(key);
+	return (i != l_ptr->end());
 }
 
 template <typename T>
 int Container<T>::count(const std::string& key) const
 {
-	LockedRef locked_ref(*this);
-	Map& map = locked_ref.get();
-	int aReturnCount = int(map.count(key));
+	LockedPtr l_ptr(*this);
+	int aReturnCount = int(l_ptr->count(key));
 	return aReturnCount;
 }
 
 template <typename T>
 int Container<T>::size() const
 {
-	LockedRef locked_ref(*this);
-	Map& map = locked_ref.get();
-	int aReturnSize = int(map.size());
+	LockedPtr l_ptr(*this);
+	int aReturnSize = int(l_ptr->size());
 	return aReturnSize;
 }
 
 template <typename T>
 bool Container<T>::empty() const
 {
-	LockedRef locked_ref(*this);
-	Map& map = locked_ref.get();
-	bool res = map.empty();
+	LockedPtr l_ptr(*this);
+	bool res = l_ptr->empty();
 	return res;
 }
 
@@ -222,9 +289,8 @@ template <typename T>
 std::ostream& operator<<(std::ostream& os, const Container<T>& cont)
 {
 	os << "< ";
-	typename Container<T>::LockedRef locked_ref(cont);
-	typename Container<T>::Map& map = locked_ref.get();
-	for (typename Container<T>::value_type const& v : map)
+	typename Container<T>::LockedPtr l_ptr(cont);
+	for (typename Container<T>::value_type const& v : *l_ptr)
 		os << "(" << v.first << "," << v.second << ") ";
 	os << ">";
 	return os;

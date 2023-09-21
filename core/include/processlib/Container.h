@@ -47,6 +47,8 @@ public:
     typedef typename Map::const_iterator const_iterator;
     typedef std::pair<iterator, bool> insert_type;
 
+    typedef PoolThreadMgr::LockGuard LockGuard;
+
     struct Optional
     {
         bool empty = true;
@@ -73,7 +75,6 @@ public:
 
     Container();
     Container(const Container& cnt);
-    ~Container();
 
     bool insert(const std::string& key, const T& value);
     void insertOrIncKey(const std::string& key, const T& value);
@@ -93,87 +94,76 @@ public:
     Container& operator=(const Container&);
 
     // ensure that Container is locked while a reference to the map is exposed
-    friend class LockedRef;
+    friend class LockedPtr;
 
-    class LockedRef
+    class LockedPtr
     {
     public:
         typedef Container::Map Map;
         // For backward compatibility with HeaderContainer
         typedef Map Header;
 
-	LockedRef() = default;
-	LockedRef(const LockedRef& o) = default;
-	LockedRef(LockedRef&& o) = default;
+	LockedPtr(const Container& cont);
 
-	LockedRef(const Container& cont)
-	    : m_data(std::make_shared<Data>(cont))
-        {
-	}
+	LockedPtr() = delete;
+	LockedPtr(const LockedPtr& o) = delete;
+	LockedPtr(LockedPtr&& o) = default;
 
-	LockedRef& operator=(const LockedRef& o) = default;
-	LockedRef& operator=(LockedRef&& o) = default;
+	LockedPtr& operator=(const LockedPtr& o) = delete;
+	LockedPtr& operator=(LockedPtr&& o) = default;
 
-	LockedRef& operator=(const Container& cont)
-	{
-	    return *this = LockedRef(cont);
-	}
+        bool isLocked() const;
+	void unLock();
 
-        bool isLocked() const { return m_data && m_data->isLocked(); }
-
-	void unLock()
-	{
-	    if (m_data)
-		m_data->unLock();
-	}
-
-	Map& get()
-	{
-	    if (!isLocked())
-                throw ProcessException("Non-locked LockedRef");
-	    return *m_data->m_map;
-	}
+	Map *operator->();
+	Map const *operator->() const;
+	Map& operator*();
+	Map const& operator*() const;
 
     private:
-	struct Data {
-	    PoolThreadMgr::LockGuard m_lock;
-	    Map *m_map;
+	std::shared_ptr<typename Container::Holder> _holder;
+	LockGuard _lock;
+    };
 
-	    Data(const Container& cont)
-		: m_lock(&cont._ptr->_lock), m_map(&cont._ptr->map)
-	    {}
+    class SharedLockedPtr
+    {
+    public:
+        SharedLockedPtr(const Container& cont);
 
-	    bool isLocked() { return m_map; }
+	SharedLockedPtr(const SharedLockedPtr& o) = default;
+	SharedLockedPtr(SharedLockedPtr&& o) = default;
 
-	    void unLock()
-	    {
-	        if (!isLocked())
-		    return;
-		m_lock.unLock();
-		m_map = NULL;
-	    }
-	};
+	SharedLockedPtr& operator=(const SharedLockedPtr& o) = default;
+	SharedLockedPtr& operator=(SharedLockedPtr&& o) = default;
 
-	std::shared_ptr<Data> m_data;
+	bool isLocked() const;
+	void unLock();
+
+	Map *operator->();
+	Map const *operator->() const;
+	Map& operator*();
+	Map const& operator*() const;
+
+    private:
+	std::shared_ptr<LockedPtr> _ptr;
     };
 
 private:
-    struct Holder
+    class Holder
     {
+    public:
         Holder();
         ~Holder();
 
-        void ref();
-        void unref();
+        LockGuard lock();
+	Map& get(LockGuard& l);
 
-        void lock();
-        void unlock();
-
-        int	refcount;
-        pthread_mutex_t		_lock;
-        Map map;
+    private:
+	pthread_mutex_t _mutex;
+        Map _map;
     };
-    Holder* _ptr;
+
+    std::shared_ptr<Holder> _ptr;
 };
 
 template <typename T>

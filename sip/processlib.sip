@@ -96,19 +96,18 @@ inline std::string sipConvertFromPyStr(PyObject *sipPy)
     return s;
 }
 
-
 template <class T>
 struct ContainerItemIterator
 {
     typedef typename T::Map Map;
     typedef typename Map::iterator MapIter;
-    typedef typename T::LockedRef LockedRef;
+    typedef typename T::SharedLockedPtr SharedLockedPtr;
 
-    ContainerItemIterator(LockedRef ref) : _ref(ref)
+    ContainerItemIterator(SharedLockedPtr ref) : _ref(ref)
     {
       if (check()) {
-        _cur = _ref.get().begin();
-	_end = _ref.get().end();
+        _cur = _ref->begin();
+	_end = _ref->end();
       }
     }
 
@@ -118,7 +117,7 @@ struct ContainerItemIterator
     MapIter& getEnd() { return _end; }
 
 private:
-    LockedRef _ref;
+    SharedLockedPtr _ref;
     MapIter _cur;
     MapIter _end;
 };
@@ -128,7 +127,7 @@ template <class T>
 class ContainerContextManager
 {
 public:
-    typedef typename T::LockedRef LockedRef;
+    typedef typename T::SharedLockedPtr SharedLockedPtr;
 
     static const char *LockedAttrName;
 
@@ -143,11 +142,14 @@ public:
         }
 	if (*sipIsErr)
 	    return NULL;
-	LockedRef *cppRef = new LockedRef(*sipCpp);
+	SharedLockedPtr *cppRef;
+	Py_BEGIN_ALLOW_THREADS
+	cppRef = new SharedLockedPtr(*sipCpp);
+        Py_END_ALLOW_THREADS
 	PyObject* pyRef = sipConvertFromNewType(cppRef, sipRefDef, Py_None);
 	if (!pyRef) {
             PyErr_SetString(PyExc_RuntimeError, "Cannot create Container "
-	                                        "LockedRef python object");
+	                                        "SharedLockedPtr python object");
             delete cppRef;
 	    *sipIsErr = 1;
 	    return NULL;
@@ -203,7 +205,7 @@ public:
 	    *sipIsErr = 1;
 	} else {
             if (!PyBool_Check(locked)) {
-                PyErr_SetString(PyExc_RuntimeError, "Container.LockedRef.isLocked "
+                PyErr_SetString(PyExc_RuntimeError, "Container.SharedLockedPtr.isLocked "
 		                "returned non-boolean object");
                 *sipIsErr = 1;
 	    } else {
@@ -215,34 +217,34 @@ public:
 	return is_locked;
     }
 
-    static LockedRef getLockedRef(const sipTypeDef *sipRefDef, PyObject *sipPy,
-                                  int *sipIsErr)
+    // this function must be called only if inContext
+    // it will rise an exception otherwise
+    static SharedLockedPtr getLockedPtr(const sipTypeDef *sipRefDef, PyObject *sipPy)
     {
-        LockedRef res;
         if (!PyObject_HasAttrString(sipPy, LockedAttrName))
-	    return res;
+            throw ProcessException("Container ContextManager not active");
         PyObject *pyRef = PyObject_GetAttrString(sipPy, LockedAttrName);
-	if (!pyRef) {
-            PyErr_Format(PyExc_RuntimeError, "Cannot get %s Container "
-	                 "ContextManager attribute", LockedAttrName);
-	    *sipIsErr = 1;
-	    return res;
- 	}
-        int state;
+	if (!pyRef)
+	    throw ProcessException("Cannot get Container ContextManager attr");
+        int state, sipIsErr = 0;
 	void *p = sipConvertToType(pyRef, sipRefDef, NULL, SIP_NOT_NONE,
-	                           &state, sipIsErr);
-	if (p) {
-	    LockedRef *cppRef = (LockedRef *) p;
-	    res = *cppRef;
-	    sipReleaseType(cppRef, sipRefDef, state);
-	}
+	                           &state, &sipIsErr);
+	if (!p || sipIsErr) {
+	    if (p)
+	       sipReleaseType(p, sipRefDef, state);
+	    Py_DECREF(pyRef);
+	    throw ProcessException("Cannot convert to C++ LocketPtr type");
+        }
+	SharedLockedPtr *cppRef = (SharedLockedPtr *) p;
+	SharedLockedPtr res = *cppRef;
+	sipReleaseType(cppRef, sipRefDef, state);
 	Py_DECREF(pyRef);
 	return res;
     }
 };
 
 template <class T>
-const char *ContainerContextManager<T>::LockedAttrName = "__locked_ref";
+const char *ContainerContextManager<T>::LockedAttrName = "__locked_ptr";
 
 typedef ContainerItemIterator<Data::HeaderContainer> Data_HeaderContainer_itemIterator;
 
@@ -309,14 +311,14 @@ typedef ContainerItemIterator<Data::HeaderContainer> Data_HeaderContainer_itemIt
 struct Data_HeaderContainer_itemIterator
 {
 public:
-  Data_HeaderContainer_itemIterator(Data::HeaderContainer::LockedRef ref);
+  Data_HeaderContainer_itemIterator(Data::HeaderContainer::SharedLockedPtr ref);
 
   bool check();
 
   SIP_PYOBJECT __next__();
   %MethodCode
   if (!sipCpp->check()) {
-    PyErr_SetString(PyExc_RuntimeError, "HeaderContainer::LockedRef un-locked "
+    PyErr_SetString(PyExc_RuntimeError, "HeaderContainer::SharedLockedPtr un-locked "
                     "during item iteration");
     sipIsErr = 1;
   } else {
@@ -351,17 +353,16 @@ struct Data
     #ifndef SIP_DATA_HEADERCONTAINER
     #define SIP_DATA_HEADERCONTAINER
 
-    typedef Data::HeaderContainer::LockedRef::Map HeaderMap;
+    typedef Data::HeaderContainer::Map HeaderMap;
 
     inline PyObject *sipDataHeaderContainerRepr(
-                         Data::HeaderContainer::LockedRef headerRef)
+                         Data::HeaderContainer::SharedLockedPtr headerPtr)
     {
         std::stringstream str;
         str << "{";
-        HeaderMap& header = headerRef.get();
-        HeaderMap::iterator it, end = header.end();
+        HeaderMap::iterator it, end = headerPtr->end();
         bool first = true;
-        for (it = header.begin(); it != end; ++it, first = false) {
+        for (it = headerPtr->begin(); it != end; ++it, first = false) {
             if (!first)
                 str << ", ";
             str << "'" << it->first << "': ";
@@ -372,19 +373,18 @@ struct Data
     }
 
     inline PyObject *sipDataHeaderContainerValues(
-                         Data::HeaderContainer::LockedRef headerRef)
+                         Data::HeaderContainer::SharedLockedPtr headerPtr)
     {
-        HeaderMap& header = headerRef.get();
-        PyObject *sipRes = PyList_New(header.size());
+        PyObject *sipRes = PyList_New(headerPtr->size());
         int index = 0;
-        HeaderMap::iterator it, end = header.end();
-        for (it = header.begin(); it != end; ++it, ++index)
+        HeaderMap::iterator it, end = headerPtr->end();
+        for (it = headerPtr->begin(); it != end; ++it, ++index)
             PyList_SetItem(sipRes, index, sipConvertToPyStr(it->second));
         return sipRes;
     }
 
     inline PyObject *sipDataHeaderContainerPop(
-                         Data::HeaderContainer::LockedRef headerRef,
+                         Data::HeaderContainer::SharedLockedPtr headerPtr,
 			 PyObject *pyKey, PyObject *defVal, int *sipIsErr)
     {
         if (!sipCheckConvertFromPyStr(pyKey) ||
@@ -397,11 +397,10 @@ struct Data
 
         PyObject *sipRes = NULL;
         std::string cppKey = sipConvertFromPyStr(pyKey);
-        HeaderMap& header = headerRef.get();
-        HeaderMap::iterator it = header.find(cppKey);
-        if (it != header.end()) {
+        HeaderMap::iterator it = headerPtr->find(cppKey);
+        if (it != headerPtr->end()) {
             sipRes = sipConvertToPyStr(it->second);
-            header.erase(it);
+            headerPtr->erase(it);
         } else if (defVal) {
             Py_INCREF(defVal);
             sipRes = defVal;
@@ -414,7 +413,7 @@ struct Data
     }
 
     inline void sipDataHeaderContainerUpdate(
-                    Data::HeaderContainer::LockedRef headerRef,
+                    Data::HeaderContainer::SharedLockedPtr headerPtr,
 		    PyObject *dict, int *sipIsErr)
     {
         PyObject *key, *value;
@@ -429,34 +428,31 @@ struct Data
             }
         }
 
-        HeaderMap& header = headerRef.get();
         pos = 0;
         while (PyDict_Next(dict, &pos, &key, &value)) {
-	    std::string& item = header[sipConvertFromPyStr(key).c_str()];
+	    std::string& item = (*headerPtr)[sipConvertFromPyStr(key).c_str()];
 	    item = sipConvertFromPyStr(value).c_str();
         }
     }
 
     inline PyObject *sipDataHeaderContainerKeys(
-                         Data::HeaderContainer::LockedRef headerRef)
+                         Data::HeaderContainer::SharedLockedPtr headerPtr)
     {
-        HeaderMap& header = headerRef.get();
-        PyObject *sipRes = PyList_New(header.size());
+        PyObject *sipRes = PyList_New(headerPtr->size());
         int index = 0;
-        HeaderMap::iterator it, end = header.end();
-        for (it = header.begin(); it != end; ++it, ++index)
+        HeaderMap::iterator it, end = headerPtr->end();
+        for (it = headerPtr->begin(); it != end; ++it, ++index)
             PyList_SetItem(sipRes, index, sipConvertToPyStr(it->first));
 	return sipRes;
     }
 
     inline PyObject *sipDataHeaderContainerItems(
-                         Data::HeaderContainer::LockedRef headerRef)
+                         Data::HeaderContainer::SharedLockedPtr headerPtr)
     {
-        HeaderMap& header = headerRef.get();
-        PyObject *sipRes = PyList_New(header.size());
+        PyObject *sipRes = PyList_New(headerPtr->size());
         int index = 0;
-        HeaderMap::iterator it, end = header.end();
-        for (it = header.begin(); it != end; ++it, ++index) {
+        HeaderMap::iterator it, end = headerPtr->end();
+        for (it = headerPtr->begin(); it != end; ++it, ++index) {
             PyObject *val = PyTuple_Pack(2, sipConvertToPyStr(it->first),
     				        sipConvertToPyStr(it->second));
             PyList_SetItem(sipRes, index, val);
@@ -465,7 +461,7 @@ struct Data
     }
 
     inline bool sipDataHeaderContainerHasKey(
-                    Data::HeaderContainer::LockedRef headerRef,
+                    Data::HeaderContainer::SharedLockedPtr headerPtr,
 		    PyObject *pyKey, int *sipIsErr)
     {
         if (!sipCheckConvertFromPyStr(pyKey)) {
@@ -475,13 +471,12 @@ struct Data
             *sipIsErr = 1;
 	    return false;
         }
-        HeaderMap& header = headerRef.get();
         std::string key = sipConvertFromPyStr(pyKey);
-        return (header.find(key) != header.end());
+        return (headerPtr->find(key) != headerPtr->end());
     }
 
     inline void sipDataHeaderContainerSetItem(
-                    Data::HeaderContainer::LockedRef headerRef,
+                    Data::HeaderContainer::SharedLockedPtr headerPtr,
 		    PyObject *pyKey, PyObject *pyVal, int *sipIsErr)
     {
         if (!sipCheckConvertFromPyStr(pyKey) ||
@@ -491,14 +486,13 @@ struct Data
 	    *sipIsErr = 1;
 	    return;
         }
-        HeaderMap& header = headerRef.get();
         std::string key, value;
         key = sipConvertFromPyStr(pyKey); value = sipConvertFromPyStr(pyVal);
-        header[key] = value;
+        (*headerPtr)[key] = value;
     }
 
     inline PyObject *sipDataHeaderContainerGetItem(
-                         Data::HeaderContainer::LockedRef headerRef,
+                         Data::HeaderContainer::SharedLockedPtr headerPtr,
 		         PyObject *pyKey, int *sipIsErr)
     {
         if (!sipCheckConvertFromPyStr(pyKey)) {
@@ -507,10 +501,9 @@ struct Data
 	    *sipIsErr = 1;
 	    return NULL;
         }
-        HeaderMap& header = headerRef.get();
         std::string key = sipConvertFromPyStr(pyKey);
-	HeaderMap::iterator it = header.find(key);
-	if (it == header.end()) {
+	HeaderMap::iterator it = headerPtr->find(key);
+	if (it == headerPtr->end()) {
             PyErr_Format(PyExc_KeyError,"Header has no key %s", key.c_str());
             *sipIsErr = 1;
 	    return NULL;
@@ -519,7 +512,7 @@ struct Data
     }
 
     inline PyObject *sipDataHeaderContainerGet(
-                         Data::HeaderContainer::LockedRef headerRef,
+                         Data::HeaderContainer::SharedLockedPtr headerPtr,
 			 PyObject *pyKey, PyObject *defVal, int *sipIsErr)
     {
         if (!sipCheckConvertFromPyStr(pyKey) ||
@@ -531,10 +524,9 @@ struct Data
         }
 
 	PyObject *sipRes;
-        HeaderMap& header = headerRef.get();
         std::string key = sipConvertFromPyStr(pyKey);
-	HeaderMap::iterator it = header.find(key);
-        if (it != header.end()) {
+	HeaderMap::iterator it = headerPtr->find(key);
+        if (it != headerPtr->end()) {
            sipRes = sipConvertToPyStr(it->second);
         } else if (defVal) {
             Py_INCREF(defVal);
@@ -553,12 +545,11 @@ struct Data
     %End
 
   public:
-    class LockedRef
+    class SharedLockedPtr
     {
     public:
-	LockedRef();
-	LockedRef(const LockedRef& o);
-	LockedRef(const Data::HeaderContainer& cont);
+	SharedLockedPtr(const SharedLockedPtr& o);
+	SharedLockedPtr(const Data::HeaderContainer& cont);
 
 	bool isLocked() const;
 	void unLock();
@@ -648,8 +639,7 @@ struct Data
 	    PyErr_SetString(PyExc_ValueError, "Null LockRef");
 	    sipIsErr = 1;
 	} else {
-  	    HeaderMap& header = sipCpp->get();
-            sipRes = header.size();
+            sipRes = (*sipCpp)->size();
 	}
         %End
 
@@ -685,101 +675,100 @@ struct Data
 
     SIP_PYOBJECT pop(SIP_PYOBJECT,SIP_PYOBJECT = NULL);
     %MethodCode
-    Data::HeaderContainer::LockedRef headerRef(*sipCpp);
-    sipRes = sipDataHeaderContainerPop(headerRef, a0, a1, &sipIsErr);
+    Data::HeaderContainer::SharedLockedPtr headerPtr(*sipCpp);
+    sipRes = sipDataHeaderContainerPop(headerPtr, a0, a1, &sipIsErr);
     %End
 
     void update(SIP_PYDICT);
     %MethodCode
-    Data::HeaderContainer::LockedRef headerRef(*sipCpp);
-    sipDataHeaderContainerUpdate(headerRef, a0, &sipIsErr);
+    Data::HeaderContainer::SharedLockedPtr headerPtr(*sipCpp);
+    sipDataHeaderContainerUpdate(headerPtr, a0, &sipIsErr);
     %End
 
     SIP_PYOBJECT __repr__() const;
     %MethodCode
-    Data::HeaderContainer::LockedRef headerRef(*sipCpp);
-    sipRes = sipDataHeaderContainerRepr(headerRef);
+    Data::HeaderContainer::SharedLockedPtr headerPtr(*sipCpp);
+    sipRes = sipDataHeaderContainerRepr(headerPtr);
     %End
 
     SIP_PYOBJECT __str__();
     %MethodCode
-    Data::HeaderContainer::LockedRef headerRef(*sipCpp);
-    sipRes = sipDataHeaderContainerRepr(headerRef);
+    Data::HeaderContainer::SharedLockedPtr headerPtr(*sipCpp);
+    sipRes = sipDataHeaderContainerRepr(headerPtr);
     %End
 
     SIP_PYOBJECT __enter__();
     %MethodCode
-    const sipTypeDef *refTypeDef = sipType_Data_HeaderContainer_LockedRef;
+    const sipTypeDef *refTypeDef = sipType_Data_HeaderContainer_SharedLockedPtr;
     sipRes = HeaderContextManager::enter(refTypeDef, sipSelf, sipCpp, &sipIsErr);
     %End
 
     void __exit__(SIP_PYOBJECT,SIP_PYOBJECT,SIP_PYOBJECT);
     %MethodCode
-    const sipTypeDef *refTypeDef = sipType_Data_HeaderContainer_LockedRef;
+    const sipTypeDef *refTypeDef = sipType_Data_HeaderContainer_SharedLockedPtr;
     HeaderContextManager::exit(refTypeDef, sipSelf, &sipIsErr);
     %End
 
     SIP_PYOBJECT values();
     %MethodCode
-    Data::HeaderContainer::LockedRef headerRef(*sipCpp);
-    sipRes = sipDataHeaderContainerValues(headerRef);
+    Data::HeaderContainer::SharedLockedPtr headerPtr(*sipCpp);
+    sipRes = sipDataHeaderContainerValues(headerPtr);
     %End
 
     SIP_PYOBJECT keys();
     %MethodCode
-    Data::HeaderContainer::LockedRef headerRef(*sipCpp);
-    sipRes = sipDataHeaderContainerKeys(headerRef);
+    Data::HeaderContainer::SharedLockedPtr headerPtr(*sipCpp);
+    sipRes = sipDataHeaderContainerKeys(headerPtr);
     %End
 
     SIP_PYOBJECT items();
     %MethodCode
-    Data::HeaderContainer::LockedRef headerRef(*sipCpp);
-    sipRes = sipDataHeaderContainerItems(headerRef);
+    Data::HeaderContainer::SharedLockedPtr headerPtr(*sipCpp);
+    sipRes = sipDataHeaderContainerItems(headerPtr);
     %End
 
     Data_HeaderContainer_itemIterator iteritems();
     %MethodCode
-    HeaderContextManager::LockedRef ref;
-    const sipTypeDef *refTypeDef = sipType_Data_HeaderContainer_LockedRef;
-    ref = HeaderContextManager::getLockedRef(refTypeDef, sipSelf, &sipIsErr);
-    if (!ref.isLocked()) {
-        PyErr_SetString(PyExc_RuntimeError, "A HeaderContainer context manager "
-	                "is needed for item iteration");
-        sipIsErr = 1;
-    } else {
+    typedef HeaderContextManager::SharedLockedPtr SharedLockedPtr;
+    const sipTypeDef *refTypeDef = sipType_Data_HeaderContainer_SharedLockedPtr;
+    try {
+        SharedLockedPtr ref = HeaderContextManager::getLockedPtr(refTypeDef, sipSelf);
         sipRes = new Data_HeaderContainer_itemIterator(ref);
+    } catch (ProcessException& e) {
+        PyErr_Format(PyExc_RuntimeError, "Error getting lock: %s",
+	             e.getErrMsg().c_str());
+        sipIsErr = 1;
     }
     %End
 
     bool has_key(SIP_PYOBJECT);
     %MethodCode
-    Data::HeaderContainer::LockedRef headerRef(*sipCpp);
-    sipRes = sipDataHeaderContainerHasKey(headerRef, a0, &sipIsErr);
+    Data::HeaderContainer::SharedLockedPtr headerPtr(*sipCpp);
+    sipRes = sipDataHeaderContainerHasKey(headerPtr, a0, &sipIsErr);
     %End
 
     int __len__();
     %MethodCode
-    Data::HeaderContainer::LockedRef headerRef(*sipCpp);
-    HeaderMap& header = headerRef.get();
-    sipRes = header.size();
+    Data::HeaderContainer::SharedLockedPtr headerPtr(*sipCpp);
+    sipRes = headerPtr->size();
     %End
 
     void  __setitem__(SIP_PYOBJECT, SIP_PYOBJECT);
     %MethodCode
-    Data::HeaderContainer::LockedRef headerRef(*sipCpp);
-    sipDataHeaderContainerSetItem(headerRef, a0, a1, &sipIsErr);
+    Data::HeaderContainer::SharedLockedPtr headerPtr(*sipCpp);
+    sipDataHeaderContainerSetItem(headerPtr, a0, a1, &sipIsErr);
     %End
 
     SIP_PYOBJECT __getitem__(SIP_PYOBJECT) const;
     %MethodCode
-    Data::HeaderContainer::LockedRef headerRef(*sipCpp);
-    sipRes = sipDataHeaderContainerGetItem(headerRef, a0, &sipIsErr);
+    Data::HeaderContainer::SharedLockedPtr headerPtr(*sipCpp);
+    sipRes = sipDataHeaderContainerGetItem(headerPtr, a0, &sipIsErr);
     %End
 
     SIP_PYOBJECT get(SIP_PYOBJECT, SIP_PYOBJECT = NULL) const;
     %MethodCode
-    Data::HeaderContainer::LockedRef headerRef(*sipCpp);
-    sipRes = sipDataHeaderContainerGet(headerRef, a0, a1, &sipIsErr);
+    Data::HeaderContainer::SharedLockedPtr headerPtr(*sipCpp);
+    sipRes = sipDataHeaderContainerGet(headerPtr, a0, a1, &sipIsErr);
     %End
 
     int size() const;
@@ -792,17 +781,16 @@ struct Data
     #ifndef SIP_DATA_SIDEBANDCONTAINER
     #define SIP_DATA_SIDEBANDCONTAINER
 
-    typedef Data::SidebandContainer::LockedRef::Map SidebandMap;
+    typedef Data::SidebandContainer::Map SidebandMap;
 
     inline PyObject *sipDataSidebandContainerRepr(
-                         Data::SidebandContainer::LockedRef sidebandRef)
+                         Data::SidebandContainer::SharedLockedPtr sidebandPtr)
     {
         std::stringstream str;
         str << "{";
-        SidebandMap& sideband = sidebandRef.get();
-        SidebandMap::iterator it, end = sideband.end();
+        SidebandMap::iterator it, end = sidebandPtr->end();
         bool first = true;
-        for (it = sideband.begin(); it != end; ++it, first = false) {
+        for (it = sidebandPtr->begin(); it != end; ++it, first = false) {
             if (!first)
                 str << ", ";
             str << "'" << it->first << "': ";
@@ -813,19 +801,18 @@ struct Data
     }
 
     inline PyObject *sipDataSidebandContainerKeys(
-                         Data::SidebandContainer::LockedRef headerRef)
+                         Data::SidebandContainer::SharedLockedPtr sidebandPtr)
     {
-        SidebandMap& header = headerRef.get();
-        PyObject *sipRes = PyList_New(header.size());
+        PyObject *sipRes = PyList_New(sidebandPtr->size());
         int index = 0;
-        SidebandMap::iterator it, end = header.end();
-        for (it = header.begin(); it != end; ++it, ++index)
+        SidebandMap::iterator it, end = sidebandPtr->end();
+        for (it = sidebandPtr->begin(); it != end; ++it, ++index)
             PyList_SetItem(sipRes, index, sipConvertToPyStr(it->first));
 	return sipRes;
     }
 
     inline bool sipDataSidebandContainerHasKey(
-                    Data::SidebandContainer::LockedRef headerRef,
+                    Data::SidebandContainer::SharedLockedPtr sidebandPtr,
 		    PyObject *pyKey, int *sipIsErr)
     {
         if (!sipCheckConvertFromPyStr(pyKey)) {
@@ -835,9 +822,8 @@ struct Data
             *sipIsErr = 1;
 	    return false;
         }
-        SidebandMap& header = headerRef.get();
         std::string key = sipConvertFromPyStr(pyKey);
-        return (header.find(key) != header.end());
+        return (sidebandPtr->find(key) != sidebandPtr->end());
     }
 
     typedef
@@ -847,12 +833,11 @@ struct Data
     %End
 
   public:
-    class LockedRef
+    class SharedLockedPtr
     {
     public:
-	LockedRef();
-	LockedRef(const LockedRef& o);
-	LockedRef(const Data::SidebandContainer& cont);
+	SharedLockedPtr(const SharedLockedPtr& o);
+	SharedLockedPtr(const Data::SidebandContainer& cont);
 
 	bool isLocked();
 	void unLock();
@@ -897,8 +882,7 @@ struct Data
 	    PyErr_SetString(PyExc_ValueError, "Null LockRef");
 	    sipIsErr = 1;
 	} else {
-  	    SidebandMap& sideband = sipCpp->get();
-            sipRes = sideband.size();
+            sipRes = (*sipCpp)->size();
 	}
         %End
     };
@@ -907,13 +891,13 @@ struct Data
 
     SIP_PYOBJECT __enter__();
     %MethodCode
-    const sipTypeDef *refTypeDef = sipType_Data_SidebandContainer_LockedRef;
+    const sipTypeDef *refTypeDef = sipType_Data_SidebandContainer_SharedLockedPtr;
     sipRes = SidebandContextManager::enter(refTypeDef, sipSelf, sipCpp, &sipIsErr);
     %End
 
     void __exit__(SIP_PYOBJECT,SIP_PYOBJECT,SIP_PYOBJECT);
     %MethodCode
-    const sipTypeDef *refTypeDef = sipType_Data_SidebandContainer_LockedRef;
+    const sipTypeDef *refTypeDef = sipType_Data_SidebandContainer_SharedLockedPtr;
     SidebandContextManager::exit(refTypeDef, sipSelf, &sipIsErr);
     %End
 
