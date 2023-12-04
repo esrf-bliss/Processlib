@@ -153,6 +153,14 @@ void Container<T>::clear()
 }
 
 template <typename T>
+void Container<T>::reset()
+{
+	if (_ptr)
+		_ptr->unref();
+	_ptr = new Holder();
+}
+
+template <typename T>
 typename Container<T>::Optional Container<T>::get(const std::string& key) const
 {
 	Optional aReturnValue;

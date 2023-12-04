@@ -75,7 +75,8 @@ public:
     bool insert(const std::string& key, const T& value);
     void insertOrIncKey(const std::string& key, const T& value);
     void erase(const std::string& key);
-    void clear();
+    void clear();  // empty all shared Container instances
+    void reset();  // empty only this Container instance
 
     bool contains(const std::string& key) const;
     int count(const std::string& key) const;
