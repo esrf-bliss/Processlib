@@ -54,7 +54,7 @@ LinkTask::~LinkTask()
 }
 void LinkTask::setEventCallback(TaskEventCallback *aEventCbk)
 {
-  PoolThreadMgr::Lock aLock(&_lock);
+  PoolThreadMgr::LockGuard aLock(&_lock);
   if(aEventCbk)
       aEventCbk->ref();
   if(_eventCbkPt)
@@ -64,13 +64,13 @@ void LinkTask::setEventCallback(TaskEventCallback *aEventCbk)
 
 void LinkTask::ref()
 {
-  PoolThreadMgr::Lock aLock(&_lock);
+  PoolThreadMgr::LockGuard aLock(&_lock);
   ++_refCounter;
 }
 
 void LinkTask::unref()
 {
-  PoolThreadMgr::Lock aLock(&_lock);
+  PoolThreadMgr::LockGuard aLock(&_lock);
   if(!(--_refCounter))
     {
       aLock.unLock();
@@ -80,6 +80,6 @@ void LinkTask::unref()
 
 int LinkTask::getRefCounter() const
 {
-  PoolThreadMgr::Lock aLock(&_lock);
+  PoolThreadMgr::LockGuard aLock(&_lock);
   return _refCounter;
 }

@@ -20,31 +20,45 @@
 // You should have received a copy of the GNU General Public License
 // along with this program; if not, see <http://www.gnu.org/licenses/>.
 //###########################################################################
-#include "processlib/PoolThreadMgr.h"
-#include "processlib/TaskEventCallback.h"
 
-TaskEventCallback::TaskEventCallback() : _refCounter(1)
-{
-  pthread_mutex_init(&_lock,NULL);
-}
+#pragma once
 
-TaskEventCallback::~TaskEventCallback()
-{
-  pthread_mutex_destroy(&_lock);
-}
+#if !defined(PROCESSLIB_SIDEBAND_DATA_H)
+#define PROCESSLIB_SIDEBAND_DATA_H
 
-void TaskEventCallback::ref()
-{
-  PoolThreadMgr::LockGuard aLock(&_lock);
-  ++_refCounter;
-}
+#include <iostream>
+#include <memory>
+#include <string>
 
-void TaskEventCallback::unref()
+#include "processlib/Compatibility.h"
+
+namespace sideband
 {
-  PoolThreadMgr::LockGuard aLock(&_lock);
-  if(!(--_refCounter))
-    {
-      aLock.unLock();
-      delete this;
-    }
-}
+
+  // base class for all Sideband data
+  class DLL_EXPORT Data
+  {
+  public:
+    virtual ~Data() {}
+
+    virtual std::string repr() { return "Unknown"; }
+  };
+
+  typedef std::shared_ptr<Data> DataPtr;
+
+  inline std::ostream& operator<<(std::ostream& os, DataPtr ptr)
+  {
+      os << ptr->repr();
+      return os;
+  }
+
+  // cast a Sideband data into its original type
+  template <typename T>
+  std::shared_ptr<T> DataCast(DataPtr p)
+  {
+    return std::dynamic_pointer_cast<T>(p);
+  }
+
+} // namespace sideband
+
+#endif // PROCESSLIB_SIDEBAND_DATA_H

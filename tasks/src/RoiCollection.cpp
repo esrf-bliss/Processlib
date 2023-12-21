@@ -48,7 +48,7 @@ RoiCollectionManager::~RoiCollectionManager()
 
 void RoiCollectionManager::setRois(const std::list<Roi>& rois)
 {
-  PoolThreadMgr::Lock aLock(&_roi_lock);
+  PoolThreadMgr::LockGuard aLock(&_roi_lock);
   _roi_tasks.clear();
   _rois.clear();
   _rois.reserve(rois.size());
@@ -58,7 +58,7 @@ void RoiCollectionManager::setRois(const std::list<Roi>& rois)
 
 void RoiCollectionManager::clearRois()
 {
-  PoolThreadMgr::Lock aLock(&_roi_lock);
+  PoolThreadMgr::LockGuard aLock(&_roi_lock);
   _roi_tasks.clear();
   _rois.clear();
 }
@@ -75,7 +75,7 @@ void RoiCollectionManager::setOverflowThreshold(long long threshold)
 
 void RoiCollectionManager::prepare()
 {
-  PoolThreadMgr::Lock aLock(&_roi_lock);
+  PoolThreadMgr::LockGuard aLock(&_roi_lock);
   if(_roi_tasks.empty())
     {
       int roi_id = 0;

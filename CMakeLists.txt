@@ -125,7 +125,6 @@ set(processlib_srcs
     core/src/LinkTask.cpp
     core/src/SinkTask.cpp
     core/src/TaskMgr.cpp
-    core/src/HeaderContainer.cpp
     tasks/src/BackgroundSubstraction.cpp
     tasks/src/FlatfieldCorrection.cpp
     tasks/src/RoiCounter.cpp
@@ -147,11 +146,13 @@ if(WIN32)
 endif()
 
 file(GLOB_RECURSE core_incs "core/include/*.h")
+file(GLOB_RECURSE core_inls "core/include/*.inl")
 file(GLOB_RECURSE tasks_incs "tasks/include/*.h")
 
 add_library(processlib SHARED
     ${processlib_srcs}
     ${core_incs}
+    ${core_inls}
     ${tasks_incs}
 )
 
@@ -233,7 +234,7 @@ install(
     DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/core/include/processlib
     COMPONENT devel
     DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}
-    FILES_MATCHING PATTERN "*.h"
+    FILES_MATCHING PATTERN "*.h" PATTERN "*.inl"
 )
 
 install(

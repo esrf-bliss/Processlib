@@ -40,7 +40,7 @@ GslErrorMgr::GslErrorMgr()
  */
 const char* GslErrorMgr::lastErrorMsg() const
 {
-  PoolThreadMgr::Lock aLock(&_lock);
+  PoolThreadMgr::LockGuard aLock(&_lock);
   std::map<pthread_t,std::string>::const_iterator i = _errorMessage.find(pthread_self());
   return (i != _errorMessage.end()) ? i->second.c_str() : "";
 }
@@ -48,7 +48,7 @@ const char* GslErrorMgr::lastErrorMsg() const
  */
 int GslErrorMgr::lastErrno() const
 {
-  PoolThreadMgr::Lock aLock(&_lock);
+  PoolThreadMgr::LockGuard aLock(&_lock);
   std::map<pthread_t,int>::const_iterator i = _lastGslErrno.find(pthread_self());
   return (i != _lastGslErrno.end()) ? i->second : 0;
 }
@@ -56,7 +56,7 @@ int GslErrorMgr::lastErrno() const
  */
 void GslErrorMgr::resetErrorMsg()
 {
-  PoolThreadMgr::Lock aLock(&_lock);
+  PoolThreadMgr::LockGuard aLock(&_lock);
   _errorMessage.insert(ErrorMessageType::value_type(pthread_self(),""));
   _lastGslErrno.insert(ErrnoType::value_type(pthread_self(),0));
 }
@@ -70,7 +70,7 @@ void GslErrorMgr::_error_handler(const char *reason,
   char aTmpBuffer[MAX_ERROR_SIZE];
   snprintf(aTmpBuffer,MAX_ERROR_SIZE,"GSL call failed ! : %s %s %d %d",
 	   reason,file,line,gsl_errno);
-  PoolThreadMgr::Lock aLock(&_lock);
+  PoolThreadMgr::LockGuard aLock(&_lock);
   std::map<pthread_t,std::string>::iterator i = get()._errorMessage.find(pthread_self());
   if(i != get()._errorMessage.end())
     {

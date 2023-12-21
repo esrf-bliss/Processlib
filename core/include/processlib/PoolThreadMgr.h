@@ -32,6 +32,7 @@
 
 #include <map>
 #include <vector>
+#include <string>
 #include <pthread.h>
 
 #include "processlib/Compatibility.h"
@@ -58,27 +59,58 @@ public:
   bool wait(double timeout = -1.);
   void quit();
 
-  class Lock
+  class LockGuard
   {
   public:
-    Lock(pthread_mutex_t *aLock,bool aLockFlag = true) :
+    LockGuard(pthread_mutex_t *aLock,bool aLockFlag = true) :
       _lock(aLock),_lockFlag(false)
     {if(aLockFlag) lock();}
 
-    ~Lock() {unLock();}
+    ~LockGuard() {unLock();}
+
+    //Non-copyable
+    LockGuard(LockGuard const&) = delete;
+    LockGuard& operator=(LockGuard const&) = delete;
+
+    //Movable
+    inline LockGuard(LockGuard&& o) :
+      _lock(o._lock),_lockFlag(o._lockFlag)
+    {
+      o._lock = NULL;
+      o._lockFlag = false;
+    }
+
+    inline bool isLocked()
+    {
+      return _lock && _lockFlag;
+    }
+
+    inline LockGuard& operator=(LockGuard&& o)
+    {
+      if (&o != this) {
+	unLock();
+	_lock = o._lock;
+	_lockFlag = o._lockFlag;
+	o._lock = NULL;
+	o._lockFlag = false;
+      }
+      return *this;
+    }
+
     inline void lock()
     {
+      if(!_lock)
+	return;
       if(!_lockFlag)
 	while(pthread_mutex_lock(_lock)) ;
       _lockFlag = true;
     }
     inline void unLock()
     {
-      if(_lockFlag)
-	{
-	  _lockFlag = false;
-	  pthread_mutex_unlock(_lock);
-	}
+      if(!isLocked())
+	return;
+      _lockFlag = false;
+       pthread_mutex_unlock(_lock);
     }
   private:
     pthread_mutex_t *_lock;
