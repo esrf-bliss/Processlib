@@ -46,25 +46,22 @@
 
 struct DLL_EXPORT Buffer
 {
-  class DLL_EXPORT Callback
-  {
-  public:
-    virtual ~Callback() {}
-    virtual void destroy(void *dataPt) = 0;
-  };
-
   enum Ownership {MAPPED,SHARED};
-  ~Buffer()
+  virtual ~Buffer()
   {
-    if(callback)
-      callback->destroy(data);
+    if(owner == SHARED && data)
+#ifdef __unix
+      free(data);
+#else
+      _aligned_free(data);
+#endif
     pthread_mutex_destroy(&_lock);
   }
-  Buffer() : owner(SHARED),refcount(1),data(NULL),callback(NULL)
+  Buffer() : owner(SHARED),refcount(1),data(NULL)
   {
     pthread_mutex_init(&_lock,NULL);
   }
-  explicit Buffer(int aSize) :owner(SHARED),refcount(1),callback(NULL)
+  explicit Buffer(int aSize) :owner(SHARED),refcount(1)
   {
 #ifdef __unix
     if(posix_memalign(&data,16,aSize))
@@ -78,19 +75,10 @@ struct DLL_EXPORT Buffer
   void unref()
   {
     while(pthread_mutex_lock(&_lock)) ;
-    if(!(--refcount))
-      {
-	if(owner == SHARED && data)
-#ifdef __unix
-	  free(data);
-#else
-	_aligned_free(data);
-#endif
-	pthread_mutex_unlock(&_lock);
+    bool destroy = (--refcount == 0);
+    pthread_mutex_unlock(&_lock);
+    if(destroy)
 	delete this;
-      }
-    else
-      pthread_mutex_unlock(&_lock);
   }
   void ref()
   {
@@ -102,7 +90,6 @@ struct DLL_EXPORT Buffer
   volatile int          refcount;
   void			*data;
   pthread_mutex_t	_lock;
-  Callback*		callback;
 };
 
 struct DLL_EXPORT Data
