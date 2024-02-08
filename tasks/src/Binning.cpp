@@ -76,8 +76,11 @@ static void _binning2x2(Data &aSrcData,Data &aDstData,int Factor)
       for(int columnId = 0;columnId < aSrcData.dimensions[0];columnId += 2,
 	    ++aDstPt,aSrcFirstLinePt += 2,aSrcSecondLinePt += 2)
 	{
-	  unsigned long long result = *aSrcFirstLinePt + *(aSrcFirstLinePt + 1) +
-	    *aSrcSecondLinePt + *(aSrcSecondLinePt + 1);
+	  // avoid overflow by promoting to ULL before add
+	  unsigned long long result = *aSrcFirstLinePt;
+	  result += *(aSrcFirstLinePt + 1);
+	  result += *aSrcSecondLinePt;
+	  result += *(aSrcSecondLinePt + 1);
 	  if(result > MAX_VALUE)
 	    *aDstPt = MAX_VALUE;
 	  else
