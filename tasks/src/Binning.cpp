@@ -20,16 +20,20 @@
 // You should have received a copy of the GNU General Public License
 // along with this program; if not, see <http://www.gnu.org/licenses/>.
 //###########################################################################
+#ifndef __unix
+#define NOMINMAX
+#endif
 #include "processlib/ProcessExceptions.h"
 #include "processlib/Binning.h"
 #include "processlib/Stat.h"
 #include <sstream>
+#include <limits>
 using namespace Tasks;
 
 //static function
 template<class INPUT> static INPUT max_value(const INPUT &)
 {
-  return INPUT((1ULL << (8 * sizeof(INPUT))) - 1);
+  return std::numeric_limits<INPUT>::max();
 }
 
 /** @brief generique binning but not optimized at all
