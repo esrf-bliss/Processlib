@@ -35,8 +35,7 @@ Mask::Mask(const Mask &aTask) :
 
 void Mask::setMaskImageData(Data &aMaskImage)
 {
-  if(!aMaskImage.empty() && 
-     aMaskImage.buffer->owner == Buffer::MAPPED)
+  if(!aMaskImage.empty())
     {
       Data copiedData = aMaskImage.copy();
       _MaskImage.setData(copiedData);

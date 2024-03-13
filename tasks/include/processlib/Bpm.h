@@ -135,19 +135,19 @@ namespace Tasks
 
     template<class IN,class SUMMTYPE>
       void _treat_image(const Data &aSrc,
-	                Buffer &projection_x,
-		        Buffer &projection_y,
+	                BufferBase &projection_x,
+		        BufferBase &projection_y,
 		        BpmResult &aResult);
     template<class IN,class SUMMTYPE>
       void _tune_projection(const Data &aSrc,
-			    Buffer&,Buffer&,
+			    BufferBase&,BufferBase&,
 			    const BpmResult&);
     template<class SUMMTYPE>
-    double _calculate_fwhm(const Buffer &projection,int size,
+    double _calculate_fwhm(const BufferBase &projection,int size,
 			   int max_index,double background_level,
 			   int &,int &);
     template<class SUMMTYPE>
-    void _calculate_background(const Buffer &projection,double &background_level,
+    void _calculate_background(const BufferBase &projection,double &background_level,
 			       int min_index,int max_index);
   };
 }
