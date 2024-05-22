@@ -38,33 +38,58 @@
 #include <vector>
 #include <string>
 #include <cstring>
+#include <functional>
 
 #include "processlib/Compatibility.h"
 #include "processlib/ProcessExceptions.h"
 #include "processlib/Container.h"
 #include "processlib/sideband/Data.h"
 
-struct DLL_EXPORT Buffer
+struct DLL_EXPORT BufferBase
 {
-  class DLL_EXPORT Callback
+  virtual ~BufferBase()
   {
-  public:
-    virtual ~Callback() {}
-    virtual void destroy(void *dataPt) = 0;
-  };
-
-  enum Ownership {MAPPED,SHARED};
-  ~Buffer()
-  {
-    if(callback)
-      callback->destroy(data);
     pthread_mutex_destroy(&_lock);
   }
-  Buffer() : owner(SHARED),refcount(1),data(NULL),callback(NULL)
+  void unref()
+  {
+    while(pthread_mutex_lock(&_lock)) ;
+    bool destroy = (--refcount == 0);
+    pthread_mutex_unlock(&_lock);
+    if(destroy)
+	delete this;
+  }
+  void ref()
+  {
+    while(pthread_mutex_lock(&_lock)) ;
+    ++refcount;
+    pthread_mutex_unlock(&_lock);
+  }
+  virtual const char *type() const = 0;
+
+  volatile int          refcount;
+  void			*data;
+  pthread_mutex_t	_lock;
+
+ protected:
+  BufferBase(void *p = NULL) : refcount(1),data(p)
   {
     pthread_mutex_init(&_lock,NULL);
   }
-  explicit Buffer(int aSize) :owner(SHARED),refcount(1),callback(NULL)
+};
+
+struct DLL_EXPORT Buffer : BufferBase
+{
+  virtual ~Buffer()
+  {
+#ifdef __unix
+    free(data);
+#else
+    _aligned_free(data);
+#endif
+  }
+
+  Buffer(int aSize)
   {
 #ifdef __unix
     if(posix_memalign(&data,16,aSize))
@@ -73,36 +98,38 @@ struct DLL_EXPORT Buffer
     if(!data)
 #endif
       std::cerr << "Can't allocate memory" << std::endl;
-    pthread_mutex_init(&_lock,NULL);
   }
-  void unref()
+
+  Buffer(void *p) : BufferBase(p)
   {
-    while(pthread_mutex_lock(&_lock)) ;
-    if(!(--refcount))
-      {
-	if(owner == SHARED && data)
-#ifdef __unix
-	  free(data);
-#else
-	_aligned_free(data);
-#endif
-	pthread_mutex_unlock(&_lock);
-	delete this;
-      }
-    else
-      pthread_mutex_unlock(&_lock);
   }
-  void ref()
+
+  const char *type() const override
   {
-    while(pthread_mutex_lock(&_lock)) ;
-    ++refcount;
-    pthread_mutex_unlock(&_lock);
+    return "Standard";
   }
-  Ownership		owner;
-  volatile int          refcount;
-  void			*data;
-  pthread_mutex_t	_lock;
-  Callback*		callback;
+};
+
+struct DLL_EXPORT MappedBuffer : BufferBase
+{
+  virtual ~MappedBuffer()
+  {
+    if (deleter)
+      deleter(data);
+  }
+
+  template <class D>
+  MappedBuffer(void *p, D&& d) : BufferBase(p), deleter(std::forward<D>(d))
+  {
+  }
+
+  const char *type() const override
+  {
+    return "Mapped";
+  }
+
+ protected:
+  std::function<void(void *)> deleter;
 };
 
 struct DLL_EXPORT Data
@@ -128,7 +155,7 @@ struct DLL_EXPORT Data
     type = aData.type;
     dimensions = aData.dimensions;
   }
-  void setBuffer(Buffer *aBuffer)
+  void setBuffer(BufferBase *aBuffer)
   {
     if(aBuffer) aBuffer->ref();
     if(buffer) buffer->unref();
@@ -280,7 +307,7 @@ struct DLL_EXPORT Data
   double    			timestamp;
   mutable HeaderContainer 	header;
   mutable SidebandContainer sideband;
-  mutable Buffer *		buffer;
+  mutable BufferBase *		buffer;
 
  private:
   template<class INPUT>
@@ -595,12 +622,10 @@ Data Data::cast(Data::TYPE aType)
   return aReturnData;
 }
 
-inline std::ostream& operator<<(std::ostream &os,const Buffer &aBuffer)
+inline std::ostream& operator<<(std::ostream &os,const BufferBase &aBuffer)
 {
-  const char *anOwnerShip = (aBuffer.owner ==
-			     Buffer::MAPPED) ? "Mapped" : "Shared";
   os << "<"
-     << "owner=" << anOwnerShip << ", "
+     << "type=" << aBuffer.type() << ", "
      << "refcount=" << aBuffer.refcount << ", "
      << "data=" << aBuffer.data
      << ">";

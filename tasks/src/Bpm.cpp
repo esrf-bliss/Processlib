@@ -57,12 +57,12 @@ template<class INPUT> static inline INPUT min(INPUT a,INPUT b)
  */
 template<class INPUT,class SUMMTYPE> 
 void BpmTask::_treat_image(const Data &aSrc,
-			   Buffer &projection_x,Buffer &projection_y,
+			   BufferBase &projection_x,BufferBase &projection_y,
 			   BpmResult &aResult)
 {
   SUMMTYPE *aProjectionX = (SUMMTYPE*)projection_x.data;
   SUMMTYPE *aProjectionY = (SUMMTYPE*)projection_y.data;
-  Buffer *aBufferPt = aSrc.buffer;
+  BufferBase *aBufferPt = aSrc.buffer;
   INPUT *aSrcPt = (INPUT*)aBufferPt->data;
   for(int y = 0;y < aSrc.dimensions[1];++y)
     for(int x = 0;x < aSrc.dimensions[0];++x)
@@ -81,7 +81,7 @@ void BpmTask::_treat_image(const Data &aSrc,
  */
 template<class INPUT,class SUMMTYPE>
 void BpmTask::_tune_projection(const Data &aSrc,
-			       Buffer &projection_x,Buffer &projection_y,
+			       BufferBase &projection_x,BufferBase &projection_y,
 			       const BpmResult &aResult)
 {
   SUMMTYPE *aProjectionX = (SUMMTYPE*)projection_x.data;
@@ -90,7 +90,7 @@ void BpmTask::_tune_projection(const Data &aSrc,
   SUMMTYPE *aProjectionY = (SUMMTYPE*)projection_y.data;
   memset(aProjectionY,0,aSrc.dimensions[1] * sizeof(SUMMTYPE));
 
-  Buffer *aBufferPt = aSrc.buffer;
+  BufferBase *aBufferPt = aSrc.buffer;
   INPUT *aSrcPt = (INPUT*)aBufferPt->data;
   
   // X tuning profile
@@ -122,7 +122,7 @@ void BpmTask::_tune_projection(const Data &aSrc,
  *  average over three values and find the maximum in Y
  */
 template<class SUMMTYPE>
-inline int _max_intensity_position(const Buffer &projection,int aSize) 
+inline int _max_intensity_position(const BufferBase &projection,int aSize) 
 {
   int aMaxPos = -1;
   SUMMTYPE aMaxValue = 0;
@@ -143,7 +143,7 @@ inline int _max_intensity_position(const Buffer &projection,int aSize)
  */
 template<class INPUT,class SUMMTYPE> 
 static void _max_intensity(const Data &aSrc,
-			   const Buffer &projection_x,const Buffer & projection_y,
+			   const BufferBase &projection_x,const BufferBase & projection_y,
 			   BpmResult &aResult)
 {
   const int& width = aSrc.dimensions[0];
@@ -165,7 +165,7 @@ static void _max_intensity(const Data &aSrc,
     }
   if(xPositionFound && yPositionFound)
     {
-      Buffer *aBufferPt = aSrc.buffer;
+      BufferBase *aBufferPt = aSrc.buffer;
       INPUT *aSrcPt = (INPUT*)aBufferPt->data;
 
       // Center Pixel
@@ -188,7 +188,7 @@ static void _max_intensity(const Data &aSrc,
     aResult.beam_intensity = -1.;
 }
 template<class SUMMTYPE>
-double BpmTask::_calculate_fwhm(const Buffer &projectionBuffer,int size,
+double BpmTask::_calculate_fwhm(const BufferBase &projectionBuffer,int size,
 				int peak_index,double background_level,
 				int &min_index,int &max_index)
 {
@@ -262,7 +262,7 @@ double BpmTask::_calculate_fwhm(const Buffer &projectionBuffer,int size,
 /** @brief Caluclate the background level around the peak
  */
 template<class SUMMTYPE>
-void BpmTask::_calculate_background(const Buffer &projection,double &background_level,
+void BpmTask::_calculate_background(const BufferBase &projection,double &background_level,
 				    int min_index,int max_index)
 {
 #if DEBUG
@@ -394,9 +394,9 @@ static inline double _compute_center(double y[],int ly)
     }
   int error_flag = gsl_fft_complex_radix2_forward(data_n,1,n);
 
-  Buffer *dataN1 = new Buffer(2 * n1 * sizeof(double));
+  BufferBase *dataN1 = new Buffer(2 * n1 * sizeof(double));
   double *data_n1 = (double*)dataN1->data;
-  Buffer *yn1Re = new Buffer(n1 * sizeof(double));
+  BufferBase *yn1Re = new Buffer(n1 * sizeof(double));
   double *yn1_re = (double*)yn1Re->data;
   if (!error_flag)
     {
@@ -558,7 +558,7 @@ BpmTask::BpmTask(const BpmTask &aTask) :
 					  min_index,max_index);		\
 	  /* calculate the beam center */				\
 	  int size = max_index - min_index + 1;				\
-	  Buffer *profile = new Buffer(size * sizeof(double));		\
+	  BufferBase *profile = new Buffer(size * sizeof(double));		\
 	  double *aProfilePt = (double*)profile->data;			\
 	  SUMMTYPE *aSrcProfilePt = (SUMMTYPE*)projection_##XorY->data + min_index; \
 	  for(int i = 0;i < size;++i) /* @todo optimized if needed */	\
@@ -649,7 +649,7 @@ void BpmTask::process(Data &aInputSrc)
       aResult.mBackgroundLevelTuney = aLastResult.mBackgroundLevelTuney;
     }
   aResult.frameNumber = aSrc.frameNumber;
-  Buffer *projection_x = NULL,*projection_y = NULL;
+  BufferBase *projection_x = NULL,*projection_y = NULL;
   switch(aSrc.type)
     {
     case Data::UINT8:

@@ -113,7 +113,7 @@ void FlatfieldCorrection::setFlatFieldImageData(Data &aData,bool normalize)
     {
       if(normalize)
 	FF = _normalize(aData);
-      else if(aData.buffer->owner == Buffer::MAPPED)
+      else if(!aData.empty())
 	FF = aData.copy();
       else
 	FF = aData;
