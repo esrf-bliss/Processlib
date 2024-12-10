@@ -20,6 +20,9 @@
 // You should have received a copy of the GNU General Public License
 // along with this program; if not, see <http://www.gnu.org/licenses/>.
 //###########################################################################
+#ifdef __AVX__
+#include <immintrin.h>
+#endif
 #include <stdio.h>
 #include "processlib/ProcessExceptions.h"
 #include "processlib/Mask.h"
@@ -71,6 +74,153 @@ static void _mask(INPUT *src,INPUT *dst,int aSize,MASK *mask)
 	*dst = *src;
     }
 }
+
+#ifdef __AVX2__
+//			------- UINT8 -------
+template<>
+void _mask<unsigned char,unsigned char>(unsigned char *src,
+					unsigned char *dst,int aSize,
+					unsigned char *mask)
+{
+  int i = aSize;
+  if(!((long)src & 31))		// aligned to 256 bits
+    {
+      __m256i cmp_to_0 = _mm256_set_epi32(0,0,0,0,0,0,0,0);
+      for(;i >= 32;i -= 32,dst += 32,src += 32,mask += 32)
+	{
+	  __m256i mask_src = _mm256_stream_load_si256((__m256i*)mask);
+	  __m256i src_regiter = _mm256_stream_load_si256((__m256i*)src);
+	  __m256i mask_register = _mm256_cmpgt_epi8 (mask_src,cmp_to_0);
+	  __m256i dst_regiter = _mm256_and_si256(src_regiter,mask_register);
+	  _mm256_stream_si256((__m256i*)dst,dst_regiter);
+	}
+    }
+  for(;i;--i,++src,++dst,++mask)
+    {
+      if(!*mask) 
+	*dst = 0;
+      else
+	*dst = *src;
+    }
+}
+template<>
+void _mask<char,char>(char *src,
+		      char *dst,int aSize,
+		      char *mask)
+{
+  _mask((unsigned char*)src,(unsigned char*)dst,
+	aSize,mask);
+}
+
+//			------- UINT16 -------
+template<>
+void _mask<unsigned short,unsigned char>(unsigned short *src,
+					 unsigned short *dst,int aSize,
+					 unsigned char *mask)
+{
+  int i = aSize / 2;
+  if(!((long)src & 31))		// aligned to 256 bits
+    {
+      __m256i cmp_to_0 = _mm256_set_epi32(0,0,0,0,0,0,0,0);
+      for(;i >= 32;i -= 32,dst += 32,src += 32,mask += 32)
+	{
+	  __m256i mask_src = _mm256_stream_load_si256((__m256i*)mask);
+	  __m256i src1_regiter = _mm256_stream_load_si256((__m256i*)src);
+	  __m256i src2_regiter = _mm256_stream_load_si256((__m256i*)(src + 16));
+
+	  __m128i mask1,mask2;
+	  _mm256_storeu2_m128i (&mask2,&mask1,mask_src);
+	  //mask src1
+	  __m256i mask_tmp1 = _mm256_cvtepu8_epi16(mask1);
+	  __m256i mask_src1 = _mm256_cmpgt_epi16(mask_tmp1,cmp_to_0);
+	  __m256i dst1_regiter = _mm256_and_si256(src1_regiter,mask_src1);
+	  _mm256_stream_si256((__m256i*)dst,dst1_regiter);
+	  //mask src2
+	  __m256i mask_tmp2 = _mm256_cvtepu8_epi16(mask2);
+	  __m256i mask_src2 = _mm256_cmpgt_epi16(mask_tmp2,cmp_to_0);
+	  __m256i dst2_regiter = _mm256_and_si256(src2_regiter,mask_src2);
+	  _mm256_stream_si256((__m256i*)(dst + 16),dst2_regiter);
+	}
+    }
+  for(;i;--i,++src,++dst,++mask)
+    {
+      if(!*mask) 
+	*dst = 0;
+      else
+	*dst = *src;
+    }
+}
+template<>
+void _mask<short,unsigned char>(short *src,
+				short *dst,int aSize,
+				unsigned char *mask)
+{
+  _mask((unsigned short*)src,(unsigned short*)dst,
+	aSize,mask);
+}
+//			------- UINT32 -------
+template<>
+void _mask<unsigned int,unsigned char>(unsigned int *src,
+					 unsigned int *dst,int aSize,
+					 unsigned char *mask)
+{
+  int i = aSize / 4;
+  if(!((long)src & 31))		// aligned to 256 bits
+    {
+      __m256i cmp_to_0 = _mm256_set_epi32(0,0,0,0,0,0,0,0);
+      for(;i >= 32;i -= 32,dst += 32,src += 32,mask += 32)
+	{
+	  __m256i mask_src = _mm256_stream_load_si256((__m256i*)mask);
+	  __m256i src1_regiter = _mm256_stream_load_si256((__m256i*)src);
+	  __m256i src2_regiter = _mm256_stream_load_si256((__m256i*)(src + 8));
+	  __m256i src3_regiter = _mm256_stream_load_si256((__m256i*)(src + 16));
+	  __m256i src4_regiter = _mm256_stream_load_si256((__m256i*)(src + 24));
+
+	  __m128i mask1,mask3;
+	  _mm256_storeu2_m128i (&mask3,&mask1,mask_src);
+	  __m128i mask2,mask4;
+	  __m256i mask_src_2 = _mm256_bsrli_epi128 (mask_src, 8);
+	  _mm256_storeu2_m128i (&mask4,&mask2,mask_src_2);
+	  //mask src1
+	  __m256i mask_tmp1 = _mm256_cvtepu8_epi32(mask1);
+	  __m256i mask_src1 = _mm256_cmpgt_epi32(mask_tmp1,cmp_to_0);
+	  __m256i dst1_regiter = _mm256_and_si256(src1_regiter,mask_src1);
+	  _mm256_stream_si256((__m256i*)dst,dst1_regiter);
+	  //mask src2
+	  __m256i mask_tmp2 = _mm256_cvtepu8_epi32(mask2);
+	  __m256i mask_src2 = _mm256_cmpgt_epi32(mask_tmp2,cmp_to_0);
+	  __m256i dst2_regiter = _mm256_and_si256(src2_regiter,mask_src2);
+	  _mm256_stream_si256((__m256i*)(dst + 8),dst2_regiter);
+	  //mask src3
+	  __m256i mask_tmp3 = _mm256_cvtepu8_epi32(mask3);
+	  __m256i mask_src3 = _mm256_cmpgt_epi32(mask_tmp3,cmp_to_0);
+	  __m256i dst3_regiter = _mm256_and_si256(src3_regiter,mask_src3);
+	  _mm256_stream_si256((__m256i*)(dst + 16),dst3_regiter);
+	  //mask src4
+	  __m256i mask_tmp4 = _mm256_cvtepu8_epi32(mask4);
+	  __m256i mask_src4 = _mm256_cmpgt_epi32(mask_tmp4,cmp_to_0);
+	  __m256i dst4_regiter = _mm256_and_si256(src4_regiter,mask_src4);
+	  _mm256_stream_si256((__m256i*)(dst + 24),dst4_regiter);
+	}
+    }
+  for(;i;--i,++src,++dst,++mask)
+    {
+      if(!*mask) 
+	*dst = 0;
+      else
+	*dst = *src;
+    }
+}
+template<>
+void _mask<int,unsigned char>(int *src,
+			      int *dst,int aSize,
+			      unsigned char *mask)
+{
+  _mask((unsigned int*)src,(unsigned int*)dst,
+	aSize,mask);
+}
+
+#endif
 
 template<class INPUT,class MASK>
 static void _dummy_inplace(INPUT *src,int aSize,MASK *mask)
