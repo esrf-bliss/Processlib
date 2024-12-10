@@ -92,9 +92,9 @@ struct DLL_EXPORT Buffer : BufferBase
   Buffer(int aSize)
   {
 #ifdef __unix
-    if(posix_memalign(&data,16,aSize))
+    if(posix_memalign(&data,32,aSize))
 #else  /* window */
-    data = _aligned_malloc(aSize,16);
+    data = _aligned_malloc(aSize,32);
     if(!data)
 #endif
       std::cerr << "Can't allocate memory" << std::endl;
