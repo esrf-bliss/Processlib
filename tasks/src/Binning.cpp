@@ -109,13 +109,17 @@ Data Binning::process(Data &aData)
   Data aNewData = aData;
   if(aData.dimensions.size() != 2)
     throw ProcessException("Binning : Only manage 2D data");
-  else if(!aData.empty())
-    {
-      std::stringstream info;
-      info << "Binning " << mXFactor << " by " << mYFactor;
-      Stat aStat(aNewData,info.str());
-      if(mYFactor > 0 && mXFactor > 0)
-    {
+  if(aData.empty())
+    throw ProcessException("Binning : Data is empty!");
+
+  {
+    std::stringstream info;
+    info << "Binning " << mXFactor << " by " << mYFactor;
+    Stat aStat(aNewData,info.str());
+
+    if(mYFactor <= 0 || mXFactor <= 0)
+      throw ProcessException("Binning : Factor as not been set");
+
     if(((mXFactor == 2 && mYFactor == 2) ||
         (mXFactor == 4 && mYFactor == 4) ||
         (mXFactor == 8 && mYFactor == 8) ||
@@ -176,12 +180,7 @@ Data Binning::process(Data &aData)
           return aData;
         }
       }
-    }
-    else
-      throw ProcessException("Binning : Factor as not been set");
-    }
-  else
-    throw ProcessException("Binning : Data is empty!");
+  }
   return aNewData;
 }
 
