@@ -28,6 +28,8 @@ namespace Tasks
   class DLL_EXPORT Binning : public LinkTask
   {
   public:
+    enum Operation {SUM,MEAN};
+
     Binning();
     Binning(const Binning&);
 
@@ -35,6 +37,7 @@ namespace Tasks
 
     int mXFactor;
     int mYFactor;
+    Operation mOperation;
   };
 }
 #endif
