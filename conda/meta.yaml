@@ -36,6 +36,12 @@ requirements:
 test:
   imports:
     - processlib
+  source_files:
+    - test
+  requires:
+    - pytest
+  commands:
+    - pytest test
 
 about:
   home: https://github.com/esrf-bliss/Processlib
