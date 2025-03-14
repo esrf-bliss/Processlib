@@ -1,4 +1,4 @@
-from Lima import Core
+import processlib
 import numpy
 import time
 
@@ -6,11 +6,11 @@ import time
 def test_roicollection():
     a = numpy.ones((2048,2048),dtype=numpy.uint16)
 
-    d = Core.Processlib.Data()
+    d = processlib.Data()
     d.frameNumber=0
     d.buffer=a
 
-    m = Core.Processlib.Tasks.RoiCollectionManager()
+    m = processlib.Tasks.RoiCollectionManager()
     xstart=numpy.arange(0,2048,4)
     ystart=numpy.arange(0,2048,4)
 
@@ -36,7 +36,7 @@ def test_roicollection():
 
 def test_ram_usage():
     print (f"check now your RAM usage, we loop on reading the spectrum (issue #22 in Processlib")
-    m = Core.Processlib.Tasks.RoiCollectionManager()
+    m = processlib.Tasks.RoiCollectionManager()
     r=m.getResult(0)
     for _ in range(1_000_000):
         r.spectrum
