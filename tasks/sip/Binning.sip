@@ -28,8 +28,10 @@ namespace Tasks
 #include "processlib/Binning.h"
 %End
   public:
+    enum Operation {SUM,MEAN};
     virtual Data process(Data&);
     int mXFactor;
     int mYFactor;
+    Tasks::Binning::Operation mOperation;
   };
 };
