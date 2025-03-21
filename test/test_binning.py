@@ -1,3 +1,4 @@
+import pytest
 import numpy
 import processlib
 
@@ -166,16 +167,25 @@ def test_overflow_mean():
     assert dst.buffer.dtype == numpy.uint8
 
 
-def test_big_input():
+@pytest.mark.parametrize("input_shape, bin_shape, expected_result, expected_shape", [
+    pytest.param((1024, 1024), (2, 2), 1, (512, 512), id="big_square"),
+    pytest.param((2048, 1024), (2, 2), 1, (1024, 512), id="big_rect"),
+    pytest.param((1024, 2048), (2, 2), 1, (512, 1024), id="big_rect2"),
+])
+def test_mean_robustness(input_shape, bin_shape, expected_result, expected_shape):
     """
     Check that there is no menory corruption.
     """
     b = processlib.Tasks.Binning()
-    b.mXFactor = 2
-    b.mYFactor = 2
+    b.mXFactor = bin_shape[0]
+    b.mYFactor = bin_shape[1]
     b.mOperation = processlib.Tasks.Binning.MEAN
 
     src = processlib.Data()
-    src.buffer = numpy.ones((1024, 1024), dtype=numpy.uint8)
+    src.buffer = numpy.ones(input_shape, dtype=numpy.uint8)
     dst = b.process(src)
     assert dst.buffer.dtype == numpy.uint8
+    if expected_shape is not None:
+        assert dst.buffer.shape == expected_shape
+    if expected_result is not None:
+        numpy.testing.assert_allclose(dst.buffer, expected_result)
