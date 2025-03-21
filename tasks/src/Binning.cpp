@@ -117,7 +117,7 @@ static void _binning2x2(Data &aSrcData,Data &aDstData,int Factor)
   int binColumn = aSrcData.dimensions[0] / xFactor;
   int binSize = xFactor * yFactor;
 
-  std::vector<LINE> aScanLine(binLine);
+  std::vector<LINE> aScanLine(binColumn);
 
   // For each vertical bins
   for(int j1 = 0; j1 < binLine; j1++) {
