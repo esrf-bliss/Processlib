@@ -35,6 +35,8 @@
 # SIP_EXTRA_OPTIONS - Extra command line options which should be passed on to
 #     SIP.
 
+find_package(Python3 COMPONENTS Interpreter)
+
 # See https://itk.org/Bug/view.php?id=12265
 get_filename_component(_SIPMACRO_LIST_DIR ${CMAKE_CURRENT_LIST_FILE} PATH)
 
@@ -107,7 +109,7 @@ macro(ADD_SIP_PYTHON_MODULE MODULE_NAME MODULE_SIP)
     else (CYGWIN)
         add_library(${_logical_name} SHARED ${_sip_output_files} )
     endif (CYGWIN)
-    target_link_libraries(${_logical_name} PRIVATE ${PYTHON_LIBRARY})
+    target_link_libraries(${_logical_name} PRIVATE ${Python3_LIBRARY})
     target_link_libraries(${_logical_name} PRIVATE ${EXTRA_LINK_LIBRARIES})
     set_target_properties(${_logical_name} PROPERTIES PREFIX "" OUTPUT_NAME ${_child_module_name})
 
@@ -116,8 +118,8 @@ macro(ADD_SIP_PYTHON_MODULE MODULE_NAME MODULE_SIP)
     endif (WIN32)
 
     install(TARGETS ${_logical_name}
-      LIBRARY DESTINATION "${PYTHON_SITE_PACKAGES_DIR}/${_parent_module_path}"
-      RUNTIME DESTINATION "${PYTHON_SITE_PACKAGES_DIR}/${_parent_module_path}"
+      LIBRARY DESTINATION "${Python3_SITEARCH}/${_parent_module_path}"
+      RUNTIME DESTINATION "${Python3_SITEARCH}/${_parent_module_path}"
     )
 
 endmacro(ADD_SIP_PYTHON_MODULE)
