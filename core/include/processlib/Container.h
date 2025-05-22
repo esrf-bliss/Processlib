@@ -39,6 +39,9 @@
 template <typename T>
 class DLL_EXPORT Container
 {
+    // Forward definition
+    class Holder;
+
 public:
     typedef std::map<std::string, T> Map;
 

@@ -27,13 +27,8 @@
 #
 # - CMAKE_INSTALL_PREFIX:
 #  Set this to a installation directory, default for UNIX is /usr/local
-#
-# - PYTHON_SITE_PACKAGES_DIR:
-# Set this to an alternative python site-packages directory,
-# default is the python installation directory, for UNIX it
-# can be /usr/lib/python2.7/dist-packages/ .
 
-cmake_minimum_required(VERSION 3.8)
+cmake_minimum_required(VERSION 3.10)
 
 project (processlib)
 include(cmake/project_version.cmake)
@@ -83,16 +78,10 @@ endif(PROCESSLIB_ENABLE_GSL)
 # Enable python binding code compilation using sip generator
 option(PROCESSLIB_ENABLE_PYTHON "compile python binding code?" ${LIMA_ENABLE_PYTHON})
 if(PROCESSLIB_ENABLE_PYTHON)
-    find_package(PythonInterp)
-    find_package(PythonLibs)
-    if(${PYTHONINTERP_FOUND})
-      # python site-packages folder
-      execute_process(
-          COMMAND ${PYTHON_EXECUTABLE} -c "from distutils.sysconfig import get_python_lib; print (get_python_lib())"
-          OUTPUT_VARIABLE _PYTHON_SITE_PACKAGES_DIR OUTPUT_STRIP_TRAILING_WHITESPACE)
-    endif()
+    find_package(Python3 COMPONENTS Interpreter Development NumPy REQUIRED)
 
     find_package(SIP)
+
     if(SIP_FOUND)
         include(SIPMacros)
 
@@ -104,16 +93,6 @@ if(PROCESSLIB_ENABLE_PYTHON)
         set(SIP_EXTRA_OPTIONS -e -g)
     else()
   	    message(FATAL_ERROR "python SIP not installed, please install or disable PROCESSLIB_ENABLE_PYTHON")
-    endif()
-
-    set(PYTHON_SITE_PACKAGES_DIR ${_PYTHON_SITE_PACKAGES_DIR} CACHE PATH "where should python modules be installed?")
-
-    find_package(NumPy)
-    if(${NUMPY_FOUND})
-        include_directories(${NUMPY_INCLUDE_DIRS})
-        link_directories(${NUMPY_LIBRARIES})
-    else()
-        message(FATAL_ERROR "NumPy not found, cannot build python extensions")
     endif()
 endif()
 
@@ -195,13 +174,15 @@ endif()
 if(PROCESSLIB_ENABLE_PYTHON)
     configure_file(${CMAKE_CURRENT_SOURCE_DIR}/sip/processlib.sip sip/processlib.sip COPYONLY)
     set(SIP_INCLUDE_DIRS "${CMAKE_CURRENT_SOURCE_DIR}/tasks/sip")
+
     # Disable BPM is GLS is not enabled
     if(NOT PROCESSLIB_ENABLE_GSL)
         set(SIP_DISABLE_FEATURES "BPM_SUPPORT")
     endif(NOT PROCESSLIB_ENABLE_GSL)
+
     add_sip_python_module(processlib "${CMAKE_CURRENT_BINARY_DIR}/sip/processlib.sip")
-    target_include_directories(python_module_processlib PRIVATE ${PYTHON_INCLUDE_DIRS} ${CMAKE_CURRENT_SOURCE_DIR}/sip)
-    target_link_libraries(python_module_processlib PRIVATE processlib)
+    target_include_directories(python_module_processlib PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/sip)
+    target_link_libraries(python_module_processlib PRIVATE processlib Python3::Python Python3::NumPy)
 endif()
 
 ## Installation
