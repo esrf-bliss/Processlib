@@ -73,21 +73,28 @@ namespace Tasks
 	      sequence_flag = PySequence_Check(roi_value);
 	      int nb_roi_values = PySequence_Size(roi_value);
 	      if(nb_roi_values != 4)
-		return NULL;
-
+		{
+		  Py_DECREF(roi_value);
+		  return NULL;
+		}
 	      int x,y,width,height;
 	      std::vector<std::tuple<int,int&>> tuple_values = {{0,x},{1,y},{2,width},{3,height}};
 	      for(const auto& val: tuple_values)
 		{
 		  PyObject* obj = PySequence_GetItem(roi_value,std::get<0>(val));
 		  PyObject* py_long = PyNumber_Long(obj);
+		  Py_DECREF(obj);
 		  if(!py_long)
-		    return NULL;
+		    {
+		      Py_DECREF(roi_value);
+		      return NULL;
+		    }
 		  long value = PyLong_AsLong(py_long);
 		  Py_DECREF(py_long);
 		  std::get<1>(val) = value;
 		}
 	      rois.push_back({x,y,width,height});
+	      Py_DECREF(roi_value);
 	    }
 	  Py_BEGIN_ALLOW_THREADS
 	  sipCpp->setRois(rois);
