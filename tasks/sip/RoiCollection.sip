@@ -72,6 +72,11 @@ namespace Tasks
 	    {
 	      PyObject* roi_value = PySequence_GetItem(a0,i);
 	      sequence_flag = PySequence_Check(roi_value);
+	      if(!sequence_flag)
+		{
+		  Py_DECREF(roi_value);
+		  return NULL;
+		}
 	      int nb_roi_values = PySequence_Size(roi_value);
 	      if(nb_roi_values != 4)
 		{
