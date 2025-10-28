@@ -49,6 +49,7 @@ namespace Tasks
     {
       delete aResult;
       Py_DECREF(sipRes);
+      return SIP_NULLPTR;
     }
     PyList_SET_ITEM(sipRes,index,wobj);
     ++index;
