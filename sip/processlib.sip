@@ -1105,6 +1105,7 @@ class PoolThreadMgr
 
  public:
   static PoolThreadMgr& get();
+  static void cleanup();
 
   void addProcess(TaskMgr *,bool = true);
 %MethodCode
