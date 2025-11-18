@@ -48,6 +48,7 @@ public:
   PoolThreadMgr();
   ~PoolThreadMgr();
   static PoolThreadMgr& get() throw();
+  static void cleanup();
 
   void addProcess(TaskMgr *aProcess,bool lock = true);
   void removeProcess(TaskMgr *aProcess,bool lock = true);
