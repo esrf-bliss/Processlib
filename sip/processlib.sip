@@ -417,7 +417,7 @@ struct Data
 		    PyObject *dict, int *sipIsErr)
     {
         PyObject *key, *value;
-        SIP_SSIZE_T pos = 0;
+        Py_ssize_t pos = 0;
         while (PyDict_Next(dict, &pos, &key, &value)) {
             if (!sipCheckConvertFromPyStr(key) ||
                 !sipCheckConvertFromPyStr(value)) {
@@ -633,7 +633,7 @@ struct Data
   	    sipRes = sipDataHeaderContainerHasKey(*sipCpp, a0, &sipIsErr);
         %End
 
-        int __len__();
+        Py_ssize_t __len__();
         %MethodCode
         if (!sipCpp->isLocked()) {
 	    PyErr_SetString(PyExc_ValueError, "Null LockRef");
@@ -747,7 +747,7 @@ struct Data
     sipRes = sipDataHeaderContainerHasKey(headerPtr, a0, &sipIsErr);
     %End
 
-    int __len__();
+    Py_ssize_t __len__();
     %MethodCode
     Data::HeaderContainer::SharedLockedPtr headerPtr(*sipCpp);
     sipRes = headerPtr->size();
@@ -876,7 +876,7 @@ struct Data
   	    sipRes = sipDataSidebandContainerHasKey(*sipCpp, a0, &sipIsErr);
         %End
 
-        int __len__();
+        Py_ssize_t __len__();
         %MethodCode
         if (!sipCpp->isLocked()) {
 	    PyErr_SetString(PyExc_ValueError, "Null LockRef");
@@ -1110,7 +1110,7 @@ class PoolThreadMgr
 %End
 
  public:
-  static PoolThreadMgr& get() throw();
+  static PoolThreadMgr& get();
 
   void addProcess(TaskMgr *,bool = true);
 %MethodCode
