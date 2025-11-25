@@ -19,7 +19,7 @@ requirements:
   host:
     - python {{ python }}
     - numpy {{ numpy }}
-    - sip 4.19.* # API v12.7
+    - sip 6
     - gsl 2.6.*
     - pthreads-win32 # [win]
   build:
