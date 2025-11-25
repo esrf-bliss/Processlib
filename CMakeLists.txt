@@ -237,18 +237,18 @@ endif()
 if(PROCESSLIB_ENABLE_PYTHON AND PROCESSLIB_MASTER_PROJECT)
     install(
         FILES sip/processlib.sip
-              tasks/sip/BackgroundSubstraction.sip
-              tasks/sip/Binning.sip
-              tasks/sip/Bpm.sip
-              tasks/sip/FlatfieldCorrection.sip
-              tasks/sip/Flip.sip
-              tasks/sip/Mask.sip
-              tasks/sip/PeakFinder.sip
-              tasks/sip/Roi2Spectrum.sip
-              tasks/sip/RoiCounter.sip
-              tasks/sip/Rotation.sip
-              tasks/sip/SoftRoi.sip
-              tasks/sip/RoiCollection.sip
+              sip/BackgroundSubstraction.sip
+              sip/Binning.sip
+              sip/Bpm.sip
+              sip/FlatfieldCorrection.sip
+              sip/Flip.sip
+              sip/Mask.sip
+              sip/PeakFinder.sip
+              sip/Roi2Spectrum.sip
+              sip/RoiCounter.sip
+              sip/Rotation.sip
+              sip/SoftRoi.sip
+              sip/RoiCollection.sip
         COMPONENT devel
         DESTINATION ${SIP_INSTALL_DIR}
     )
