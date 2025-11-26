@@ -14,9 +14,9 @@ def test_square_regular_2x2():
     b.mYFactor = 2
 
     src = processlib.Data()
-    src.buffer = numpy.arange(4*4, dtype=numpy.ushort).reshape((4, 4))
+    src.buffer = numpy.arange(4 * 4, dtype=numpy.ushort).reshape((4, 4))
     dst = b.process(src)
-    expected = numpy.array([[10, 18],[42, 50]])
+    expected = numpy.array([[10, 18], [42, 50]])
     numpy.testing.assert_almost_equal(dst.buffer, expected)
 
 
@@ -31,9 +31,9 @@ def test_square_regular_3x3():
     b.mYFactor = 3
 
     src = processlib.Data()
-    src.buffer = numpy.arange(6*6, dtype=numpy.ushort).reshape((6, 6))
+    src.buffer = numpy.arange(6 * 6, dtype=numpy.ushort).reshape((6, 6))
     dst = b.process(src)
-    expected = numpy.array([[63, 90],[225, 252]])
+    expected = numpy.array([[63, 90], [225, 252]])
     numpy.testing.assert_almost_equal(dst.buffer, expected)
 
 
@@ -48,9 +48,9 @@ def test_rect_3x2():
     b.mYFactor = 2
 
     src = processlib.Data()
-    src.buffer = numpy.arange(6*4, dtype=numpy.ushort).reshape((4, 6))
+    src.buffer = numpy.arange(6 * 4, dtype=numpy.ushort).reshape((4, 6))
     dst = b.process(src)
-    expected = numpy.array([[24, 42],[96, 114]])
+    expected = numpy.array([[24, 42], [96, 114]])
     numpy.testing.assert_almost_equal(dst.buffer, expected)
 
 
@@ -67,9 +67,9 @@ def test_non_regular_2x2():
     b.mYFactor = 2
 
     src = processlib.Data()
-    src.buffer = numpy.ones(5*5, dtype=numpy.ushort).reshape((5, 5))
+    src.buffer = numpy.ones(5 * 5, dtype=numpy.ushort).reshape((5, 5))
     dst = b.process(src)
-    expected = numpy.array([[4, 4],[4, 4]])
+    expected = numpy.array([[4, 4], [4, 4]])
     numpy.testing.assert_almost_equal(dst.buffer, expected)
 
 
@@ -86,9 +86,9 @@ def test_non_regular_3x3():
     b.mYFactor = 3
 
     src = processlib.Data()
-    src.buffer = numpy.ones(8*8, dtype=numpy.ushort).reshape((8, 8))
+    src.buffer = numpy.ones(8 * 8, dtype=numpy.ushort).reshape((8, 8))
     dst = b.process(src)
-    expected = numpy.array([[9, 9],[9, 9]])
+    expected = numpy.array([[9, 9], [9, 9]])
     numpy.testing.assert_almost_equal(dst.buffer, expected)
 
 
@@ -101,12 +101,12 @@ def test_regular_mean():
     b = processlib.Tasks.Binning()
     b.mXFactor = 3
     b.mYFactor = 3
-    b.mOperation = processlib.Tasks.Binning.MEAN
+    b.mOperation = processlib.Tasks.Binning.Operation.MEAN
 
     src = processlib.Data()
-    src.buffer = numpy.arange(6*6, dtype=numpy.ushort).reshape((6, 6))
+    src.buffer = numpy.arange(6 * 6, dtype=numpy.ushort).reshape((6, 6))
     dst = b.process(src)
-    expected = numpy.array([[63, 90],[225, 252]]) // 9
+    expected = numpy.array([[63, 90], [225, 252]]) // 9
     numpy.testing.assert_almost_equal(dst.buffer, expected)
 
 
@@ -121,12 +121,12 @@ def test_non_regular_mean():
     b = processlib.Tasks.Binning()
     b.mXFactor = 3
     b.mYFactor = 3
-    b.mOperation = processlib.Tasks.Binning.MEAN
+    b.mOperation = processlib.Tasks.Binning.Operation.MEAN
 
     src = processlib.Data()
-    src.buffer = numpy.ones(8*8, dtype=numpy.ushort).reshape((8, 8))
+    src.buffer = numpy.ones(8 * 8, dtype=numpy.ushort).reshape((8, 8))
     dst = b.process(src)
-    expected = numpy.array([[1, 1],[1, 1]])
+    expected = numpy.array([[1, 1], [1, 1]])
     numpy.testing.assert_almost_equal(dst.buffer, expected)
 
 
@@ -139,12 +139,12 @@ def test_rect_mean():
     b = processlib.Tasks.Binning()
     b.mXFactor = 3
     b.mYFactor = 2
-    b.mOperation = processlib.Tasks.Binning.MEAN
+    b.mOperation = processlib.Tasks.Binning.Operation.MEAN
 
     src = processlib.Data()
-    src.buffer = numpy.arange(6*4, dtype=numpy.ushort).reshape((4, 6))
+    src.buffer = numpy.arange(6 * 4, dtype=numpy.ushort).reshape((4, 6))
     dst = b.process(src)
-    expected = numpy.array([[24, 42],[96, 114]]) // 6
+    expected = numpy.array([[24, 42], [96, 114]]) // 6
     numpy.testing.assert_almost_equal(dst.buffer, expected)
 
 
@@ -157,7 +157,7 @@ def test_overflow_mean():
     b = processlib.Tasks.Binning()
     b.mXFactor = 2
     b.mYFactor = 2
-    b.mOperation = processlib.Tasks.Binning.MEAN
+    b.mOperation = processlib.Tasks.Binning.Operation.MEAN
 
     src = processlib.Data()
     src.buffer = numpy.array([[255, 255], [255, 251]], dtype=numpy.uint8)
@@ -167,11 +167,14 @@ def test_overflow_mean():
     assert dst.buffer.dtype == numpy.uint8
 
 
-@pytest.mark.parametrize("input_shape, bin_shape, expected_result, expected_shape", [
-    pytest.param((1024, 1024), (2, 2), 1, (512, 512), id="big_square"),
-    pytest.param((2048, 1024), (2, 2), 1, (1024, 512), id="big_rect"),
-    pytest.param((1024, 2048), (2, 2), 1, (512, 1024), id="big_rect2"),
-])
+@pytest.mark.parametrize(
+    "input_shape, bin_shape, expected_result, expected_shape",
+    [
+        pytest.param((1024, 1024), (2, 2), 1, (512, 512), id="big_square"),
+        pytest.param((2048, 1024), (2, 2), 1, (1024, 512), id="big_rect"),
+        pytest.param((1024, 2048), (2, 2), 1, (512, 1024), id="big_rect2"),
+    ],
+)
 def test_mean_robustness(input_shape, bin_shape, expected_result, expected_shape):
     """
     Check that there is no menory corruption.
@@ -179,7 +182,7 @@ def test_mean_robustness(input_shape, bin_shape, expected_result, expected_shape
     b = processlib.Tasks.Binning()
     b.mXFactor = bin_shape[0]
     b.mYFactor = bin_shape[1]
-    b.mOperation = processlib.Tasks.Binning.MEAN
+    b.mOperation = processlib.Tasks.Binning.Operation.MEAN
 
     src = processlib.Data()
     src.buffer = numpy.ones(input_shape, dtype=numpy.uint8)
