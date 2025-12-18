@@ -35,7 +35,7 @@ requirements:
 
 test:
   imports:
-    - lima.rocesslib
+    - lima.processlib
   source_files:
     - test
   requires:
