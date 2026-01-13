@@ -180,6 +180,9 @@ if(PROCESSLIB_ENABLE_PYTHON)
         set(SIP_DISABLE_FEATURES "BPM_SUPPORT")
     endif(NOT PROCESSLIB_ENABLE_GSL)
 
+    # Get sip abi version of the lima.sip module, collected from FindSIP.cmake (from FindSIP.py)
+    set(SIP_ABI_VERSION ${LIMA_SIP_ABI_VERSION})
+
     add_sip_python_module(processlib "${CMAKE_CURRENT_BINARY_DIR}/sip/processlib.sip")
     target_include_directories(python_module_processlib PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/sip)
     target_link_libraries(python_module_processlib PRIVATE processlib Python3::Python Python3::NumPy)
