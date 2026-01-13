@@ -2,7 +2,7 @@
 // This file is part of ProcessLib, a submodule of LImA project the
 // Library for Image Acquisition
 //
-// Copyright (C) : 2009-2021
+// Copyright (C) : 2009-2025
 // European Synchrotron Radiation Facility
 // CS40220 38043 Grenoble Cedex 9 
 // FRANCE
@@ -22,7 +22,7 @@
 // You should have received a copy of the GNU General Public License
 // along with this program; if not, see <http://www.gnu.org/licenses/>.
 //###########################################################################
-%Module(name=processlib)
+%Module(name=lima.processlib, use_limited_api=True)
 
 %ModuleHeaderCode
 #define NPY_NO_DEPRECATED_API NPY_1_7_API_VERSION
@@ -57,24 +57,18 @@ inline PyObject *sipConvertToPyStr(const std::string& s)
 {
     PyObject *newstring;
 
-#if PY_MAJOR_VERSION >= 3
     // convert an std::string to a Python (unicode) string
-    newstring = PyUnicode_FromStringAndSize(s.c_str(), s.length());
+    newstring = PyUnicode_DecodeUTF8(s.c_str(), s.length(), NULL);
     if (newstring == NULL) {
         PyErr_Clear();
-        newstring = PyString_FromString(s.c_str());
+        newstring = PyUnicode_FromString(s.c_str());
     }
-#else
-    // convert an std::string to a Python string - assume an ASCII string
-    newstring = PyString_FromString(s.c_str());
-#endif
-
   return newstring;
 }
 
 inline bool sipCheckConvertFromPyStr(PyObject *sipPy)
 {
-    return (PyString_Check(sipPy) || PyUnicode_Check(sipPy));
+    return (PyBytes_Check(sipPy) || PyUnicode_Check(sipPy));
 }
 
 inline std::string sipConvertFromPyStr(PyObject *sipPy)
@@ -86,10 +80,10 @@ inline std::string sipConvertFromPyStr(PyObject *sipPy)
     // If argument is a Python string, assume it's UTF-8
     if (PyUnicode_Check(sipPy)) {
         PyObject *pyS = PyUnicode_AsEncodedString(sipPy, "UTF-8", "");
-        s = PyString_AS_STRING(pyS);
+        s = PyBytes_AsString(pyS);
         Py_DECREF(pyS);
-    } else if (PyString_Check(sipPy)) {
-        s = PyString_AS_STRING(sipPy);
+    } else if (PyBytes_Check(sipPy)) {
+        s = PyBytes_AsString(sipPy);
     } else if (sipPy != Py_None) {
         throw std::exception();
     }
@@ -417,7 +411,7 @@ struct Data
 		    PyObject *dict, int *sipIsErr)
     {
         PyObject *key, *value;
-        SIP_SSIZE_T pos = 0;
+        Py_ssize_t pos = 0;
         while (PyDict_Next(dict, &pos, &key, &value)) {
             if (!sipCheckConvertFromPyStr(key) ||
                 !sipCheckConvertFromPyStr(value)) {
@@ -633,7 +627,7 @@ struct Data
   	    sipRes = sipDataHeaderContainerHasKey(*sipCpp, a0, &sipIsErr);
         %End
 
-        int __len__();
+        Py_ssize_t __len__();
         %MethodCode
         if (!sipCpp->isLocked()) {
 	    PyErr_SetString(PyExc_ValueError, "Null LockRef");
@@ -747,7 +741,7 @@ struct Data
     sipRes = sipDataHeaderContainerHasKey(headerPtr, a0, &sipIsErr);
     %End
 
-    int __len__();
+    Py_ssize_t __len__();
     %MethodCode
     Data::HeaderContainer::SharedLockedPtr headerPtr(*sipCpp);
     sipRes = headerPtr->size();
@@ -876,7 +870,7 @@ struct Data
   	    sipRes = sipDataSidebandContainerHasKey(*sipCpp, a0, &sipIsErr);
         %End
 
-        int __len__();
+        Py_ssize_t __len__();
         %MethodCode
         if (!sipCpp->isLocked()) {
 	    PyErr_SetString(PyExc_ValueError, "Null LockRef");
@@ -1110,7 +1104,7 @@ class PoolThreadMgr
 %End
 
  public:
-  static PoolThreadMgr& get() throw();
+  static PoolThreadMgr& get();
 
   void addProcess(TaskMgr *,bool = true);
 %MethodCode

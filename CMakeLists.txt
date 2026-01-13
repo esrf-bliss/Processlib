@@ -2,7 +2,7 @@
 # This file is part of ProcessLib, a submodule of LImA project the
 # Library for Image Acquisition
 #
-# Copyright (C) : 2009-2017
+# Copyright (C) : 2009-2025
 # European Synchrotron Radiation Facility
 # CS40220 38043 Grenoble Cedex 9
 # FRANCE
@@ -180,6 +180,9 @@ if(PROCESSLIB_ENABLE_PYTHON)
         set(SIP_DISABLE_FEATURES "BPM_SUPPORT")
     endif(NOT PROCESSLIB_ENABLE_GSL)
 
+    # Get sip abi version of the lima.sip module, collected from FindSIP.cmake (from FindSIP.py)
+    set(SIP_ABI_VERSION ${LIMA_SIP_ABI_VERSION})
+
     add_sip_python_module(processlib "${CMAKE_CURRENT_BINARY_DIR}/sip/processlib.sip")
     target_include_directories(python_module_processlib PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/sip)
     target_link_libraries(python_module_processlib PRIVATE processlib Python3::Python Python3::NumPy)
@@ -237,18 +240,18 @@ endif()
 if(PROCESSLIB_ENABLE_PYTHON AND PROCESSLIB_MASTER_PROJECT)
     install(
         FILES sip/processlib.sip
-              tasks/sip/BackgroundSubstraction.sip
-              tasks/sip/Binning.sip
-              tasks/sip/Bpm.sip
-              tasks/sip/FlatfieldCorrection.sip
-              tasks/sip/Flip.sip
-              tasks/sip/Mask.sip
-              tasks/sip/PeakFinder.sip
-              tasks/sip/Roi2Spectrum.sip
-              tasks/sip/RoiCounter.sip
-              tasks/sip/Rotation.sip
-              tasks/sip/SoftRoi.sip
-              tasks/sip/RoiCollection.sip
+              sip/BackgroundSubstraction.sip
+              sip/Binning.sip
+              sip/Bpm.sip
+              sip/FlatfieldCorrection.sip
+              sip/Flip.sip
+              sip/Mask.sip
+              sip/PeakFinder.sip
+              sip/Roi2Spectrum.sip
+              sip/RoiCounter.sip
+              sip/Rotation.sip
+              sip/SoftRoi.sip
+              sip/RoiCollection.sip
         COMPONENT devel
         DESTINATION ${SIP_INSTALL_DIR}
     )
@@ -262,6 +265,6 @@ endif()
 
 # Packages
 set(CPACK_GENERATOR "DEB")
-set(CPACK_DEBIAN_PACKAGE_MAINTAINER "ESRF/BLISS") #required
+set(CPACK_DEBIAN_PACKAGE_MAINTAINER "ESRF/BCU") #required
 set(CPACK_PACKAGE_CONTACT "lima@esrf.fr")
 include(CPack)
