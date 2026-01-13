@@ -2,7 +2,7 @@
 // This file is part of ProcessLib, a submodule of LImA project the
 // Library for Image Acquisition
 //
-// Copyright (C) : 2009-2021
+// Copyright (C) : 2009-2025
 // European Synchrotron Radiation Facility
 // CS40220 38043 Grenoble Cedex 9 
 // FRANCE
@@ -22,7 +22,7 @@
 // You should have received a copy of the GNU General Public License
 // along with this program; if not, see <http://www.gnu.org/licenses/>.
 //###########################################################################
-%Module(name=processlib)
+%Module(name=lima.processlib, use_limited_api=True)
 
 %ModuleHeaderCode
 #define NPY_NO_DEPRECATED_API NPY_1_7_API_VERSION

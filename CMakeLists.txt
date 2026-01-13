@@ -2,7 +2,7 @@
 # This file is part of ProcessLib, a submodule of LImA project the
 # Library for Image Acquisition
 #
-# Copyright (C) : 2009-2017
+# Copyright (C) : 2009-2025
 # European Synchrotron Radiation Facility
 # CS40220 38043 Grenoble Cedex 9
 # FRANCE
@@ -262,6 +262,6 @@ endif()
 
 # Packages
 set(CPACK_GENERATOR "DEB")
-set(CPACK_DEBIAN_PACKAGE_MAINTAINER "ESRF/BLISS") #required
+set(CPACK_DEBIAN_PACKAGE_MAINTAINER "ESRF/BCU") #required
 set(CPACK_PACKAGE_CONTACT "lima@esrf.fr")
 include(CPack)

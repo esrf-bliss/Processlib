@@ -1,25 +1,29 @@
 [build-system]
-requires = ["sip >=5, <6"]
+requires = ["sip >=6, <7"]
 build-backend = "sipbuild.api"
 
 [tool.sip.project]
 sip-files-dir = "sip"
 build-dir = "build-sip"
+sip-module= "lima.sip"
+dunder-init = true
 
 [project]
-name = "processlib"
-requires-python = ">= 3.10"
+name = "lima-processlib"
+requires-python = ">= 3.12"
 #dynamic = ["version"]
 authors = [{ name = "BCU (ESRF)" }]
 description = "Python binding for Processlib"
 readme = "README.md"
 license = "MIT"
-license-files = ["LICENSE"]
+license-files = ["COPYING"]
 classifiers = [
     "Intended Audience :: Science/Research",
     "Programming Language :: Python :: 3",
 ]
 
+[tool.sip.bindings.processlib]
+
 [project.urls]
 Repository = "https://gitlab.esrf.fr/limagroup/processlib"
-Documentation = "https://limagroup.gitlab-pages.esrf.fr/processlib"
+Documentation = "https://gitlab.esrf.fr/limagroup/Processlib"

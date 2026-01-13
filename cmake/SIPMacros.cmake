@@ -46,13 +46,17 @@ set(SIP_CONCAT_PARTS 8)
 set(SIP_DISABLE_FEATURES)
 set(SIP_EXTRA_OPTIONS)
 
-macro(ADD_SIP_PYTHON_MODULE MODULE_NAME MODULE_SIP)
+macro(add_sip_python_module MODULE_NAME MODULE_SIP)
 
     set(EXTRA_LINK_LIBRARIES ${ARGN})
 
     string(REPLACE "." "/" _x ${MODULE_NAME})
+
+
     get_filename_component(_parent_module_path ${_x}  PATH)
     get_filename_component(_child_module_name ${_x} NAME)
+
+    message("_parent_module_path: ${_parent_module_path}")
 
     get_filename_component(_module_path ${MODULE_SIP} PATH)
     get_filename_component(_abs_module_sip ${MODULE_SIP} ABSOLUTE)
@@ -97,12 +101,6 @@ macro(ADD_SIP_PYTHON_MODULE MODULE_NAME MODULE_SIP)
     message("command: ${SIP_BUILD_EXECUTABLE} --no-protected-is-public --pep484-pyi --no-compile --concatenate ${SIP_CONCAT_PARTS} ${SIP_BUILD_EXTRA_OPTIONS}") 
     message("_sip_output_files: ${_sip_output_files}")
 
-    list(APPEND _sip_module_files sip_array.c sip_core.c sip_descriptors.c sip_enum.c sip_int_convertors.c sip_object_map.c sip_threads.c sip_voidptr.c)
-
-    foreach(src ${_sip_module_files})
-        list(APPEND _sip_output_files ${_build_path}/${_child_module_name}/${src})
-    endforeach()
-
     add_custom_command(
         OUTPUT ${_sip_output_files}
         COMMAND ${CMAKE_COMMAND} -E echo ${_message}
@@ -132,8 +130,8 @@ macro(ADD_SIP_PYTHON_MODULE MODULE_NAME MODULE_SIP)
     endif (WIN32)
 
     install(TARGETS ${_logical_name}
-      LIBRARY DESTINATION "${Python3_SITEARCH}/${_parent_module_path}"
-      RUNTIME DESTINATION "${Python3_SITEARCH}/${_parent_module_path}"
+      LIBRARY DESTINATION "${Python3_SITEARCH}/lima/"
+      RUNTIME DESTINATION "${Python3_SITEARCH}/lima/"
     )
 
-endmacro(ADD_SIP_PYTHON_MODULE)
+endmacro(add_sip_python_module)
