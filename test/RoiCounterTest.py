@@ -2,7 +2,7 @@
 # This file is part of ProcessLib, a submodule of LImA project the
 # Library for Image Acquisition
 #
-# Copyright (C) : 2009-2011
+# Copyright (C) : 2009-2026
 # European Synchrotron Radiation Facility
 # BP 220, Grenoble 38043
 # FRANCE
@@ -20,7 +20,7 @@
 # You should have received a copy of the GNU General Public License
 # along with this program; if not, see <http://www.gnu.org/licenses/>.
 ############################################################################
-import processlib
+from lima import processlib
 import numpy
 import time
 

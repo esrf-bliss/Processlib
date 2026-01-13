@@ -1,6 +1,6 @@
 import pytest
 import numpy
-import processlib
+from lima import processlib
 
 
 def test_square_regular_2x2():

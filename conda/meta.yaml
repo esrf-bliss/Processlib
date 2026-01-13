@@ -35,7 +35,7 @@ requirements:
 
 test:
   imports:
-    - processlib
+    - lima.processlib
   source_files:
     - test
   requires:

@@ -5,7 +5,7 @@ stages:
 build-linux:
   stage: build
   script:
-    - conda mambabuild --output-folder=dist conda
+    - conda mambabuild --output-folder=dist conda --channel=http://bcu-ci.esrf.fr/stable
   artifacts:
     paths:
       - dist/
@@ -16,7 +16,7 @@ build-linux:
 build-win:
   stage: build
   script:
-    - call conda mambabuild --output-folder=dist conda
+    - call conda mambabuild --output-folder=dist conda -c conda-forge --channel=http://bcu-ci.esrf.fr/stable
   artifacts:
     paths:
       - dist/

@@ -2,7 +2,7 @@
 # This file is part of ProcessLib, a submodule of LImA project the
 # Library for Image Acquisition
 #
-# Copyright (C) : 2009-2011
+# Copyright (C) : 2009-2026
 # European Synchrotron Radiation Facility
 # BP 220, Grenoble 38043
 # FRANCE
@@ -23,7 +23,7 @@
 #!/usr/bin/env python
 
 
-import processlib
+from lima import processlib
 import numpy
 
 TaskMgr = processlib.TaskMgr();
