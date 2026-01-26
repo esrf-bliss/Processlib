@@ -35,11 +35,13 @@
 //Static variable
 static const int NB_DEFAULT_THREADS = 2;
 
+static pthread_mutex_t _processMgrLock;
 static PoolThreadMgr *_processMgrPt = NULL;
 static pthread_once_t _init = PTHREAD_ONCE_INIT;
+
 static void _processMgrInit()
 {
-  _processMgrPt = new PoolThreadMgr();
+  pthread_mutex_init(&_processMgrLock,NULL);
 }
 
 PoolThreadMgr::PoolThreadMgr()
@@ -274,7 +276,20 @@ void PoolThreadMgr::_createProcessThread(int aNumber)
 PoolThreadMgr& PoolThreadMgr::get() throw()
 {
   pthread_once(&_init,_processMgrInit);
+  LockGuard aLock(&_processMgrLock);
+  if (_processMgrPt == NULL)
+    _processMgrPt = new PoolThreadMgr();
   return *_processMgrPt;
+}
+
+void PoolThreadMgr::cleanup()
+{
+  pthread_once(&_init,_processMgrInit);
+  LockGuard aLock(&_processMgrLock);
+  if (_processMgrPt != NULL) {
+    delete _processMgrPt;
+    _processMgrPt = NULL;
+  }
 }
 
 #ifdef __unix
