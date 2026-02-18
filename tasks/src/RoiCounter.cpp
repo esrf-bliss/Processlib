@@ -398,11 +398,12 @@ template<class INPUT> static void _get_average_std_with_mask(const Data& aData,
       const char *aMaskLinePt = aMaskPt + offset;
       for(int i = 0;i < width;++i,++aLinePt,++aMaskLinePt)
 	{
-	  if(*aMaskLinePt) continue;
-
-	  double diff = *aLinePt - aResult.average;
-	  diff *= diff;
-	  aSum += diff;
+	  if(*aMaskLinePt) 
+            {
+	      double diff = *aLinePt - aResult.average;
+	      diff *= diff;
+	      aSum += diff;
+	    }
 	}
     }
 
