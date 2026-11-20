@@ -290,14 +290,18 @@ typedef ContainerItemIterator<Data::HeaderContainer> Data_HeaderContainer_itemIt
 %End
 
 
-%Exception Data_Header_Iter_Stop_iteration /PyName=StopIteration/
+// Translate C++ ProcessException into a Python processlib.ProcessException
+// (a RuntimeError subclass) instead of aborting the interpreter.
+// Requires "exceptions = true" for the bindings in pyproject.toml.
+%Exception ProcessException(SIP_RuntimeError) /Default/
 {
 %TypeHeaderCode
-#include <iostream>
+#include "processlib/ProcessExceptions.h"
 %End
 %RaiseCode
+        const char *detail = sipExceptionRef.getErrMsg().c_str();
         SIP_BLOCK_THREADS
-        PyErr_SetString(PyExc_Exception,"");
+        PyErr_SetString(sipException_ProcessException, detail);
         SIP_UNBLOCK_THREADS
 %End
 };
