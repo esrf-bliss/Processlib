@@ -92,6 +92,19 @@ def test_non_regular_3x3():
     numpy.testing.assert_almost_equal(dst.buffer, expected)
 
 
+def test_factor_not_set_raises():
+    """
+    Errors raised by process() are translated into Python exceptions.
+    """
+    b = processlib.Tasks.Binning()
+    src = processlib.Data()
+    src.buffer = numpy.ones((4, 4), dtype=numpy.ushort)
+    with pytest.raises(processlib.ProcessException, match="Factor as not been set"):
+        b.process(src)
+    with pytest.raises(RuntimeError):
+        b.process(src)
+
+
 def test_regular_mean():
     """
     Test a binning with squre bins and input.

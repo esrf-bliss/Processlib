@@ -23,6 +23,7 @@ classifiers = [
 ]
 
 [tool.sip.bindings.processlib]
+exceptions = true
 
 [project.urls]
 Repository = "https://gitlab.esrf.fr/limagroup/processlib"
